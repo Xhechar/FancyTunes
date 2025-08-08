@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import { Star, MapPin, Clock, Users, Phone, Mail, ChevronLeft, ChevronRight, Calendar, Utensils, Building } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Landing.css';
 
 const sampleRooms = [
@@ -13,7 +14,7 @@ const sampleRooms = [
     Capacity: 50,
     Status: "Available",
     RoomImage:
-      "https://via.placeholder.com/400x300/2c3e50/ffffff?text=Conference+Hall",
+      "https://i.pinimg.com/736x/c8/0b/68/c80b683b417cef1cc85cf95b777aafeb.jpg",
     CreatedAt: "2024-01-15T10:00:00Z",
     UpdatedAt: "2024-01-15T10:00:00Z",
     Accommodations: [],
@@ -30,7 +31,7 @@ const sampleRooms = [
     Capacity: 12,
     Status: "Available",
     RoomImage:
-      "https://via.placeholder.com/400x300/34495e/ffffff?text=Meeting+Bay",
+      "https://i.pinimg.com/736x/f4/a5/1b/f4a51ba1eac54469c36240785a8e9701.jpg",
     CreatedAt: "2024-01-15T10:00:00Z",
     UpdatedAt: "2024-01-15T10:00:00Z",
     Accommodations: [],
@@ -47,7 +48,7 @@ const sampleRooms = [
     Capacity: 20,
     Status: "Available",
     RoomImage:
-      "https://via.placeholder.com/400x300/27ae60/ffffff?text=Dining+Room",
+      "https://i.pinimg.com/736x/23/f5/15/23f515fdd3f362e365b8f6f31bfb7270.jpg",
     CreatedAt: "2024-01-15T10:00:00Z",
     UpdatedAt: "2024-01-15T10:00:00Z",
     Accommodations: [],
@@ -64,7 +65,7 @@ const sampleDelicacies = [
     Description: "Creamy arborio rice with black truffle and parmesan",
     Price: 45,
     DelicacyImage:
-      "https://via.placeholder.com/300x200/e74c3c/ffffff?text=Truffle+Risotto",
+      "https://i.pinimg.com/1200x/8c/7f/36/8c7f3619468690693e9b5561c9e4fe84.jpg",
     Category: "Main Course",
     IsAvailable: true,
     CreatedAt: "2024-01-15T10:00:00Z",
@@ -80,7 +81,7 @@ const sampleDelicacies = [
     Description: "Premium wagyu beef cooked to perfection",
     Price: 85,
     DelicacyImage:
-      "https://via.placeholder.com/300x200/8e44ad/ffffff?text=Wagyu+Steak",
+      "https://i.pinimg.com/736x/5a/01/14/5a0114b9f21c7b2231061ec6e3a81a0a.jpg",
     Category: "Main Course",
     IsAvailable: true,
     CreatedAt: "2024-01-15T10:00:00Z",
@@ -96,7 +97,7 @@ const sampleDelicacies = [
     Description: "Decadent chocolate soufflé with vanilla ice cream",
     Price: 25,
     DelicacyImage:
-      "https://via.placeholder.com/300x200/f39c12/ffffff?text=Chocolate+Souffle",
+      "https://i.pinimg.com/1200x/f6/d1/58/f6d158eb208d61fc964b5e0cca61f8c2.jpg",
     Category: "Dessert",
     IsAvailable: true,
     CreatedAt: "2024-01-15T10:00:00Z",
@@ -124,7 +125,8 @@ const sampleReviews = [
       Phone: "+254700123456",
       Password: "",
       Role: "Customer",
-      ProfileImage: "https://via.placeholder.com/60x60/3498db/ffffff?text=SJ",
+      ProfileImage:
+        "https://i.pinimg.com/736x/89/18/6e/89186e357f672a7eb9c19e1d3dc7c18c.jpg",
       IsWelcome: true,
       CreatedAt: "2024-01-10T10:00:00Z",
       UpdatedAt: "2024-01-10T10:00:00Z",
@@ -155,7 +157,8 @@ const sampleReviews = [
       Phone: "+254700234567",
       Password: "",
       Role: "Customer",
-      ProfileImage: "https://via.placeholder.com/60x60/e74c3c/ffffff?text=MC",
+      ProfileImage:
+        "https://i.pinimg.com/736x/eb/76/a4/eb76a46ab920d056b02d203ca95e9a22.jpg",
       IsWelcome: true,
       CreatedAt: "2024-01-12T10:00:00Z",
       UpdatedAt: "2024-01-12T10:00:00Z",
@@ -177,19 +180,26 @@ export const Landing: React.FC = () => {
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activeTab, setActiveTab] = useState("rooms");
+  const navigate = useNavigate();
 
   const heroSlides = [
     {
       image:
-        "https://via.placeholder.com/1920x800/2c3e50/ffffff?text=FancyTunes+Restaurant",
+        "https://i.pinimg.com/736x/40/d1/a2/40d1a2ce92e2b27d672352687ea5928f.jpg",
       title: "Welcome to FancyTunes",
       subtitle: "Where Culinary Excellence Meets Perfect Ambiance",
     },
     {
       image:
-        "https://via.placeholder.com/1920x800/34495e/ffffff?text=Premium+Dining+Experience",
+        "https://i.pinimg.com/1200x/1a/b0/8a/1ab08a6e785a72ba600d73124837d08f.jpg",
       title: "Premium Dining Experience",
       subtitle: "Exquisite Delicacies in Elegant Settings",
+    },
+    {
+      image:
+        "https://i.pinimg.com/1200x/c7/5b/c9/c75bc9a248e6ca99ac666cfdba67c5be.jpg",
+      title: "Unforgettable Moments",
+      subtitle: "Create Lasting Memories with Us",
     },
   ];
 
@@ -209,6 +219,10 @@ export const Landing: React.FC = () => {
       (prev) => (prev - 1 + heroSlides.length) % heroSlides.length
     );
   };
+
+  const navigateToPage = (path: string) => {
+    navigate(path);
+  }
 
   return (
     <div className="landing-page">
@@ -236,7 +250,7 @@ export const Landing: React.FC = () => {
             </a>
           </nav>
           <div className="header-actions">
-            <button className="btn btn-outline">Sign In</button>
+            <button className="btn btn-outline" onClick={() => navigateToPage("/register")}>Sign In</button>
             <button className="btn btn-primary">Book Now</button>
           </div>
         </div>
@@ -290,7 +304,7 @@ export const Landing: React.FC = () => {
           <div className="features-grid">
             <div className="feature-card">
               <div className="feature-icon">
-                <Building size={32} />
+                {/* <Building size={32} /> */}
               </div>
               <h3>Premium Spaces</h3>
               <p>

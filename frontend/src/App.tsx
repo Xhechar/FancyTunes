@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Landing } from './pages/Landing';
@@ -7,16 +6,55 @@ import { Register } from './pages/Register';
 import { NotFound } from './pages/NotFound';
 import { VerifyMail } from './pages/VerifyMail';
 import { ChangePassword } from './pages/ChangePassword';
+import {User} from './pages/user/User';
+import { Accommodations } from './pages/user/user_routes/Accommodations';
+import { Bookings } from './pages/user/user_routes/Bookings';
+import { Cart } from './pages/user/user_routes/Cart';
+import { Orders } from './pages/user/user_routes/Orders';
+import { Profile } from './pages/user/user_routes/Profile';
+import { Reviews } from './pages/user/user_routes/Reviews';
+import { Admin } from './pages/admin/Admin';
+import { Delicacies } from './pages/admin/admin_routes/Delicacies';
+import { Payments } from './pages/admin/admin_routes/Payments';
+import { UserRecoveries } from './pages/admin/admin_routes/UserRecoveries';
+import { UserReviews } from './pages/admin/admin_routes/UserReviews';
+import { Rooms } from './pages/admin/admin_routes/Rooms';
+import { UserAccommodations } from './pages/admin/admin_routes/UserAccommodations';
+import { UserOrders } from './pages/admin/admin_routes/UserOrders';
+import { UserBookings } from './pages/admin/admin_routes/UserBookings';
+import { Users } from './pages/admin/admin_routes/Users';
+import { SingleRoom } from './pages/SingleRoom';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path='' element={<Landing />}></Route>
+        <Route path='/home' element={< Landing />} ></Route>
         <Route path='/login' element={<Login />}></Route>
         <Route path='/register' element={<Register />}></Route>
         <Route path='/verify-mail' element={<VerifyMail />}></Route>
         <Route path='/change-password' element={<ChangePassword />}></Route>
+        <Route path='/room/:RommId' element={<SingleRoom />}></Route>
+        <Route path='/user' element={<User />} children={[
+          <Route path='accommodations' element={<Accommodations />} />,
+          <Route path='bookings' element={<Bookings />} />,
+          <Route path='cart' element={<Cart />} />,
+          <Route path='orders' element={<Orders />} />,
+          <Route path='profile' element={<Profile />} />,
+          <Route path='reviews' element={<Reviews />} />
+        ]}></Route>
+        <Route path='/admin' element={<Admin />} children={[
+          <Route path='delicacies' element={<Delicacies />} />,
+          <Route path='payments' element={<Payments />} />,
+          <Route path='recoveries' element={<UserRecoveries />} />,
+          <Route path='user?reviews' element={<UserReviews />} />,
+          <Route path='rooms' element={<Rooms />} />,
+          <Route path='user?accommodations' element={<UserAccommodations />} />,
+          <Route path='user?orders' element={<UserOrders />} />,
+          <Route path='user?bookings' element={<UserBookings />} />,
+          <Route path='users' element={<Users />} />
+        ]}></Route>
         <Route path='*' element={<NotFound />}></Route>
       </Routes>
     </BrowserRouter>
