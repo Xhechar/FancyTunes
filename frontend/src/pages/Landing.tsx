@@ -1,7 +1,19 @@
-import React, {useState, useEffect} from 'react';
-import { Star, MapPin, Clock, Users, Phone, Mail, ChevronLeft, ChevronRight, Calendar, Utensils, Building } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import '../styles/Landing.css';
+import React, { useState, useEffect } from "react";
+import {
+  Star,
+  MapPin,
+  Clock,
+  Users,
+  Phone,
+  Mail,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Utensils,
+  Building,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import "../styles/Landing.css";
 
 const sampleRooms = [
   {
@@ -177,7 +189,6 @@ const sampleReviews = [
 ];
 
 export const Landing: React.FC = () => {
-
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activeTab, setActiveTab] = useState("rooms");
   const navigate = useNavigate();
@@ -204,6 +215,30 @@ export const Landing: React.FC = () => {
   ];
 
   useEffect(() => {
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("animate");
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, {
+      threshold: 0.1,
+      rootMargin: "0px 0px -50px 0px",
+    });
+
+    // Observe all animatable elements
+    const animatableElements = document.querySelectorAll(
+      ".feature-card, .card, .review-card"
+    );
+
+    animatableElements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [activeTab]);
+
+  useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 5000);
@@ -222,7 +257,7 @@ export const Landing: React.FC = () => {
 
   const navigateToPage = (path: string) => {
     navigate(path);
-  }
+  };
 
   return (
     <div className="landing-page">
@@ -250,7 +285,12 @@ export const Landing: React.FC = () => {
             </a>
           </nav>
           <div className="header-actions">
-            <button className="btn btn-outline" onClick={() => navigateToPage("/register")}>Sign In</button>
+            <button
+              className="btn btn-outline"
+              onClick={() => navigateToPage("/login")}
+            >
+              Sign In
+            </button>
             <button className="btn btn-primary">Book Now</button>
           </div>
         </div>
@@ -303,9 +343,7 @@ export const Landing: React.FC = () => {
         <div className="container">
           <div className="features-grid">
             <div className="feature-card">
-              <div className="feature-icon">
-                {/* <Building size={32} /> */}
-              </div>
+              <div className="feature-icon">{/* <Building size={32} /> */}</div>
               <h3>Premium Spaces</h3>
               <p>
                 Conference halls and meeting bays for all your business needs
@@ -568,4 +606,4 @@ export const Landing: React.FC = () => {
       </footer>
     </div>
   );
-}
+};
