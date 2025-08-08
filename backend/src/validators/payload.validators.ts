@@ -1,0 +1,327 @@
+import Joi from "joi";
+
+// user validation schema
+export const CreateUserSchema = Joi.object({
+  FullName: Joi.string().min(3).max(100).required().messages({
+    "string.empty": "Full Name is required",
+    "string.min": "Full Name must be at least 3 characters long",
+    "string.max": "Full Name must not exceed 100 characters",
+  }),
+  Email: Joi.string().email().required().messages({
+    "string.email": "Please provide a valid email address",
+    "string.empty": "Email is required",
+  }),
+  Phone: Joi.string().min(10).max(15).required().messages({
+    "string.empty": "Phone number is required",
+    "string.min": "Phone number must be at least 10 digits",
+    "string.max": "Phone number must not exceed 15 digits",
+  }),
+  Password: Joi.string().min(6).required().messages({
+    "string.empty": "Password is required",
+    "string.min": "Password must be at least 6 characters long",
+  }),
+  Role: Joi.string().valid("user", "admin").default("user").messages({
+    "any.only": 'Role must be either "user" or "admin"',
+  }),
+  ProfileImage: Joi.string().uri().optional().messages({
+    "string.uri": "Profile image must be a valid URL",
+  }),
+});
+
+export const UpdateUserSchema = Joi.object({
+  FullName: Joi.string().min(3).max(100).messages({
+    "string.min": "Full Name must be at least 3 characters long",
+    "string.max": "Full Name must not exceed 100 characters",
+  }),
+  Email: Joi.string().email().messages({
+    "string.email": "Please provide a valid email address",
+  }),
+  Phone: Joi.string().min(10).max(15).messages({
+    "string.min": "Phone number must be at least 10 digits",
+    "string.max": "Phone number must not exceed 15 digits",
+  }),
+  Role: Joi.string().valid("user", "admin").messages({
+    "any.only": 'Role must be either "user" or "admin"',
+  }),
+  ProfileImage: Joi.string().uri().messages({
+    "string.uri": "Profile image must be a valid URL",
+  }),
+});
+
+// room validation schema
+export const CreateRoomSchema = Joi.object({
+  RoomNumber: Joi.string()
+    .required()
+    .messages({ "string.empty": "Room Number is required" }),
+  RoomType: Joi.string()
+    .required()
+    .messages({ "string.empty": "Room Type is required" }),
+  PricePerNight: Joi.number()
+    .precision(2)
+    .required()
+    .messages({
+      "number.base": "Price per night must be a valid number",
+      "any.required": "Price per night is required",
+    }),
+  Description: Joi.string()
+    .required()
+    .messages({ "string.empty": "Description is required" }),
+  Capacity: Joi.number()
+    .integer()
+    .min(1)
+    .required()
+    .messages({
+      "number.base": "Capacity must be a number",
+      "number.min": "Capacity must be at least 1",
+    }),
+  Status: Joi.string()
+    .valid("available", "occupied", "maintenance")
+    .default("available")
+    .messages({
+      "any.only": "Status must be one of available, occupied, or maintenance",
+    }),
+  RoomImage: Joi.string()
+    .uri()
+    .optional()
+    .messages({ "string.uri": "Room Image must be a valid URL" }),
+});
+
+export const UpdateRoomSchema = Joi.object({
+  RoomNumber: Joi.string(),
+  RoomType: Joi.string(),
+  PricePerNight: Joi.number().precision(2),
+  Description: Joi.string(),
+  Capacity: Joi.number().integer().min(1),
+  Status: Joi.string().valid("available", "occupied", "maintenance"),
+  RoomImage: Joi.string().uri(),
+});
+
+// delicacy validation schema
+export const CreateDelicacySchema = Joi.object({
+  Name: Joi.string()
+    .required()
+    .messages({ "string.empty": "Delicacy name is required" }),
+  Description: Joi.string()
+    .required()
+    .messages({ "string.empty": "Description is required" }),
+  Price: Joi.number()
+    .precision(2)
+    .required()
+    .messages({
+      "number.base": "Price must be a valid number",
+      "any.required": "Price is required",
+    }),
+  DelicacyImage: Joi.string()
+    .uri()
+    .required()
+    .messages({
+      "string.empty": "Delicacy image URL is required",
+      "string.uri": "Image must be a valid URL",
+    }),
+  Category: Joi.string()
+    .required()
+    .messages({ "string.empty": "Category is required" }),
+  IsAvailable: Joi.boolean().default(true),
+});
+
+export const UpdateDelicacySchema = Joi.object({
+  Name: Joi.string(),
+  Description: Joi.string(),
+  Price: Joi.number().precision(2),
+  DelicacyImage: Joi.string().uri(),
+  Category: Joi.string(),
+  IsAvailable: Joi.boolean(),
+});
+
+// accommodation validation schema
+export const CreateAccommodationSchema = Joi.object({
+  UserId: Joi.string()
+    .required()
+    .messages({ "string.empty": "UserId is required" }),
+  RoomId: Joi.string()
+    .required()
+    .messages({ "string.empty": "RoomId is required" }),
+  CheckInDate: Joi.date()
+    .iso()
+    .required()
+    .messages({
+      "date.base": "Check-In Date must be a valid ISO date",
+      "any.required": "Check-In Date is required",
+    }),
+  CheckOutDate: Joi.date()
+    .iso()
+    .required()
+    .messages({
+      "date.base": "Check-Out Date must be a valid ISO date",
+      "any.required": "Check-Out Date is required",
+    }),
+  TotalAmount: Joi.number()
+    .precision(2)
+    .required()
+    .messages({ "number.base": "Total Amount must be a valid number" }),
+  SpecialRequests: Joi.string().optional(),
+  PaymentStatus: Joi.string()
+    .valid("unpaid", "paid")
+    .default("unpaid")
+    .messages({ "any.only": "Payment Status must be either unpaid or paid" }),
+  IsActive: Joi.boolean().default(true),
+});
+
+export const UpdateAccommodationSchema = Joi.object({
+  CheckInDate: Joi.date().iso(),
+  CheckOutDate: Joi.date().iso(),
+  TotalAmount: Joi.number().precision(2),
+  SpecialRequests: Joi.string(),
+  PaymentStatus: Joi.string().valid("unpaid", "paid"),
+  IsActive: Joi.boolean(),
+});
+
+// order validation schema
+export const CreateOrderSchema = Joi.object({
+  UserId: Joi.string().required(),
+  DelicacyId: Joi.string().required(),
+  Quantity: Joi.number().integer().min(1).required(),
+  TotalAmount: Joi.number().precision(2).required(),
+  OrderStatus: Joi.string()
+    .valid("pending", "processing", "delivered", "cancelled")
+    .default("pending"),
+  PaymentStatus: Joi.string().valid("unpaid", "paid").default("unpaid"),
+});
+
+export const UpdateOrderSchema = Joi.object({
+  Quantity: Joi.number().integer().min(1),
+  TotalAmount: Joi.number().precision(2),
+  OrderStatus: Joi.string().valid(
+    "pending",
+    "processing",
+    "delivered",
+    "cancelled"
+  ),
+  PaymentStatus: Joi.string().valid("unpaid", "paid"),
+  DeliveredAt: Joi.date().iso(),
+});
+
+// booking validation schema
+export const CreateBookingSchema = Joi.object({
+  UserId: Joi.string().required(),
+  RoomId: Joi.string().required(),
+  CheckInDate: Joi.date().iso().required(),
+  CheckOutDate: Joi.date().iso().required(),
+  NumberOfGuests: Joi.number().integer().min(1).required(),
+  PaymentStatus: Joi.string().valid("unpaid", "paid").default("unpaid"),
+  TotalAmount: Joi.number().precision(2).required(),
+  SpecialRequests: Joi.string().optional(),
+  BookingStatus: Joi.string()
+    .valid("pending", "confirmed", "cancelled")
+    .default("pending"),
+});
+
+export const UpdateBookingSchema = Joi.object({
+  CheckInDate: Joi.date().iso(),
+  CheckOutDate: Joi.date().iso(),
+  NumberOfGuests: Joi.number().integer().min(1),
+  PaymentStatus: Joi.string().valid("unpaid", "paid"),
+  TotalAmount: Joi.number().precision(2),
+  SpecialRequests: Joi.string(),
+  BookingStatus: Joi.string().valid("pending", "confirmed", "cancelled"),
+});
+
+// cart validation schema
+export const CreateCartSchema = Joi.object({
+  UserId: Joi.string().required(),
+  DelicacyId: Joi.string().required(),
+  Quantity: Joi.number().integer().min(1).required(),
+  TotalAmount: Joi.number().precision(2).required(),
+});
+
+export const UpdateCartSchema = Joi.object({
+  Quantity: Joi.number().integer().min(1),
+  TotalAmount: Joi.number().precision(2),
+});
+
+// recovery validation schema
+export const CreateRecoverySchema = Joi.object({
+  UserId: Joi.string().required(),
+  VerificationCode: Joi.number().required(),
+  ExpiresAt: Joi.date().iso().required(),
+});
+
+export const UpdateRecoverySchema = Joi.object({
+  VerificationCode: Joi.number(),
+  ExpiresAt: Joi.date().iso(),
+});
+
+// review validation schema
+export const CreateReviewSchema = Joi.object({
+  UserId: Joi.string().required(),
+  RoomId: Joi.string().optional(),
+  DelicacyId: Joi.string().optional(),
+  Rating: Joi.number().integer().min(1).max(5).required(),
+  Comment: Joi.string().required(),
+});
+
+export const UpdateReviewSchema = Joi.object({
+  Rating: Joi.number().integer().min(1).max(5),
+  Comment: Joi.string(),
+});
+
+// notification validation schema
+export const CreateNotificationSchema = Joi.object({
+  UserId: Joi.string().required(),
+  Title: Joi.string().required(),
+  Message: Joi.string().required(),
+  IsRead: Joi.boolean().default(false),
+});
+
+export const UpdateNotificationSchema = Joi.object({
+  Title: Joi.string(),
+  Message: Joi.string(),
+  IsRead: Joi.boolean(),
+});
+
+// order item validation schema
+export const CreateOrderItemSchema = Joi.object({
+  OrderId: Joi.string().required(),
+  DelicacyId: Joi.string().required(),
+  Quantity: Joi.number().integer().min(1).required(),
+  Price: Joi.number().precision(2).required(),
+});
+
+export const UpdateOrderItemSchema = Joi.object({
+  Quantity: Joi.number().integer().min(1),
+  Price: Joi.number().precision(2),
+});
+
+// payment validation schema
+export const CreatePaymentSchema = Joi.object({
+  UserId: Joi.string().required(),
+  Amount: Joi.number().precision(2).required(),
+  PaymentMethod: Joi.string().required(),
+  PaymentReference: Joi.string().required(),
+  TransactionId: Joi.string().required(),
+  Status: Joi.string()
+    .valid("pending", "completed", "failed")
+    .default("pending"),
+  BookingId: Joi.string().optional(),
+  OrderId: Joi.string().optional(),
+  PaidAt: Joi.date().iso().required(),
+});
+
+export const UpdatePaymentSchema = Joi.object({
+  Amount: Joi.number().precision(2),
+  PaymentMethod: Joi.string(),
+  PaymentReference: Joi.string(),
+  TransactionId: Joi.string(),
+  Status: Joi.string().valid("pending", "completed", "failed"),
+  PaidAt: Joi.date().iso(),
+});
+
+// room image validation schema
+export const CreateRoomImageSchema = Joi.object({
+  RoomId: Joi.string().required(),
+  ImageUrl: Joi.string().uri().required(),
+});
+
+export const UpdateRoomImageSchema = Joi.object({
+  ImageUrl: Joi.string().uri(),
+});

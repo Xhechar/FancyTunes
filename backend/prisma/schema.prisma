@@ -1,0 +1,205 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  UserId           String           @id
+  FullName         String
+  Email            String           @unique
+  Phone            String           @unique
+  Password     String
+  Role             String           @default("user")
+  ProfileImage  String?
+  IsWelcome         Boolean          @default(false)
+  CreatedAt        DateTime         @default(now())
+  UpdatedAt        DateTime         @updatedAt
+
+  Bookings         Booking[]
+  Accommodations   Accommodation[]
+  Orders           Order[]
+  Carts            Cart[]
+  Recoveries       Recovery[]
+  Payments         Payment[]
+  Reviews          Review[]
+  Notifications    Notification[]
+}
+
+model Room {
+  RoomId           String           @id
+  RoomNumber       String
+  RoomType         String
+  PricePerNight    Decimal
+  Description      String
+  Capacity         Int
+  Status           String           @default("available")
+  RoomImage        String?
+  CreatedAt        DateTime         @default(now())
+  UpdatedAt        DateTime         @updatedAt
+
+  Accommodations   Accommodation[]
+  Bookings         Booking[]
+  Reviews          Review[]
+  RoomImages       RoomImage[]
+}
+
+model Delicacy {
+  DelicacyId       String           @id
+  Name             String
+  Description      String
+  Price            Decimal
+  DelicacyImage    String
+  Category         String
+  IsAvailable      Boolean          @default(true)
+  CreatedAt        DateTime         @default(now())
+  UpdatedAt        DateTime         @updatedAt
+
+  Orders           Order[]
+  Carts            Cart[]
+  OrderItems       OrderItem[]
+  Reviews          Review[]
+}
+
+model Accommodation {
+  AccommodationId  String           @id
+  UserId           String
+  RoomId           String
+  CheckInDate      DateTime
+  CheckOutDate     DateTime
+  TotalAmount      Decimal
+  SpecialRequests   String?
+  PaymentStatus    String           @default("unpaid")
+  IsActive         Boolean          @default(true)  
+  CreatedAt        DateTime         @default(now())
+  UpdatedAt        DateTime         @updatedAt
+
+  User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
+  Room             Room             @relation(fields: [RoomId], references: [RoomId], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Order {
+  OrderId          String           @id
+  UserId           String
+  DelicacyId       String
+  Quantity         Int
+  TotalAmount      Decimal
+  OrderStatus      String        @default("pending")
+  OrderedAt        DateTime
+  DeliveredAt      DateTime?
+  PaymentStatus    String        @default("unpaid")
+
+  User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
+  Delicacy         Delicacy         @relation(fields: [DelicacyId], references: [DelicacyId], onDelete: NoAction, onUpdate: NoAction)
+  OrderItems       OrderItem[]
+}
+
+model Booking {
+  BookingId        String           @id
+  UserId           String
+  RoomId           String
+  CheckInDate      DateTime
+  CheckOutDate     DateTime
+  NumberOfGuests   Int
+  TotalAmount      Decimal
+  SpecialRequests   String?
+  BookingStatus    String
+  PaymentStatus    String
+  CreatedAt        DateTime         @default(now())
+  UpdatedAt        DateTime         @updatedAt
+
+  User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
+  Room             Room             @relation(fields: [RoomId], references: [RoomId], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Cart {
+  CartId           String           @id
+  UserId           String
+  DelicacyId       String
+  Quantity         Int
+  AddedAt          DateTime         @default(now())
+
+  User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
+  Delicacy         Delicacy         @relation(fields: [DelicacyId], references: [DelicacyId], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Recovery {
+  RecoveryId       String           @id
+  UserId           String
+  VerificationCode Int
+  ExpiresAt        DateTime         
+  IsUsed           Boolean
+  CreatedAt        DateTime         @default(now())
+
+  User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Payment {
+  PaymentId        String           @id
+  UserId           String
+  Amount           Decimal
+  PaymentMethod    String
+  PaymentReference String
+  TransactionId    String
+  Status           String
+  BookingId        String?
+  OrderId          String?
+  PaidAt           DateTime
+  CreatedAt        DateTime         @default(now())
+
+  User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model OrderItem {
+  OrderItemId      String           @id
+  OrderId          String
+  DelicacyId       String
+  Quantity         Int
+  Price            Decimal
+  Subtotal         Decimal
+
+  Order            Order            @relation(fields: [OrderId], references: [OrderId], onDelete: NoAction, onUpdate: NoAction)
+  Delicacy         Delicacy         @relation(fields: [DelicacyId], references: [DelicacyId], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Review {
+  ReviewId         String           @id
+  UserId           String
+  RoomId           String?
+  DelicacyId       String?
+  Rating           Int
+  Comment          String
+  CreatedAt        DateTime         @default(now())
+
+  User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
+  Room             Room?            @relation(fields: [RoomId], references: [RoomId], onDelete: NoAction, onUpdate: NoAction)
+  Delicacy         Delicacy?        @relation(fields: [DelicacyId], references: [DelicacyId], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Notification {
+  NotificationId   String           @id
+  UserId           String
+  Title            String
+  Message          String
+  IsRead           Boolean          @default(false)
+  CreatedAt        DateTime         @default(now())
+
+  User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model RoomImage {
+  RoomImageId      String           @id
+  RoomId           String
+  ImageUrl         String
+
+  Room             Room             @relation(fields: [RoomId], references: [RoomId], onDelete: NoAction, onUpdate: NoAction)
+}
