@@ -222,7 +222,7 @@ export const Login: React.FC = () => {
                 <span className="checkbox-label">Remember me</span>
               </label>
 
-              <a href="#" className="forgot-password">
+              <a href="verify-mail" className="forgot-password">
                 Forgot Password?
               </a>
             </div>

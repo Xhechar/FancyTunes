@@ -1,0 +1,313 @@
+import React, { useState, useEffect } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { 
+  Home,
+  User,
+  Bed,
+  Calendar,
+  ShoppingCart,
+  UtensilsCrossed,
+  Star,
+  Bell,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+  ChefHat,
+  CreditCard,
+  MapPin,
+  Phone,
+  Mail
+} from 'lucide-react';
+import { User as UserInterface, Notification } from '../../interfaces/interfaces';
+import '../../styles/user/UserDashboard.css';
+
+interface NavItem {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  path: string;
+  badge?: number;
+  description: string;
+}
+
+interface UserDashboardProps {
+  user?: UserInterface;
+  notifications?: Notification[]; 
+}
+
+export const UserDashboard: React.FC<UserDashboardProps> = ({ user, notifications = [] }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const [unreadNotifications, setUnreadNotifications] = useState<number>(0);
+
+  // Calculate unread notifications using your interface
+  useEffect(() => {
+    const unread = notifications.filter(notification => !notification.IsRead).length;
+    setUnreadNotifications(unread);
+  }, [notifications]);
+
+  const navigationItems: NavItem[] = [
+    {
+      id: 'overview',
+      label: 'Overview',
+      icon: <Home size={20} />,
+      path: 'dashboard',
+      description: 'Dashboard home and summary'
+    },
+    {
+      id: 'accommodations',
+      label: 'Accommodations',
+      icon: <Bed size={20} />,
+      path: 'accommodations',
+      badge: user?.Accommodations?.filter(acc => acc.IsActive).length || 0,
+      description: 'Manage your room accommodations'
+    },
+    {
+      id: 'bookings',
+      label: 'Bookings',
+      icon: <Calendar size={20} />,
+      path: 'bookings',
+      badge: user?.Bookings?.filter(booking => booking.BookingStatus === 'confirmed').length || 0,
+      description: 'View and manage your bookings'
+    },
+    {
+      id: 'orders',
+      label: 'Orders',
+      icon: <UtensilsCrossed size={20} />,
+      path: 'orders',
+      badge: user?.Orders?.filter(order => order.OrderStatus === 'pending').length || 0,
+      description: 'Track your food orders'
+    },
+    {
+      id: 'cart',
+      label: 'Cart',
+      icon: <ShoppingCart size={20} />,
+      path: 'cart',
+      badge: user?.Carts?.length || 0,
+      description: 'Items in your cart'
+    },
+    {
+      id: 'payments',
+      label: 'Payments',
+      icon: <CreditCard size={20} />,
+      path: 'my-payments',
+      description: 'Payment history and methods'
+    },
+    {
+      id: 'reviews',
+      label: 'Reviews',
+      icon: <Star size={20} />,
+      path: 'reviews',
+      description: 'Your reviews and ratings'
+    },
+    {
+      id: 'notifications',
+      label: 'Notifications',
+      icon: <Bell size={20} />,
+      path: 'notifications',
+      badge: unreadNotifications,
+      description: 'View all notifications'
+    },
+    {
+      id: 'profile',
+      label: 'Profile',
+      icon: <User size={20} />,
+      path: 'profile',
+      description: 'Manage your account'
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: <Settings size={20} />,
+      path: 'settings',
+      description: 'Account preferences'
+    }
+  ];
+
+  const isActiveRoute = (path: string): boolean => {
+    if (path === '/dashboard') {
+      return location.pathname === '/dashboard';
+    }
+    return location.pathname.startsWith(path);
+  };
+
+  const handleNavigation = (path: string): void => {
+    navigate(path);
+    setIsSidebarOpen(false);
+  };
+
+  const handleLogout = (): void => {
+    // Add your logout logic here
+    navigate('/login');
+  };
+
+  const toggleSidebar = (): void => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  return (
+    <div className="user-dashboard">
+      {/* Mobile Header */}
+      <header className="mobile-header">
+        <div className="mobile-header-content">
+          <button 
+            className="sidebar-toggle"
+            onClick={toggleSidebar}
+            aria-label="Toggle sidebar"
+          >
+            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          
+          <div className="mobile-brand">
+            <ChefHat className="brand-icon" size={24} />
+            <span className="brand-name">FancyTunes</span>
+          </div>
+
+          <div className="mobile-user-info">
+            <div className="notification-badge">
+              <Bell size={20} />
+              {unreadNotifications > 0 && (
+                <span className="badge">{unreadNotifications}</span>
+              )}
+            </div>
+            <div className="user-avatar">
+              {user?.ProfileImage ? (
+                <img src={user.ProfileImage} alt="Profile" />
+              ) : (
+                <User size={20} />
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Sidebar Overlay for Mobile */}
+      {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />}
+
+      {/* Sidebar */}
+      <aside className={`sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+        <div className="sidebar-content">
+          {/* Brand Section */}
+          <div className="sidebar-brand">
+            <div className="brand-logo">
+              <ChefHat size={32} />
+            </div>
+            <div className="brand-text">
+              <h1 className="brand-name">FancyTunes</h1>
+              <span className="brand-tagline">Premium Dining Experience</span>
+            </div>
+          </div>
+
+          {/* User Info Section */}
+          <div className="user-info-section">
+            <div className="user-avatar-large">
+              {user?.ProfileImage ? (
+                <img src={user.ProfileImage} alt="Profile" />
+              ) : (
+                <User size={32} />
+              )}
+            </div>
+            <div className="user-details">
+              <h3 className="user-name">{user?.FullName || 'Guest User'}</h3>
+              <p className="user-email">{user?.Email || 'guest@fancytunes.com'}</p>
+              <span className="user-role">{user?.Role || 'Customer'}</span>
+            </div>
+          </div>
+
+          {/* Navigation Menu */}
+          <nav className="sidebar-nav">
+            <div className="nav-section">
+              <h4 className="nav-section-title">Main Menu</h4>
+              {navigationItems.slice(0, 4).map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavigation(item.path)}
+                  className={`nav-item ${isActiveRoute(item.path) ? 'nav-item-active' : ''}`}
+                  title={item.description}
+                >
+                  <span className="nav-icon">{item.icon}</span>
+                  <span className="nav-label">{item.label}</span>
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className="nav-badge">{item.badge}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="nav-section">
+              <h4 className="nav-section-title">Services</h4>
+              {navigationItems.slice(4, 8).map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavigation(item.path)}
+                  className={`nav-item ${isActiveRoute(item.path) ? 'nav-item-active' : ''}`}
+                  title={item.description}
+                >
+                  <span className="nav-icon">{item.icon}</span>
+                  <span className="nav-label">{item.label}</span>
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className="nav-badge">{item.badge}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="nav-section">
+              <h4 className="nav-section-title">Account</h4>
+              {navigationItems.slice(8).map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavigation(item.path)}
+                  className={`nav-item ${isActiveRoute(item.path) ? 'nav-item-active' : ''}`}
+                  title={item.description}
+                >
+                  <span className="nav-icon">{item.icon}</span>
+                  <span className="nav-label">{item.label}</span>
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className="nav-badge">{item.badge}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </nav>
+        </div>
+
+        {/* Sidebar Footer */}
+        <div className="sidebar-footer">
+          <div className="contact-info">
+            <div className="contact-item">
+              <Phone size={16} />
+              <span>+254 700 123 456</span>
+            </div>
+            <div className="contact-item">
+              <Mail size={16} />
+              <span>support@fancytunes.com</span>
+            </div>
+            <div className="contact-item">
+              <MapPin size={16} />
+              <span>Nairobi, Kenya</span>
+            </div>
+          </div>
+          
+          <button 
+            onClick={handleLogout}
+            className="logout-btn"
+            title="Sign out of your account"
+          >
+            <LogOut size={20} />
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="main-content">
+        <div className="content-container">
+          <Outlet />
+        </div>
+      </main>
+    </div>
+  );
+};

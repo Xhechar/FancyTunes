@@ -188,3 +188,13 @@ export interface RoomImage {
 
   Room: Room;
 }
+
+export interface LoginDetails {
+  Email: string,
+  Password: string
+}
+
+export interface ChangePasswoerdDto {
+  Email: string,
+  NewPassword: string
+}
