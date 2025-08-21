@@ -12,7 +12,7 @@ import {
   Clock,
   AlertCircle,
 } from "lucide-react";
-import "../styles/VerifyMail.css";
+import styles from "../styles/VerifyMail.module.css";
 
 interface EmailFormData {
   email: string;
@@ -58,7 +58,7 @@ export const VerifyMail: React.FC = () => {
     let interval: NodeJS.Timeout;
     if (timer > 0) {
       interval = setInterval(() => {
-        setTimer(timer - 1);
+        setTimer((prev) => prev - 1);
       }, 1000);
     }
     return () => clearInterval(interval);
@@ -66,11 +66,10 @@ export const VerifyMail: React.FC = () => {
 
   const onEmailSubmit = async (data: EmailFormData) => {
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
       setUserEmail(data.email);
       setCurrentStep("verification");
-      setTimer(300); // 5 minutes
+      setTimer(300);
     } catch (error) {
       console.error("Error sending email:", error);
     }
@@ -78,10 +77,8 @@ export const VerifyMail: React.FC = () => {
 
   const onCodeSubmit = async (data: CodeFormData) => {
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
       if (data.verificationCode === "123456") {
-        // Mock validation
         setCurrentStep("password");
       } else {
         codeForm.setError("verificationCode", {
@@ -96,7 +93,6 @@ export const VerifyMail: React.FC = () => {
 
   const onPasswordSubmit = async (data: PasswordFormData) => {
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
       setCurrentStep("success");
       setTimeout(() => {
@@ -110,7 +106,6 @@ export const VerifyMail: React.FC = () => {
   const handleResendCode = async () => {
     if (timer === 0) {
       setTimer(300);
-      // Simulate resend API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   };
@@ -122,15 +117,13 @@ export const VerifyMail: React.FC = () => {
   };
 
   const renderStepIndicator = () => (
-    <div className="step-indicator">
+    <div className={styles["step-indicator"]}>
       <div
-        className={`step ${
-          currentStep === "email"
-            ? "active"
-            : "completed"
+        className={`${styles["step"]} ${
+          currentStep === "email" ? styles["active"] : styles["completed"]
         }`}
       >
-        <div className="step-circle">
+        <div className={styles["step-circle"]}>
           {currentStep === "email" ? (
             <Mail size={16} />
           ) : (
@@ -139,17 +132,17 @@ export const VerifyMail: React.FC = () => {
         </div>
         <span>Email</span>
       </div>
-      <div className="step-line"></div>
+      <div className={styles["step-line"]}></div>
       <div
-        className={`step ${
+        className={`${styles["step"]} ${
           currentStep === "verification"
-            ? "active"
+            ? styles["active"]
             : currentStep === "password" || currentStep === "success"
-            ? "completed"
+            ? styles["completed"]
             : ""
         }`}
       >
-        <div className="step-circle">
+        <div className={styles["step-circle"]}>
           {currentStep === "verification" ? (
             <KeyRound size={16} />
           ) : (
@@ -158,17 +151,17 @@ export const VerifyMail: React.FC = () => {
         </div>
         <span>Verify</span>
       </div>
-      <div className="step-line"></div>
+      <div className={styles["step-line"]}></div>
       <div
-        className={`step ${
+        className={`${styles["step"]} ${
           currentStep === "password"
-            ? "active"
+            ? styles["active"]
             : currentStep === "success"
-            ? "completed"
+            ? styles["completed"]
             : ""
         }`}
       >
-        <div className="step-circle">
+        <div className={styles["step-circle"]}>
           {currentStep === "password" ? (
             <Lock size={16} />
           ) : (
@@ -183,10 +176,10 @@ export const VerifyMail: React.FC = () => {
   const renderEmailStep = () => (
     <form
       onSubmit={emailForm.handleSubmit(onEmailSubmit)}
-      className="verification-form"
+      className={styles["verification-form"]}
     >
-      <div className="form-header">
-        <div className="form-icon">
+      <div className={styles["form-header"]}>
+        <div className={styles["form-icon"]}>
           <Mail size={24} />
         </div>
         <h2>Forgot Password?</h2>
@@ -196,10 +189,10 @@ export const VerifyMail: React.FC = () => {
         </p>
       </div>
 
-      <div className="form-group">
+      <div className={styles["form-group"]}>
         <label htmlFor="email">Email Address</label>
-        <div className="input-wrapper">
-          <Mail className="input-icon" size={20} />
+        <div className={styles["input-wrapper"]}>
+          <Mail className={styles["input-icon"]} size={20} />
           <input
             type="email"
             id="email"
@@ -211,11 +204,11 @@ export const VerifyMail: React.FC = () => {
                 message: "Please enter a valid email address",
               },
             })}
-            className={emailForm.formState.errors.email ? "error" : ""}
+            className={emailForm.formState.errors.email ? styles["error"] : ""}
           />
         </div>
         {emailForm.formState.errors.email && (
-          <span className="error-message">
+          <span className={styles["error-message"]}>
             <AlertCircle size={16} />
             {emailForm.formState.errors.email.message}
           </span>
@@ -224,13 +217,13 @@ export const VerifyMail: React.FC = () => {
 
       <button
         type="submit"
-        className="submit-btn"
+        className={styles["submit-btn"]}
         disabled={
           emailForm.formState.isSubmitting || !emailForm.formState.isValid
         }
       >
         {emailForm.formState.isSubmitting ? (
-          <div className="loading-spinner"></div>
+          <div className={styles["loading-spinner"]}></div>
         ) : (
           "Send Verification Code"
         )}
@@ -241,10 +234,10 @@ export const VerifyMail: React.FC = () => {
   const renderVerificationStep = () => (
     <form
       onSubmit={codeForm.handleSubmit(onCodeSubmit)}
-      className="verification-form"
+      className={styles["verification-form"]}
     >
-      <div className="form-header">
-        <div className="form-icon">
+      <div className={styles["form-header"]}>
+        <div className={styles["form-icon"]}>
           <KeyRound size={24} />
         </div>
         <h2>Enter Verification Code</h2>
@@ -253,10 +246,10 @@ export const VerifyMail: React.FC = () => {
         </p>
       </div>
 
-      <div className="form-group">
+      <div className={styles["form-group"]}>
         <label htmlFor="verificationCode">Verification Code</label>
-        <div className="input-wrapper">
-          <KeyRound className="input-icon" size={20} />
+        <div className={styles["input-wrapper"]}>
+          <KeyRound className={styles["input-icon"]} size={20} />
           <input
             type="text"
             id="verificationCode"
@@ -270,21 +263,21 @@ export const VerifyMail: React.FC = () => {
               },
             })}
             className={
-              codeForm.formState.errors.verificationCode ? "error" : ""
+              codeForm.formState.errors.verificationCode ? styles["error"] : ""
             }
           />
         </div>
         {codeForm.formState.errors.verificationCode && (
-          <span className="error-message">
+          <span className={styles["error-message"]}>
             <AlertCircle size={16} />
             {codeForm.formState.errors.verificationCode.message}
           </span>
         )}
       </div>
 
-      <div className="timer-section">
+      <div className={styles["timer-section"]}>
         {timer > 0 ? (
-          <div className="timer-display">
+          <div className={styles["timer-display"]}>
             <Clock size={16} />
             <span>Resend code in {formatTime(timer)}</span>
           </div>
@@ -292,7 +285,7 @@ export const VerifyMail: React.FC = () => {
           <button
             type="button"
             onClick={handleResendCode}
-            className="resend-btn"
+            className={styles["resend-btn"]}
           >
             Resend Code
           </button>
@@ -301,13 +294,13 @@ export const VerifyMail: React.FC = () => {
 
       <button
         type="submit"
-        className="submit-btn"
+        className={styles["submit-btn"]}
         disabled={
           codeForm.formState.isSubmitting || !codeForm.formState.isValid
         }
       >
         {codeForm.formState.isSubmitting ? (
-          <div className="loading-spinner"></div>
+          <div className={styles["loading-spinner"]}></div>
         ) : (
           "Verify Code"
         )}
@@ -318,20 +311,20 @@ export const VerifyMail: React.FC = () => {
   const renderPasswordStep = () => (
     <form
       onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
-      className="verification-form"
+      className={styles["verification-form"]}
     >
-      <div className="form-header">
-        <div className="form-icon">
+      <div className={styles["form-header"]}>
+        <div className={styles["form-icon"]}>
           <Lock size={24} />
         </div>
         <h2>Set New Password</h2>
         <p>Create a strong password for your FancyTunes account.</p>
       </div>
 
-      <div className="form-group">
+      <div className={styles["form-group"]}>
         <label htmlFor="newPassword">New Password</label>
-        <div className="input-wrapper">
-          <Lock className="input-icon" size={20} />
+        <div className={styles["input-wrapper"]}>
+          <Lock className={styles["input-icon"]} size={20} />
           <input
             type={showPassword ? "text" : "password"}
             id="newPassword"
@@ -348,28 +341,30 @@ export const VerifyMail: React.FC = () => {
                   "Password must contain at least one uppercase letter, one lowercase letter, and one number",
               },
             })}
-            className={passwordForm.formState.errors.newPassword ? "error" : ""}
+            className={
+              passwordForm.formState.errors.newPassword ? styles["error"] : ""
+            }
           />
           <button
             type="button"
-            className="toggle-password"
+            className={styles["toggle-password"]}
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
         {passwordForm.formState.errors.newPassword && (
-          <span className="error-message">
+          <span className={styles["error-message"]}>
             <AlertCircle size={16} />
             {passwordForm.formState.errors.newPassword.message}
           </span>
         )}
       </div>
 
-      <div className="form-group">
+      <div className={styles["form-group"]}>
         <label htmlFor="confirmPassword">Confirm Password</label>
-        <div className="input-wrapper">
-          <Lock className="input-icon" size={20} />
+        <div className={styles["input-wrapper"]}>
+          <Lock className={styles["input-icon"]} size={20} />
           <input
             type={showConfirmPassword ? "text" : "password"}
             id="confirmPassword"
@@ -381,19 +376,21 @@ export const VerifyMail: React.FC = () => {
                 "Passwords do not match",
             })}
             className={
-              passwordForm.formState.errors.confirmPassword ? "error" : ""
+              passwordForm.formState.errors.confirmPassword
+                ? styles["error"]
+                : ""
             }
           />
           <button
             type="button"
-            className="toggle-password"
+            className={styles["toggle-password"]}
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
           >
             {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
         {passwordForm.formState.errors.confirmPassword && (
-          <span className="error-message">
+          <span className={styles["error-message"]}>
             <AlertCircle size={16} />
             {passwordForm.formState.errors.confirmPassword.message}
           </span>
@@ -402,13 +399,13 @@ export const VerifyMail: React.FC = () => {
 
       <button
         type="submit"
-        className="submit-btn"
+        className={styles["submit-btn"]}
         disabled={
           passwordForm.formState.isSubmitting || !passwordForm.formState.isValid
         }
       >
         {passwordForm.formState.isSubmitting ? (
-          <div className="loading-spinner"></div>
+          <div className={styles["loading-spinner"]}></div>
         ) : (
           "Update Password"
         )}
@@ -417,9 +414,9 @@ export const VerifyMail: React.FC = () => {
   );
 
   const renderSuccessStep = () => (
-    <div className="verification-form success-form">
-      <div className="form-header">
-        <div className="form-icon success">
+    <div className={`${styles["verification-form"]} ${styles["success-form"]}`}>
+      <div className={styles["form-header"]}>
+        <div className={`${styles["form-icon"]} ${styles["success"]}`}>
           <CheckCircle size={24} />
         </div>
         <h2>Password Updated!</h2>
@@ -429,37 +426,42 @@ export const VerifyMail: React.FC = () => {
         </p>
       </div>
 
-      <div className="success-animation">
-        <div className="checkmark-circle">
+      <div className={styles["success-animation"]}>
+        <div className={styles["checkmark-circle"]}>
           <CheckCircle size={48} />
         </div>
       </div>
 
-      <button onClick={() => navigate("/login")} className="submit-btn">
+      <button
+        onClick={() => navigate("/login")}
+        className={styles["submit-btn"]}
+      >
         Go to Login
       </button>
     </div>
   );
 
   return (
-    <div className="email-verification-container">
-      <div className="verification-card">
+    <div className={styles["email-verification-container"]}>
+      <div className={styles["verification-card"]}>
         <button
           onClick={() => navigate(-1)}
-          className="back-button"
+          className={styles["back-button"]}
           aria-label="Go back"
         >
           <ArrowLeft size={20} />
         </button>
 
-        <div className="brand-section">
-          <h1 className="brand-name">FancyTunes</h1>
-          <span className="brand-tagline">Premium Dining Experience</span>
+        <div className={styles["brand-section"]}>
+          <h1 className={styles["brand-name"]}>FancyTunes</h1>
+          <span className={styles["brand-tagline"]}>
+            Premium Dining Experience
+          </span>
         </div>
 
         {renderStepIndicator()}
 
-        <div className="form-container">
+        <div className={styles["form-container"]}>
           {currentStep === "email" && renderEmailStep()}
           {currentStep === "verification" && renderVerificationStep()}
           {currentStep === "password" && renderPasswordStep()}
@@ -467,10 +469,16 @@ export const VerifyMail: React.FC = () => {
         </div>
       </div>
 
-      <div className="background-decoration">
-        <div className="decoration-circle circle-1"></div>
-        <div className="decoration-circle circle-2"></div>
-        <div className="decoration-circle circle-3"></div>
+      <div className={styles["background-decoration"]}>
+        <div
+          className={`${styles["decoration-circle"]} ${styles["circle-1"]}`}
+        ></div>
+        <div
+          className={`${styles["decoration-circle"]} ${styles["circle-2"]}`}
+        ></div>
+        <div
+          className={`${styles["decoration-circle"]} ${styles["circle-3"]}`}
+        ></div>
       </div>
     </div>
   );

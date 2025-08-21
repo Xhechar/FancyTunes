@@ -27,7 +27,7 @@ import {
   Tv,
   Bath
 } from 'lucide-react';
-import '../../../styles/user/user_routes/Dashboard.css';
+import styles from "../../../styles/user/user_routes/Dashboard.module.css";
 import { Room, Delicacy, Booking, Order, Cart, User, Notification } from '../../../interfaces/interfaces';
 
 // Form interfaces
