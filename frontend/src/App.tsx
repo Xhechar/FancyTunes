@@ -26,7 +26,7 @@ import { Users } from './pages/admin/admin_routes/Users';
 import { SingleRoom } from './pages/SingleRoom';
 import { Dashboard } from './pages/user/user_routes/Dashboard';
 import { MyPayments } from './pages/user/user_routes/MyPayments';
-import { Notificationss } from './components/Notifications';
+import { Notificationss } from './components/Notificationss';
 
 function App() {
   return (
