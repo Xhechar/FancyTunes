@@ -1,10 +1,687 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  Camera, 
+  Edit3, 
+  Save, 
+  X, 
+  Eye, 
+  EyeOff,
+  CheckCircle,
+  AlertCircle,
+  MapPin,
+  Calendar,
+  Shield,
+  Settings,
+  Bell,
+  CreditCard,
+  LogOut,
+  Upload,
+  Trash2
+} from 'lucide-react';
+import styles from "../../../styles/user/user_routes/Profile.module.css";
 
-export const Profile:React.FC = () => {
+// Interfaces
+interface User {
+  UserId: string;
+  FullName: string;
+  Email: string;
+  Phone: string;
+  Password: string;
+  Role: string;
+  ProfileImage?: string;
+  IsWelcome: boolean;
+  CreatedAt: string;
+  UpdatedAt: string;
+}
+
+interface ProfileFormData {
+  FullName: string;
+  Email: string;
+  Phone: string;
+  CurrentPassword?: string;
+  NewPassword?: string;
+  ConfirmPassword?: string;
+  DateOfBirth?: string;
+  Address?: string;
+  City?: string;
+  Country?: string;
+  Bio?: string;
+  NotificationsEnabled: boolean;
+  TwoFactorEnabled: boolean;
+  MarketingEmails: boolean;
+}
+
+// Mock user data
+const mockUser: User = {
+  UserId: 'user-123',
+  FullName: 'John Doe',
+  Email: 'john.doe@example.com',
+  Phone: '+1 (555) 123-4567',
+  Password: '********',
+  Role: 'Customer',
+  ProfileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+  IsWelcome: true,
+  CreatedAt: '2024-01-15T10:30:00Z',
+  UpdatedAt: '2024-08-20T14:22:00Z'
+};
+
+export const Profile: React.FC = () => {
+  const [user] = useState<User>(mockUser);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState<'personal' | 'security' | 'preferences'>('personal');
+  const [profileImage, setProfileImage] = useState(user.ProfileImage);
+  const [isUploading, setIsUploading] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isValid, isDirty },
+    reset,
+    setValue
+  } = useForm<ProfileFormData>({
+    defaultValues: {
+      FullName: user.FullName,
+      Email: user.Email,
+      Phone: user.Phone,
+      DateOfBirth: '1990-05-15',
+      Address: '123 Main Street',
+      City: 'New York',
+      Country: 'United States',
+      Bio: 'Food enthusiast and regular customer at FancyTunes. Love trying new cuisines!',
+      NotificationsEnabled: true,
+      TwoFactorEnabled: false,
+      MarketingEmails: true
+    },
+    mode: 'onChange'
+  });
+
+  const newPassword = watch('NewPassword');
+
+  // Custom validation rules
+  const validationRules = {
+    FullName: {
+      required: 'Full name is required',
+      minLength: {
+        value: 2,
+        message: 'Name must be at least 2 characters long'
+      },
+      maxLength: {
+        value: 50,
+        message: 'Name cannot exceed 50 characters'
+      },
+      pattern: {
+        value: /^[a-zA-Z\s'-]+$/,
+        message: 'Name can only contain letters, spaces, hyphens, and apostrophes'
+      }
+    },
+    Email: {
+      required: 'Email is required',
+      pattern: {
+        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+        message: 'Please enter a valid email address'
+      }
+    },
+    Phone: {
+      required: 'Phone number is required',
+      pattern: {
+        value: /^\+?[\d\s\-\(\)]+$/,
+        message: 'Please enter a valid phone number'
+      },
+      minLength: {
+        value: 10,
+        message: 'Phone number must be at least 10 digits'
+      }
+    },
+    CurrentPassword: {
+      required: isEditing && newPassword ? 'Current password is required when setting a new password' : false,
+      minLength: {
+        value: 8,
+        message: 'Password must be at least 8 characters long'
+      }
+    },
+    NewPassword: {
+      minLength: {
+        value: 8,
+        message: 'Password must be at least 8 characters long'
+      },
+      pattern: {
+        value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+        message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+      }
+    },
+    ConfirmPassword: {
+      validate: (value: string | undefined) => {
+        if (newPassword && !value) {
+          return 'Please confirm your new password';
+        }
+        if (value && value !== newPassword) {
+          return 'Passwords do not match';
+        }
+        return true;
+      }
+    }
+  };
+
+  // Handle form submission
+  const onSubmit: SubmitHandler<ProfileFormData> = async (data) => {
+    setSaveStatus('saving');
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      console.log('Profile updated:', data);
+      setSaveStatus('success');
+      setIsEditing(false);
+      
+      // Reset success status after 3 seconds
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } catch (error) {
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    }
+  };
+
+  // Handle profile image upload
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type and size
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      // Simulate upload
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfileImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      setIsUploading(false);
+    } catch (error) {
+      setIsUploading(false);
+      alert('Failed to upload image. Please try again.');
+    }
+  };
+
+  // Remove profile image
+  const removeProfileImage = () => {
+    setProfileImage(undefined);
+  };
+
+  // Cancel editing
+  const cancelEdit = () => {
+    reset();
+    setIsEditing(false);
+    setSaveStatus('idle');
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
   return (
-    <div>
-      <h1>User Profile</h1>
-      <p>Welcome to your profile page. Here you can view and manage your account details.</p>
+    <div className={styles.container}>
+      {/* Header */}
+      <div className={styles.header}>
+        <div className={styles['header-content']}>
+          <div className={styles['profile-avatar-section']}>
+            <div className={styles['avatar-container']}>
+              {profileImage ? (
+                <img 
+                  src={profileImage} 
+                  alt="Profile" 
+                  className={styles.avatar}
+                />
+              ) : (
+                <div className={styles['avatar-placeholder']}>
+                  <User size={40} />
+                </div>
+              )}
+              
+              {isUploading && (
+                <div className={styles['upload-overlay']}>
+                  <div className={styles.spinner}></div>
+                </div>
+              )}
+              
+              {isEditing && (
+                <div className={styles['avatar-actions']}>
+                  <label className={styles['upload-btn']}>
+                    <Camera size={14} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      hidden
+                    />
+                  </label>
+                  {profileImage && (
+                    <button 
+                      className={styles['remove-btn']}
+                      onClick={removeProfileImage}
+                      type="button"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            <div className={styles['profile-info']}>
+              <h1 className={styles['profile-name']}>{user.FullName}</h1>
+              <p className={styles['profile-role']}>{user.Role}</p>
+              <p className={styles['profile-joined']}>
+                Member since {formatDate(user.CreatedAt)}
+              </p>
+            </div>
+          </div>
+          
+          <div className={styles['header-actions']}>
+            {!isEditing ? (
+              <button 
+                className={styles['edit-btn']}
+                onClick={() => setIsEditing(true)}
+              >
+                <Edit3 size={18} />
+                Edit Profile
+              </button>
+            ) : (
+              <div className={styles['edit-actions']}>
+                <button 
+                  className={styles['cancel-btn']}
+                  onClick={cancelEdit}
+                  type="button"
+                >
+                  <X size={18} />
+                  Cancel
+                </button>
+                <button 
+                  className={styles['save-btn']}
+                  onClick={handleSubmit(onSubmit)}
+                  disabled={!isDirty || !isValid || saveStatus === 'saving'}
+                >
+                  {saveStatus === 'saving' ? (
+                    <>
+                      <div className={styles.spinner}></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Save Status */}
+        {saveStatus !== 'idle' && (
+          <div className={`${styles['status-banner']} ${styles[saveStatus]}`}>
+            {saveStatus === 'success' && (
+              <>
+                <CheckCircle size={18} />
+                Profile updated successfully!
+              </>
+            )}
+            {saveStatus === 'error' && (
+              <>
+                <AlertCircle size={18} />
+                Failed to update profile. Please try again.
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className={styles.tabs}>
+        <button 
+          className={`${styles.tab} ${activeTab === 'personal' ? styles.active : ''}`}
+          onClick={() => setActiveTab('personal')}
+        >
+          <User size={18} />
+          Personal Info
+        </button>
+        <button 
+          className={`${styles.tab} ${activeTab === 'security' ? styles.active : ''}`}
+          onClick={() => setActiveTab('security')}
+        >
+          <Shield size={18} />
+          Security
+        </button>
+        <button 
+          className={`${styles.tab} ${activeTab === 'preferences' ? styles.active : ''}`}
+          onClick={() => setActiveTab('preferences')}
+        >
+          <Settings size={18} />
+          Preferences
+        </button>
+      </div>
+
+      {/* Form Content */}
+      <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+        {/* Personal Info Tab */}
+        {activeTab === 'personal' && (
+          <div className={styles['tab-content']}>
+            <div className={styles['form-section']}>
+              <h2 className={styles['section-title']}>Basic Information</h2>
+              
+              <div className={styles['form-grid']}>
+                <div className={styles['form-group']}>
+                  <label className={styles.label}>
+                    <User size={16} />
+                    Full Name *
+                  </label>
+                  <input
+                    {...register('FullName', validationRules.FullName)}
+                    className={`${styles.input} ${errors.FullName ? styles.error : ''}`}
+                    disabled={!isEditing}
+                    placeholder="Enter your full name"
+                  />
+                  {errors.FullName && (
+                    <span className={styles['error-message']}>
+                      <AlertCircle size={14} />
+                      {errors.FullName.message}
+                    </span>
+                  )}
+                </div>
+
+                <div className={styles['form-group']}>
+                  <label className={styles.label}>
+                    <Mail size={16} />
+                    Email Address *
+                  </label>
+                  <input
+                    {...register('Email', validationRules.Email)}
+                    type="email"
+                    className={`${styles.input} ${errors.Email ? styles.error : ''}`}
+                    disabled={!isEditing}
+                    placeholder="Enter your email"
+                  />
+                  {errors.Email && (
+                    <span className={styles['error-message']}>
+                      <AlertCircle size={14} />
+                      {errors.Email.message}
+                    </span>
+                  )}
+                </div>
+
+                <div className={styles['form-group']}>
+                  <label className={styles.label}>
+                    <Phone size={16} />
+                    Phone Number *
+                  </label>
+                  <input
+                    {...register('Phone', validationRules.Phone)}
+                    type="tel"
+                    className={`${styles.input} ${errors.Phone ? styles.error : ''}`}
+                    disabled={!isEditing}
+                    placeholder="Enter your phone number"
+                  />
+                  {errors.Phone && (
+                    <span className={styles['error-message']}>
+                      <AlertCircle size={14} />
+                      {errors.Phone.message}
+                    </span>
+                  )}
+                </div>
+
+                <div className={styles['form-group']}>
+                  <label className={styles.label}>
+                    <Calendar size={16} />
+                    Date of Birth
+                  </label>
+                  <input
+                    {...register('DateOfBirth')}
+                    type="date"
+                    className={styles.input}
+                    disabled={!isEditing}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className={styles['form-section']}>
+              <h2 className={styles['section-title']}>Location</h2>
+              
+              <div className={styles['form-grid']}>
+                <div className={styles['form-group-full']}>
+                  <label className={styles.label}>
+                    <MapPin size={16} />
+                    Address
+                  </label>
+                  <input
+                    {...register('Address')}
+                    className={styles.input}
+                    disabled={!isEditing}
+                    placeholder="Enter your address"
+                  />
+                </div>
+
+                <div className={styles['form-group']}>
+                  <label className={styles.label}>City</label>
+                  <input
+                    {...register('City')}
+                    className={styles.input}
+                    disabled={!isEditing}
+                    placeholder="Enter your city"
+                  />
+                </div>
+
+                <div className={styles['form-group']}>
+                  <label className={styles.label}>Country</label>
+                  <input
+                    {...register('Country')}
+                    className={styles.input}
+                    disabled={!isEditing}
+                    placeholder="Enter your country"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className={styles['form-section']}>
+              <h2 className={styles['section-title']}>About</h2>
+              
+              <div className={styles['form-group-full']}>
+                <label className={styles.label}>Bio</label>
+                <textarea
+                  {...register('Bio')}
+                  className={styles.textarea}
+                  disabled={!isEditing}
+                  placeholder="Tell us about yourself..."
+                  rows={4}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Security Tab */}
+        {activeTab === 'security' && (
+          <div className={styles['tab-content']}>
+            <div className={styles['form-section']}>
+              <h2 className={styles['section-title']}>Change Password</h2>
+              
+              <div className={styles['form-grid']}>
+                <div className={styles['form-group']}>
+                  <label className={styles.label}>Current Password</label>
+                  <div className={styles['password-field']}>
+                    <input
+                      {...register('CurrentPassword', validationRules.CurrentPassword)}
+                      type={showPassword ? 'text' : 'password'}
+                      className={`${styles.input} ${errors.CurrentPassword ? styles.error : ''}`}
+                      disabled={!isEditing}
+                      placeholder="Enter current password"
+                    />
+                    <button
+                      type="button"
+                      className={styles['password-toggle']}
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  {errors.CurrentPassword && (
+                    <span className={styles['error-message']}>
+                      <AlertCircle size={14} />
+                      {errors.CurrentPassword.message}
+                    </span>
+                  )}
+                </div>
+
+                <div className={styles['form-group']}>
+                  <label className={styles.label}>New Password</label>
+                  <div className={styles['password-field']}>
+                    <input
+                      {...register('NewPassword', validationRules.NewPassword)}
+                      type={showNewPassword ? 'text' : 'password'}
+                      className={`${styles.input} ${errors.NewPassword ? styles.error : ''}`}
+                      disabled={!isEditing}
+                      placeholder="Enter new password"
+                    />
+                    <button
+                      type="button"
+                      className={styles['password-toggle']}
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  {errors.NewPassword && (
+                    <span className={styles['error-message']}>
+                      <AlertCircle size={14} />
+                      {errors.NewPassword.message}
+                    </span>
+                  )}
+                </div>
+
+                <div className={styles['form-group']}>
+                  <label className={styles.label}>Confirm New Password</label>
+                  <input
+                    {...register('ConfirmPassword', validationRules.ConfirmPassword)}
+                    type="password"
+                    className={`${styles.input} ${errors.ConfirmPassword ? styles.error : ''}`}
+                    disabled={!isEditing}
+                    placeholder="Confirm new password"
+                  />
+                  {errors.ConfirmPassword && (
+                    <span className={styles['error-message']}>
+                      <AlertCircle size={14} />
+                      {errors.ConfirmPassword.message}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles['form-section']}>
+              <h2 className={styles['section-title']}>Security Settings</h2>
+              
+              <div className={styles['toggle-group']}>
+                <div className={styles['toggle-item']}>
+                  <div>
+                    <h3>Two-Factor Authentication</h3>
+                    <p>Add an extra layer of security to your account</p>
+                  </div>
+                  <label className={styles['toggle-switch']}>
+                    <input
+                      {...register('TwoFactorEnabled')}
+                      type="checkbox"
+                      disabled={!isEditing}
+                    />
+                    <span className={styles.slider}></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Preferences Tab */}
+        {activeTab === 'preferences' && (
+          <div className={styles['tab-content']}>
+            <div className={styles['form-section']}>
+              <h2 className={styles['section-title']}>Notifications</h2>
+              
+              <div className={styles['toggle-group']}>
+                <div className={styles['toggle-item']}>
+                  <div>
+                    <h3>Push Notifications</h3>
+                    <p>Receive notifications about your orders and reservations</p>
+                  </div>
+                  <label className={styles['toggle-switch']}>
+                    <input
+                      {...register('NotificationsEnabled')}
+                      type="checkbox"
+                      disabled={!isEditing}
+                    />
+                    <span className={styles.slider}></span>
+                  </label>
+                </div>
+
+                <div className={styles['toggle-item']}>
+                  <div>
+                    <h3>Marketing Emails</h3>
+                    <p>Receive updates about new dishes and special offers</p>
+                  </div>
+                  <label className={styles['toggle-switch']}>
+                    <input
+                      {...register('MarketingEmails')}
+                      type="checkbox"
+                      disabled={!isEditing}
+                    />
+                    <span className={styles.slider}></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles['form-section']}>
+              <h2 className={styles['section-title']}>Account Actions</h2>
+              
+              <div className={styles['action-buttons']}>
+                <button type="button" className={styles['danger-btn']}>
+                  <LogOut size={18} />
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </form>
     </div>
   );
-}
+};
