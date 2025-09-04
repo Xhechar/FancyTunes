@@ -216,13 +216,13 @@
   outline: none;
 }
 
-.reviewsGrid {
+.paymentsGrid {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
 }
 
-.reviewCard {
+.paymentCard {
   background: var(--background-light);
   border: 1px solid #e5e7eb;
   border-radius: var(--border-radius);
@@ -232,7 +232,7 @@
   animation: slideUp 0.4s ease-out;
 }
 
-.reviewCard:hover {
+.paymentCard:hover {
   box-shadow: var(--shadow-medium);
   transform: translateY(-2px);
 }
@@ -248,7 +248,7 @@
   }
 }
 
-.reviewHeader {
+.paymentHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -271,7 +271,76 @@
   height: 1.125rem;
 }
 
-.reviewDate {
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statusBadge.completed {
+  background: rgba(39, 174, 96, 0.1);
+  color: var(--success-color);
+}
+
+.statusBadge.pending {
+  background: rgba(243, 156, 18, 0.1);
+  color: var(--warning-color);
+  animation: breathe 2s infinite;
+}
+
+.statusBadge.failed {
+  background: rgba(231, 76, 60, 0.1);
+  color: var(--danger-color);
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.statusIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.paymentContent {
+  padding: 1.5rem;
+}
+
+.amountSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.amount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.currency {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.paymentDate {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -284,15 +353,14 @@
   height: 1rem;
 }
 
-.reviewContent {
-  padding: 1.5rem;
+.itemInfo {
+  margin-bottom: 1.5rem;
 }
 
 .itemDetails {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1rem;
 }
 
 .itemImage {
@@ -315,160 +383,60 @@
   color: var(--text-muted);
 }
 
-.ratingSection {
-  margin-bottom: 1rem;
-}
-
-.starsContainer {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.star {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #e5e7eb;
-  transition: var(--transition);
-}
-
-.starFilled {
-  color: var(--gold-color);
-}
-
-.starInteractive {
-  cursor: pointer;
-}
-
-.starInteractive:hover {
-  transform: scale(1.1);
-}
-
-.commentSection {
+.paymentDetails {
+  background: #f8fafc;
+  border-radius: var(--border-radius);
+  padding: 1rem;
   margin-bottom: 1.5rem;
-}
-
-.comment {
-  color: var(--text-dark);
-  line-height: 1.6;
-  font-size: 0.95rem;
-}
-
-.editForm {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
-.editTextarea {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: var(--border-radius);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  resize: vertical;
-  transition: var(--transition);
-  background: var(--background-light);
+.methodInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  color: var(--primary-color);
 }
 
-.editTextarea:focus {
-  outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+.methodIcon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
-.editActions {
+.referenceInfo,
+.transactionInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.label {
+  color: var(--text-muted);
+  font-weight: 500;
+  min-width: 30px;
+}
+
+.reference,
+.transaction {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: var(--text-dark);
+  border: 1px solid #e5e7eb;
+}
+
+.paymentActions {
   display: flex;
   gap: 0.75rem;
   justify-content: flex-end;
 }
 
-.saveButton {
-  background: var(--gradient-accent);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: var(--border-radius);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.saveButton:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-medium);
-}
-
-.cancelButton {
-  background: var(--background-light);
-  color: var(--text-muted);
-  border: 1px solid #d1d5db;
-  padding: 0.5rem 1rem;
-  border-radius: var(--border-radius);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.cancelButton:hover {
-  background: #f8fafc;
-  color: var(--text-dark);
-}
-
-.reviewFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
-}
-
-.paymentStatus {
-  flex: 1;
-}
-
-.paymentBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.paymentBadge.completed {
-  background: rgba(39, 174, 96, 0.1);
-  color: var(--success-color);
-}
-
-.paymentBadge.pending {
-  background: rgba(243, 156, 18, 0.1);
-  color: var(--warning-color);
-  animation: breathe 2s infinite;
-}
-
-@keyframes breathe {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
-.statusIcon {
-  width: 0.875rem;
-  height: 0.875rem;
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.editButton {
+.viewButton {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -483,56 +451,35 @@
   transition: var(--transition);
 }
 
-.editButton:hover {
+.viewButton:hover {
   background: var(--primary-color);
   color: white;
   transform: translateY(-1px);
 }
 
-.actionIcon {
-  width: 1rem;
-  height: 1rem;
-}
-
-.editExpired {
+.downloadButton {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
-.clockIcon {
-  width: 1rem;
-  height: 1rem;
-}
-
-.paymentButton {
   background: var(--gradient-accent);
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   border-radius: var(--border-radius);
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: var(--transition);
-  animation: glow 2s infinite;
 }
 
-@keyframes glow {
-  0%, 100% {
-    box-shadow: 0 0 5px rgba(231, 76, 60, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
-  }
-}
-
-.paymentButton:hover {
-  transform: translateY(-2px);
+.downloadButton:hover {
+  transform: translateY(-1px);
   box-shadow: var(--shadow-medium);
-  animation: none;
+}
+
+.actionIcon {
+  width: 1rem;
+  height: 1rem;
 }
 
 .emptyState {
@@ -617,18 +564,19 @@
     flex-wrap: wrap;
   }
 
-  .reviewsGrid {
+  .paymentsGrid {
     grid-template-columns: 1fr;
   }
 
-  .reviewFooter {
+  .amountSection {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     gap: 1rem;
   }
 
-  .actions {
+  .paymentActions {
     justify-content: center;
+    flex-wrap: wrap;
   }
 }
 
@@ -654,7 +602,7 @@
     height: 1px;
   }
 
-  .reviewHeader {
+  .paymentHeader {
     flex-direction: column;
     gap: 0.5rem;
     align-items: flex-start;
@@ -666,24 +614,36 @@
     gap: 0.75rem;
   }
 
-  .editActions {
+  .value {
+    font-size: 1.75rem;
+  }
+
+  .paymentDetails {
+    padding: 0.75rem;
+  }
+
+  .paymentActions {
     flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .viewButton,
+  .downloadButton {
+    justify-content: center;
   }
 }
 
-/* Dark mode support - Removed for light theme only */
-/* @media (prefers-color-scheme: dark) { ... } */
-
+/* Light theme explicit styling */
 .dashboardContainer[data-theme="light"] {
   background: var(--background-light);
 }
 
-.dashboardContainer[data-theme="light"] .reviewCard {
+.dashboardContainer[data-theme="light"] .paymentCard {
   background: var(--background-light);
   border: 1px solid #e5e7eb;
 }
 
-.dashboardContainer[data-theme="light"] .reviewHeader {
+.dashboardContainer[data-theme="light"] .paymentHeader {
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
 }
@@ -695,29 +655,28 @@
   color: var(--text-dark);
 }
 
-.dashboardContainer[data-theme="light"] .editTextarea {
-  background: var(--background-light);
-  border: 1px solid #d1d5db;
-  color: var(--text-dark);
+.dashboardContainer[data-theme="light"] .paymentDetails {
+  background: #f8fafc;
 }
 
-.dashboardContainer[data-theme="light"] .cancelButton {
-  background: var(--background-light);
-  border: 1px solid #d1d5db;
-  color: var(--text-muted);
+.dashboardContainer[data-theme="light"] .reference,
+.dashboardContainer[data-theme="light"] .transaction {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #e5e7eb;
+  color: var(--text-dark);
 }
 
 /* High contrast mode */
 @media (prefers-contrast: high) {
-  .reviewCard {
+  .paymentCard {
     border: 2px solid var(--text-dark);
   }
 
-  .paymentBadge {
+  .statusBadge {
     border: 1px solid currentColor;
   }
 
-  .editButton {
+  .viewButton {
     border-width: 2px;
   }
 }
@@ -730,11 +689,11 @@
     transition-duration: 0.01ms !important;
   }
 
-  .reviewCard:hover {
+  .paymentCard:hover {
     transform: none;
   }
 
-  .editButton:hover, .paymentButton:hover {
+  .viewButton:hover, .downloadButton:hover {
     transform: none;
   }
 }

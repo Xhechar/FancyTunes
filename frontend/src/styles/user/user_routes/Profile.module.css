@@ -2,7 +2,6 @@
   min-height: 100vh;
   background: var(--background-light);
   padding: 2rem;
-  font-family: 'Inter', sans-serif;
 }
 
 @media (max-width: 768px) {
@@ -447,7 +446,6 @@
 .textarea {
   resize: vertical;
   min-height: 100px;
-  font-family: inherit;
 }
 
 .password-field {

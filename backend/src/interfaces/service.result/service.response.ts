@@ -1,4 +1,4 @@
-import { TokenDetails } from "../utilities/token.details";
+import { TokenDetails } from "../utils/token.details";
 import { ServiceResult } from "./service.result";
 
 export class ServiceResponse<T> {

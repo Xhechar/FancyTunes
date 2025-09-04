@@ -14,7 +14,7 @@ import {
   TrendingUp,
   Award,
 } from "lucide-react";
-import styles from "./ReviewsDashboard.module.css";
+import styles from "../../../styles/user/user_routes/Reviews.module.css";
 
 // Import your interfaces
 interface User {

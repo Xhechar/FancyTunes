@@ -112,8 +112,8 @@ model Booking {
   NumberOfGuests   Int
   TotalAmount      Decimal
   SpecialRequests   String?
-  BookingStatus    String
-  PaymentStatus    String
+  BookingStatus    String           @default("pending")
+  PaymentStatus    String           @default("unpaid")
   CreatedAt        DateTime         @default(now())
   UpdatedAt        DateTime         @updatedAt
 
