@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from "react";
 import {
   ShoppingCart,
-  Trash2,
   Plus,
   Minus,
+  Trash2,
+  Calendar,
+  DollarSign,
+  Search,
+  TrendingUp,
+  Package,
   CreditCard,
-  CheckCircle,
-  Clock,
-  AlertCircle,
   ShoppingBag,
-  X,
-  ArrowRight,
 } from "lucide-react";
-import styles from"../../../styles/user/user_routes/Cart.module.css";
-import { Booking, Accommodation, Recovery, Review } from "./Accommodations";
+import styles from "../../../styles/user/user_routes/Cart.module.css";
 
-// Interfaces (you can import these from your types file)
-export interface User {
+// Import your interfaces
+interface User {
   UserId: string;
   FullName: string;
   Email: string;
@@ -37,7 +36,7 @@ export interface User {
   Notifications: Notification[];
 }
 
-export interface Delicacy {
+interface Delicacy {
   DelicacyId: string;
   Name: string;
   Description: string;
@@ -53,7 +52,7 @@ export interface Delicacy {
   Reviews: Review[];
 }
 
-export interface Cart {
+interface Cart {
   CartId: string;
   UserId: string;
   DelicacyId: string;
@@ -63,7 +62,41 @@ export interface Cart {
   Delicacy: Delicacy;
 }
 
-export interface Order {
+interface Booking {
+  BookingId: string;
+  UserId: string;
+  RoomId: string;
+  CheckInDate: string;
+  CheckOutDate: string;
+  NumberOfGuests: number;
+  TotalAmount: number;
+  SpecialRequests?: string;
+  BookingStatus: string;
+  PaymentStatus: string;
+  CreatedAt: string;
+  UpdatedAt: string;
+  User: User;
+  Room: Room;
+}
+
+interface Room {
+  RoomId: string;
+  RoomNumber: string;
+  RoomType: string;
+  PricePerNight: number;
+  Description: string;
+  Capacity: number;
+  Status: string;
+  RoomImage?: string;
+  CreatedAt: string;
+  UpdatedAt: string;
+  Accommodations: Accommodation[];
+  Bookings: Booking[];
+  Reviews: Review[];
+  RoomImages: RoomImage[];
+}
+
+interface Order {
   OrderId: string;
   UserId: string;
   DelicacyId: string;
@@ -78,7 +111,7 @@ export interface Order {
   OrderItems: OrderItem[];
 }
 
-export interface OrderItem {
+interface OrderItem {
   OrderItemId: string;
   OrderId: string;
   DelicacyId: string;
@@ -89,7 +122,33 @@ export interface OrderItem {
   Delicacy: Delicacy;
 }
 
-export interface Payment {
+interface Accommodation {
+  AccommodationId: string;
+  UserId: string;
+  RoomId: string;
+  CheckInDate: string;
+  CheckOutDate: string;
+  TotalAmount: number;
+  SpecialRequests?: string;
+  PaymentStatus: string;
+  IsActive: boolean;
+  CreatedAt: string;
+  UpdatedAt: string;
+  User: User;
+  Room: Room;
+}
+
+interface Recovery {
+  RecoveryId: string;
+  UserId: string;
+  VerificationCode: number;
+  ExpiresAt: string;
+  IsUsed: boolean;
+  CreatedAt: string;
+  User: User;
+}
+
+interface Payment {
   PaymentId: string;
   UserId: string;
   Amount: number;
@@ -104,105 +163,213 @@ export interface Payment {
   User: User;
 }
 
-// Mock data for demonstration
-const mockCartItems: Cart[] = [
-  {
-    CartId: "1",
-    UserId: "user1",
-    DelicacyId: "del1",
-    Quantity: 2,
-    AddedAt: "2024-01-15T10:30:00Z",
-    User: {} as User,
-    Delicacy: {
-      DelicacyId: "del1",
-      Name: "Grilled Salmon",
-      Description: "Fresh Atlantic salmon with herbs and lemon",
-      Price: 28.99,
-      DelicacyImage:
-        "https://images.unsplash.com/photo-1485921325833-c519f76c4927?w=300",
-      Category: "Main Course",
-      IsAvailable: true,
-      CreatedAt: "2024-01-01T00:00:00Z",
-      UpdatedAt: "2024-01-01T00:00:00Z",
-      Orders: [],
-      Carts: [],
-      OrderItems: [],
-      Reviews: [],
-    },
-  },
-  {
-    CartId: "2",
-    UserId: "user1",
-    DelicacyId: "del2",
-    Quantity: 1,
-    AddedAt: "2024-01-15T11:00:00Z",
-    User: {} as User,
-    Delicacy: {
-      DelicacyId: "del2",
-      Name: "Truffle Pasta",
-      Description: "Homemade pasta with black truffle and parmesan",
-      Price: 35.5,
-      DelicacyImage:
-        "https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=300",
-      Category: "Main Course",
-      IsAvailable: true,
-      CreatedAt: "2024-01-01T00:00:00Z",
-      UpdatedAt: "2024-01-01T00:00:00Z",
-      Orders: [],
-      Carts: [],
-      OrderItems: [],
-      Reviews: [],
-    },
-  },
-  {
-    CartId: "3",
-    UserId: "user1",
-    DelicacyId: "del3",
-    Quantity: 3,
-    AddedAt: "2024-01-15T12:00:00Z",
-    User: {} as User,
-    Delicacy: {
-      DelicacyId: "del3",
-      Name: "Chocolate Soufflé",
-      Description: "Rich dark chocolate soufflé with vanilla ice cream",
-      Price: 12.99,
-      DelicacyImage:
-        "https://images.unsplash.com/photo-1541783245831-57d6fb0d6742?w=300",
-      Category: "Dessert",
-      IsAvailable: true,
-      CreatedAt: "2024-01-01T00:00:00Z",
-      UpdatedAt: "2024-01-01T00:00:00Z",
-      Orders: [],
-      Carts: [],
-      OrderItems: [],
-      Reviews: [],
-    },
-  },
-];
+interface Review {
+  ReviewId: string;
+  UserId: string;
+  RoomId?: string;
+  DelicacyId?: string;
+  Rating: number;
+  Comment: string;
+  CreatedAt: string;
+  User: User;
+  Room?: Room;
+  Delicacy?: Delicacy;
+}
+
+interface Notification {
+  NotificationId: string;
+  UserId: string;
+  Title: string;
+  Message: string;
+  IsRead: boolean;
+  CreatedAt: string;
+  User: User;
+}
+
+interface RoomImage {
+  RoomImageId: string;
+  RoomId: string;
+  ImageUrl: string;
+  Room: Room;
+}
 
 export const Cart: React.FC = () => {
-  const [cartItems, setCartItems] = useState<Cart[]>(mockCartItems);
-  const [paymentStatus, setPaymentStatus] = useState<
-    "pending" | "processing" | "completed" | "failed"
-  >("pending");
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  // Mock user data
+  const user: User = {
+    UserId: "user123",
+    FullName: "Sarah Johnson",
+    Email: "sarah.johnson@email.com",
+    Phone: "+1234567890",
+    Password: "",
+    Role: "Customer",
+    ProfileImage:
+      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150",
+    IsWelcome: true,
+    CreatedAt: "2024-01-15T10:00:00Z",
+    UpdatedAt: "2024-08-20T15:30:00Z",
+    Bookings: [],
+    Accommodations: [],
+    Orders: [],
+    Carts: [],
+    Recoveries: [],
+    Payments: [],
+    Reviews: [],
+    Notifications: [],
+  };
 
-  // Calculate totals
-  const subtotal = cartItems.reduce(
-    (total, item) => total + item.Delicacy.Price * item.Quantity,
-    0
-  );
-  const tax = subtotal * 0.1; // 10% tax
-  const deliveryFee = cartItems.length > 0 ? 5.99 : 0;
-  const grandTotal = subtotal + tax + deliveryFee;
+  const [cartItems, setCartItems] = useState<Cart[]>([]);
+  const [filteredItems, setFilteredItems] = useState<Cart[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // Handle quantity changes
+  // Mock cart data
+  useEffect(() => {
+    const mockCartItems: Cart[] = [
+      {
+        CartId: "cart1",
+        UserId: user.UserId,
+        DelicacyId: "del1",
+        Quantity: 2,
+        AddedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+        User: user,
+        Delicacy: {
+          DelicacyId: "del1",
+          Name: "Truffle Pasta Carbonara",
+          Description:
+            "Handmade pasta with black truffle cream sauce, pancetta, and aged parmesan",
+          Price: 35.0,
+          DelicacyImage:
+            "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400",
+          Category: "Main Course",
+          IsAvailable: true,
+          CreatedAt: "",
+          UpdatedAt: "",
+          Orders: [],
+          Carts: [],
+          OrderItems: [],
+          Reviews: [],
+        },
+      },
+      {
+        CartId: "cart2",
+        UserId: user.UserId,
+        DelicacyId: "del2",
+        Quantity: 1,
+        AddedAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+        User: user,
+        Delicacy: {
+          DelicacyId: "del2",
+          Name: "Mediterranean Seafood Platter",
+          Description:
+            "Fresh lobster, prawns, scallops, and mussels with herb butter and lemon",
+          Price: 85.0,
+          DelicacyImage:
+            "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400",
+          Category: "Seafood",
+          IsAvailable: true,
+          CreatedAt: "",
+          UpdatedAt: "",
+          Orders: [],
+          Carts: [],
+          OrderItems: [],
+          Reviews: [],
+        },
+      },
+      {
+        CartId: "cart3",
+        UserId: user.UserId,
+        DelicacyId: "del3",
+        Quantity: 3,
+        AddedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        User: user,
+        Delicacy: {
+          DelicacyId: "del3",
+          Name: "Chocolate Lava Cake",
+          Description:
+            "Warm chocolate cake with molten center, served with vanilla ice cream",
+          Price: 12.0,
+          DelicacyImage:
+            "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400",
+          Category: "Dessert",
+          IsAvailable: true,
+          CreatedAt: "",
+          UpdatedAt: "",
+          Orders: [],
+          Carts: [],
+          OrderItems: [],
+          Reviews: [],
+        },
+      },
+      {
+        CartId: "cart4",
+        UserId: user.UserId,
+        DelicacyId: "del4",
+        Quantity: 1,
+        AddedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        User: user,
+        Delicacy: {
+          DelicacyId: "del4",
+          Name: "Caesar Salad Supreme",
+          Description:
+            "Crisp romaine lettuce with house-made croutons, parmesan, and caesar dressing",
+          Price: 18.0,
+          DelicacyImage:
+            "https://images.unsplash.com/photo-1512852939750-1305098529bf?w=400",
+          Category: "Appetizer",
+          IsAvailable: false,
+          CreatedAt: "",
+          UpdatedAt: "",
+          Orders: [],
+          Carts: [],
+          OrderItems: [],
+          Reviews: [],
+        },
+      },
+      {
+        CartId: "cart5",
+        UserId: user.UserId,
+        DelicacyId: "del5",
+        Quantity: 2,
+        AddedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+        User: user,
+        Delicacy: {
+          DelicacyId: "del5",
+          Name: "Craft Beer Selection",
+          Description: "Local brewery selection of three premium craft beers",
+          Price: 22.0,
+          DelicacyImage:
+            "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400",
+          Category: "Beverages",
+          IsAvailable: true,
+          CreatedAt: "",
+          UpdatedAt: "",
+          Orders: [],
+          Carts: [],
+          OrderItems: [],
+          Reviews: [],
+        },
+      },
+    ];
+
+    setTimeout(() => {
+      setCartItems(mockCartItems);
+      setFilteredItems(mockCartItems);
+      setLoading(false);
+    }, 1000);
+  }, [user]);
+
+  // Filter functionality
+  useEffect(() => {
+    const filtered = cartItems.filter(
+      (item) =>
+        item.Delicacy.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.Delicacy.Category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredItems(filtered);
+  }, [cartItems, searchTerm]);
+
   const updateQuantity = (cartId: string, newQuantity: number) => {
-    if (newQuantity < 1) {
-      removeItem(cartId);
-      return;
-    }
+    if (newQuantity < 1) return;
     setCartItems((prev) =>
       prev.map((item) =>
         item.CartId === cartId ? { ...item, Quantity: newQuantity } : item
@@ -210,252 +377,225 @@ export const Cart: React.FC = () => {
     );
   };
 
-  // Remove single item
-  const removeItem = (cartId: string) => {
+  const removeFromCart = (cartId: string) => {
     setCartItems((prev) => prev.filter((item) => item.CartId !== cartId));
   };
 
-  // Clear all cart items
+  const getTotalAmount = () => {
+    return cartItems.reduce(
+      (sum, item) => sum + item.Delicacy.Price * item.Quantity,
+      0
+    );
+  };
+
+  const getTotalItems = () => {
+    return cartItems.reduce((sum, item) => sum + item.Quantity, 0);
+  };
+
+  const getItemSubtotal = (item: Cart) => {
+    return item.Delicacy.Price * item.Quantity;
+  };
+
+  const handleCheckout = () => {
+    console.log("Proceeding to checkout...");
+  };
+
   const clearCart = () => {
     setCartItems([]);
   };
 
-  // Handle payment
-  const handlePayment = async () => {
-    setIsLoading(true);
-    setPaymentStatus("processing");
-    setShowPaymentModal(true);
-
-    // Simulate payment process
-    setTimeout(() => {
-      setPaymentStatus("completed");
-      setIsLoading(false);
-      // Clear cart after successful payment
-      setTimeout(() => {
-        setCartItems([]);
-        setShowPaymentModal(false);
-        setPaymentStatus("pending");
-      }, 3000);
-    }, 2000);
-  };
-
-  // Handle make order (without payment)
-  const handleMakeOrder = () => {
-    // Simulate creating order
-    console.log("Creating order with items:", cartItems);
-    alert("Order created successfully! You can complete payment later.");
-  };
-
-  const getStatusIcon = () => {
-    switch (paymentStatus) {
-      case "processing":
-        return <Clock className={styles["status-icon"]} />;
-      case "completed":
-        return <CheckCircle className={styles["status-icon"]} />;
-      case "failed":
-        return <AlertCircle className={styles["status-icon"]} />;
-      default:
-        return <CreditCard className={styles["status-icon"]} />;
-    }
-  };
-
-  const getStatusText = () => {
-    switch (paymentStatus) {
-      case "processing":
-        return "Processing Payment...";
-      case "completed":
-        return "Payment Completed!";
-      case "failed":
-        return "Payment Failed";
-      default:
-        return "Ready to Pay";
-    }
-  };
+  if (loading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner}></div>
+        <p>Loading your cart...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.dashboardContainer}>
       <div className={styles.header}>
-        <div className={styles["header-content"]}>
-          <ShoppingCart className={styles["header-icon"]} />
-          <div>
-            <h1 className={styles["header-title"]}>Your Cart</h1>
-            <p className={styles["header-subtitle"]}>
-              {cartItems.length} {cartItems.length === 1 ? "item" : "items"} in
-              your cart
+        <div className={styles.headerContent}>
+          <div className={styles.headerLeft}>
+            <h1 className={styles.title}>
+              <ShoppingCart className={styles.titleIcon} />
+              My Cart
+            </h1>
+            <p className={styles.subtitle}>
+              Review and manage your selected items
             </p>
           </div>
+          <div className={styles.statsCard}>
+            <div className={styles.statItem}>
+              <Package className={styles.statIcon} />
+              <div className={styles.statContent}>
+                <span className={styles.statValue}>{getTotalItems()}</span>
+                <span className={styles.statLabel}>Total Items</span>
+              </div>
+            </div>
+            <div className={styles.statDivider}></div>
+            <div className={styles.statItem}>
+              <TrendingUp className={styles.statIcon} />
+              <div className={styles.statContent}>
+                <span className={styles.statValue}>
+                  ${getTotalAmount().toFixed(2)}
+                </span>
+                <span className={styles.statLabel}>Total Amount</span>
+              </div>
+            </div>
+          </div>
         </div>
-        {cartItems.length > 0 && (
-          <button
-            className={styles["clear-cart-btn"]}
-            onClick={clearCart}
-            title="Clear all items"
-          >
-            <Trash2 size={18} />
-            Clear Cart
-          </button>
-        )}
       </div>
 
-      {cartItems.length === 0 ? (
-        <div className={styles["empty-cart"]}>
-          <ShoppingBag className={styles["empty-icon"]} />
-          <h2>Your cart is empty</h2>
-          <p>Add some delicious items to get started!</p>
+      <div className={styles.controlsContainer}>
+        <div className={styles.searchContainer}>
+          <Search className={styles.searchIcon} />
+          <input
+            type="text"
+            placeholder="Search cart items..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={styles.searchInput}
+          />
         </div>
-      ) : (
-        <>
-          <div className={styles["cart-items"]}>
-            {cartItems.map((item) => (
-              <div key={item.CartId} className={styles["cart-item"]}>
-                <div className={styles["item-image"]}>
-                  <img
-                    src={item.Delicacy.DelicacyImage}
-                    alt={item.Delicacy.Name}
-                    onError={(e) => {
-                      e.currentTarget.src =
-                        "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=300";
-                    }}
-                  />
-                  {!item.Delicacy.IsAvailable && (
-                    <div className={styles["unavailable-overlay"]}>
-                      <span>Unavailable</span>
+
+        <div className={styles.actionsContainer}>
+          {cartItems.length > 0 && (
+            <button onClick={clearCart} className={styles.clearButton}>
+              <Trash2 className={styles.actionIcon} />
+              Clear Cart
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className={styles.cartContainer}>
+        {filteredItems.length === 0 ? (
+          <div className={styles.emptyState}>
+            <ShoppingCart className={styles.emptyIcon} />
+            <h3>
+              {cartItems.length === 0 ? "Your cart is empty" : "No items found"}
+            </h3>
+            <p>
+              {cartItems.length === 0
+                ? "Add some delicious items to get started"
+                : "Try adjusting your search"}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className={styles.cartItems}>
+              {filteredItems.map((item) => (
+                <div key={item.CartId} className={styles.cartItem}>
+                  <div className={styles.itemImage}>
+                    <img
+                      src={item.Delicacy.DelicacyImage}
+                      alt={item.Delicacy.Name}
+                      className={styles.delicacyImage}
+                    />
+                    {!item.Delicacy.IsAvailable && (
+                      <div className={styles.unavailableBadge}>Unavailable</div>
+                    )}
+                  </div>
+
+                  <div className={styles.itemDetails}>
+                    <div className={styles.itemHeader}>
+                      <h3 className={styles.itemName}>{item.Delicacy.Name}</h3>
+                      <div className={styles.categoryBadge}>
+                        {item.Delicacy.Category}
+                      </div>
                     </div>
-                  )}
-                </div>
+                    <p className={styles.itemDescription}>
+                      {item.Delicacy.Description}
+                    </p>
+                    <div className={styles.itemMeta}>
+                      <span className={styles.unitPrice}>
+                        ${item.Delicacy.Price.toFixed(2)} each
+                      </span>
+                      <div className={styles.addedTime}>
+                        <Calendar className={styles.timeIcon} />
+                        <span>
+                          Added {new Date(item.AddedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-                <div className={styles["item-details"]}>
-                  <div className={styles["item-header"]}>
-                    <h3 className={styles["item-name"]}>
-                      {item.Delicacy.Name}
-                    </h3>
+                  <div className={styles.itemActions}>
+                    <div className={styles.quantityControls}>
+                      <button
+                        onClick={() =>
+                          updateQuantity(item.CartId, item.Quantity - 1)
+                        }
+                        className={styles.quantityButton}
+                        disabled={item.Quantity <= 1}
+                      >
+                        <Minus className={styles.quantityIcon} />
+                      </button>
+                      <span className={styles.quantity}>{item.Quantity}</span>
+                      <button
+                        onClick={() =>
+                          updateQuantity(item.CartId, item.Quantity + 1)
+                        }
+                        className={styles.quantityButton}
+                      >
+                        <Plus className={styles.quantityIcon} />
+                      </button>
+                    </div>
+
+                    <div className={styles.itemTotal}>
+                      <span className={styles.subtotal}>
+                        ${getItemSubtotal(item).toFixed(2)}
+                      </span>
+                    </div>
+
                     <button
-                      className={styles["remove-btn"]}
-                      onClick={() => removeItem(item.CartId)}
-                      title="Remove item"
+                      onClick={() => removeFromCart(item.CartId)}
+                      className={styles.removeButton}
                     >
-                      <X size={16} />
+                      <Trash2 className={styles.removeIcon} />
                     </button>
                   </div>
-                  <p className={styles["item-description"]}>
-                    {item.Delicacy.Description}
-                  </p>
-                  <div className={styles["item-category"]}>
-                    <span className={styles.category}>
-                      {item.Delicacy.Category}
-                    </span>
+                </div>
+              ))}
+            </div>
+
+            <div className={styles.cartSummary}>
+              <div className={styles.summaryContent}>
+                <div className={styles.summaryHeader}>
+                  <h3>Order Summary</h3>
+                </div>
+
+                <div className={styles.summaryDetails}>
+                  <div className={styles.summaryRow}>
+                    <span>Items ({getTotalItems()})</span>
+                    <span>${getTotalAmount().toFixed(2)}</span>
+                  </div>
+                  <div className={styles.summaryRow}>
+                    <span>Service Fee</span>
+                    <span>$5.00</span>
+                  </div>
+                  <div className={styles.summaryDivider}></div>
+                  <div className={styles.summaryTotal}>
+                    <span>Total</span>
+                    <span>${(getTotalAmount() + 5.0).toFixed(2)}</span>
                   </div>
                 </div>
 
-                <div className={styles["item-actions"]}>
-                  <div className={styles["quantity-controls"]}>
-                    <button
-                      className={styles["quantity-btn"]}
-                      onClick={() =>
-                        updateQuantity(item.CartId, item.Quantity - 1)
-                      }
-                      disabled={item.Quantity <= 1}
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span className={styles.quantity}>{item.Quantity}</span>
-                    <button
-                      className={styles["quantity-btn"]}
-                      onClick={() =>
-                        updateQuantity(item.CartId, item.Quantity + 1)
-                      }
-                      disabled={!item.Delicacy.IsAvailable}
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                  <div className={styles["item-price"]}>
-                    <span className={styles["unit-price"]}>
-                      ${item.Delicacy.Price.toFixed(2)} each
-                    </span>
-                    <span className={styles["total-price"]}>
-                      ${(item.Delicacy.Price * item.Quantity).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className={styles.summary}>
-            <div className={styles["summary-content"]}>
-              <h2 className={styles["summary-title"]}>Order Summary</h2>
-
-              <div className={styles["summary-lines"]}>
-                <div className={styles["summary-line"]}>
-                  <span>Subtotal:</span>
-                  <span>${subtotal.toFixed(2)}</span>
-                </div>
-                <div className={styles["summary-line"]}>
-                  <span>Tax (10%):</span>
-                  <span>${tax.toFixed(2)}</span>
-                </div>
-                <div className={styles["summary-line"]}>
-                  <span>Delivery Fee:</span>
-                  <span>${deliveryFee.toFixed(2)}</span>
-                </div>
-                <div className={styles["summary-line-total"]}>
-                  <span>Total:</span>
-                  <span>${grandTotal.toFixed(2)}</span>
-                </div>
-              </div>
-
-              <div className={styles["action-buttons"]}>
                 <button
-                  className={styles["order-btn"]}
-                  onClick={handleMakeOrder}
+                  onClick={handleCheckout}
+                  className={styles.checkoutButton}
+                  disabled={cartItems.length === 0}
                 >
-                  <ShoppingBag size={18} />
-                  Make Order
-                </button>
-                <button
-                  className={styles["payment-btn"]}
-                  onClick={handlePayment}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Clock size={18} className={styles.spinning} />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard size={18} />
-                      Complete Payment
-                      <ArrowRight size={16} />
-                    </>
-                  )}
+                  <CreditCard className={styles.checkoutIcon} />
+                  Proceed to Checkout
                 </button>
               </div>
             </div>
-          </div>
-        </>
-      )}
-
-      {/* Payment Status Modal */}
-      {showPaymentModal && (
-        <div className={styles.modal}>
-          <div className={styles["modal-content"]}>
-            <div className={styles["status-container"]}>
-              {getStatusIcon()}
-              <h3 className={styles["status-text"]}>{getStatusText()}</h3>
-              {paymentStatus === "processing" && (
-                <p>Please wait while we process your payment...</p>
-              )}
-              {paymentStatus === "completed" && (
-                <p>
-                  Your order has been confirmed and will be prepared shortly!
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 };

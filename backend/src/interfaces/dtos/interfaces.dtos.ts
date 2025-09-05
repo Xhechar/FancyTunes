@@ -11,7 +11,6 @@ export interface UpdateUserDto {
   FullName?: string;
   Email?: string;
   Phone?: string;
-  Role?: string;
   ProfileImage?: string;
 }
 

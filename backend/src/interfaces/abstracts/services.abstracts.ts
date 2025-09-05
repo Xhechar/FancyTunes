@@ -1,93 +1,108 @@
-import { Payment, User } from "@prisma/client";
-import { Accommodation, Booking, Cart, ChangePasswoerdDto, Delicacy, LoginDetails, Order, Recovery, Room } from "../backend.interfaces";
-import { CreateAccommodationDto, CreateBookingDto, CreateCartDto, CreateDelicacyDto, CreateOrderDto, CreatePaymentDto, CreateRecoveryDto, CreateRoomDto, CreateUserDto, UpdateAccommodationDto, UpdateBookingDto, UpdateCartDto, UpdateDelicacyDto, UpdateOrderDto, UpdateRecoveryDto, UpdateRoomDto, UpdateUserDto } from "../dtos/interfaces.dtos";
+import { Accommodation, Booking, Cart, Delicacy, Order, Payment, Recovery, Review, Room, User } from "@prisma/client";
+import { CreateAccommodationDto, CreateBookingDto, CreateCartDto, CreateDelicacyDto, CreateNotificationDto, CreateOrderDto, CreatePaymentDto, CreateRecoveryDto, CreateReviewDto, CreateRoomDto, CreateUserDto, UpdateAccommodationDto, UpdateBookingDto, UpdateCartDto, UpdateDelicacyDto, UpdateOrderDto, UpdateRecoveryDto, UpdateRoomDto, UpdateUserDto } from "../dtos/interfaces.dtos";
 import { ServiceResult } from "../service.result/service.result";
+import { LoginDetails, ChangePasswoerdDto } from "../backend.interfaces";
 
 export interface IAuthService {
-  loginUser(loginDetails: LoginDetails): ServiceResult<object>;
-  verifyMail(Email: string): ServiceResult<object>;
-  changePassword(details: ChangePasswoerdDto): ServiceResult<object>;
+  loginUser(loginDetails: LoginDetails): Promise<ServiceResult<object>>;
+  verifyMail(Email: string): Promise<ServiceResult<object>>;
+  changePassword(details: ChangePasswoerdDto): Promise<ServiceResult<object>>;
   logput(): void;
 }
 
 export interface IUserService {
-  CreateUser(User: CreateUserDto): ServiceResult<User>;
-  UpdateUser(UserId: string, User: UpdateUserDto): ServiceResult<User>;
-  UpdateUserProfileImage(UserId: string, ProfileImage: string): ServiceResult<User>;
-  DeleteUser(UserId: string): ServiceResult<User>;
-  GetUserByUserId(UserId: string): ServiceResult<User>;
-  GetAllUsers(): ServiceResult<User>;
+  CreateUser(User: CreateUserDto): Promise<ServiceResult<User>>;
+  UpdateUser(UserId: string, User: UpdateUserDto): Promise<ServiceResult<User>>;
+  UpdateUserProfileImage(UserId: string, ProfileImage: string): Promise<ServiceResult<User>>;
+  DeleteUser(UserId: string): Promise<ServiceResult<User>>;
+  GetUserByUserId(UserId: string): Promise<ServiceResult<User>>;
+  GetAllUsers(): Promise<ServiceResult<User>>;
 }
 
 export interface IRoomService {
-  CreateRoom(Room: CreateRoomDto): ServiceResult<Room>;
-  UpdateRoom(RoomId: string, Room: UpdateRoomDto): ServiceResult<Room>;
-  DeleteRoom(RoomId: string): ServiceResult<Room>;
-  GetRoomByRoomId(RoomId: string): ServiceResult<Room>;
-  GetAllRooms(): ServiceResult<Room>;
+  CreateRoom(Room: CreateRoomDto): Promise<ServiceResult<Room>>;
+  UpdateRoom(RoomId: string, Room: UpdateRoomDto): Promise<ServiceResult<Room>>;
+  DeleteRoom(RoomId: string): Promise<ServiceResult<Room>>;
+  GetRoomByRoomId(RoomId: string): Promise<ServiceResult<Room>>;
+  GetAllRooms(): Promise<ServiceResult<Room>>;
 }
 
 export interface IDelicacyService {
-  CreateDelicacy(Delicacy: CreateDelicacyDto): ServiceResult<Delicacy>;
-  UpdateDelicacy(DelicacyId: string, Delicacy: UpdateDelicacyDto): ServiceResult<Delicacy>;
-  DeleteDelicacy(DelicacyId: string): ServiceResult<Delicacy>;
-  GetDelicacyByDelicacyId(DelicacyId: string): ServiceResult<Delicacy>;
-  GetAllDelicacies(): ServiceResult<Delicacy>;
+  CreateDelicacy(Delicacy: CreateDelicacyDto): Promise<ServiceResult<Delicacy>>;
+  UpdateDelicacy(DelicacyId: string, Delicacy: UpdateDelicacyDto): Promise<ServiceResult<Delicacy>>;
+  DeleteDelicacy(DelicacyId: string): Promise<ServiceResult<Delicacy>>;
+  GetDelicacyByDelicacyId(DelicacyId: string): Promise<ServiceResult<Delicacy>>;
+  GetAllDelicacies(): Promise<ServiceResult<Delicacy>>;
 }
 
 export interface IAccommodationService {
-  CreateAccommodation(Accommodation: CreateAccommodationDto): ServiceResult<Accommodation>;
-  UpdateAccommodation(AccommodationId: string, Accommodation: UpdateAccommodationDto): ServiceResult<Accommodation>;
-  DeleteAccommodation(AccommodationId: string): ServiceResult<Accommodation>;
-  GetAllAccommodations(): ServiceResult<Accommodation>;
-  GetUserAccommodations(UserId: string): ServiceResult<Accommodation>;
+  CreateAccommodation(Accommodation: CreateAccommodationDto): Promise<ServiceResult<Accommodation>>;
+  UpdateAccommodation(AccommodationId: string, Accommodation: UpdateAccommodationDto): Promise<ServiceResult<Accommodation>>;
+  DeleteAccommodation(AccommodationId: string): Promise<ServiceResult<Accommodation>>;
+  GetAllAccommodations(): Promise<ServiceResult<Accommodation>>;
+  GetUserAccommodations(UserId: string): Promise<ServiceResult<Accommodation>>;
 }
 
 export interface IOrderService {
-  CreateOrder(Order: CreateOrderDto): ServiceResult<Order>;
-  UpdateOrder(OrderId: string, Order: UpdateOrderDto): ServiceResult<Order>;
-  DeleteOrder(OrderId: string): ServiceResult<Order>;
-  GetUserOrders(UserId: string): ServiceResult<Order>;
-  GetAllOrders(): ServiceResult<Order>;
-  GetPaidOrders(): ServiceResult<Order>;
-  GetUnpaidOrders(): ServiceResult<Order>;
-  GetDeliveredOrders(): ServiceResult<Order>;
-  GetUndeliveredOrders(): ServiceResult<Order>;
+  CreateOrder(Order: CreateOrderDto): Promise<ServiceResult<Order>>;
+  UpdateOrder(OrderId: string, Order: UpdateOrderDto): Promise<ServiceResult<Order>>;
+  DeleteOrder(OrderId: string): Promise<ServiceResult<Order>>;
+  GetUserOrders(UserId: string): Promise<ServiceResult<Order>>;
+  GetAllOrders(): Promise<ServiceResult<Order>>;
+  GetPaidOrders(): Promise<ServiceResult<Order>>;
+  GetUnpaidOrders(): Promise<ServiceResult<Order>>;
+  GetDeliveredOrders(): Promise<ServiceResult<Order>>;
+  GetUndeliveredOrders(): Promise<ServiceResult<Order>>;
 }
 
 export interface IBookingService {
-  CreateBooking(Booking: CreateBookingDto): ServiceResult<Booking>;
-  UpdateBooking(BookingId: string, Booking: UpdateBookingDto): ServiceResult<Booking>;
-  UpdateBookingStatus(BookingId: string, BookingStatus: string): ServiceResult<Booking>;
-  DeleteBooking(BookingId: string): ServiceResult<Booking>;
-  GetAllBookings(): ServiceResult<Booking>;
-  GetUserBookings(UserId: string): ServiceResult<Booking>;
-  GetActiveBookings(): ServiceResult<Booking>;
-  GetInactiveBookings(): ServiceResult<Booking>;
-  GetPaidBookings(): ServiceResult<Booking>;
-  GetUnpaidBookings(): ServiceResult<Booking>;
+  CreateBooking(Booking: CreateBookingDto): Promise<ServiceResult<Booking>>;
+  UpdateBooking(BookingId: string, Booking: UpdateBookingDto): Promise<ServiceResult<Booking>>;
+  UpdateBookingStatus(BookingId: string, BookingStatus: string): Promise<ServiceResult<Booking>>;
+  DeleteBooking(BookingId: string): Promise<ServiceResult<Booking>>;
+  GetAllBookings(): Promise<ServiceResult<Booking>>;
+  GetUserBookings(UserId: string): Promise<ServiceResult<Booking>>;
+  GetActiveBookings(): Promise<ServiceResult<Booking>>;
+  GetInactiveBookings(): Promise<ServiceResult<Booking>>;
+  GetPaidBookings(): Promise<ServiceResult<Booking>>;
+  GetUnpaidBookings(): Promise<ServiceResult<Booking>>;
 }
 
 export interface ICartService {
-  CreateCart(Cart: CreateCartDto): ServiceResult<Cart>;
-  UpdateCart(CartId: string, Cart: UpdateCartDto): ServiceResult<Cart>;
-  IncrementCartItem(CartId: string): ServiceResult<Cart>;
-  DecrementCartItem(CartId: string): ServiceResult<Cart>;
-  DeleteCart(CartId: string): ServiceResult<Cart>;
-  GetUserCarts(UserId: string): ServiceResult<Cart>;
-  GetAllCarts(): ServiceResult<Cart>;
+  CreateCart(Cart: CreateCartDto): Promise<ServiceResult<Cart>>;
+  UpdateCart(CartId: string, Cart: UpdateCartDto): Promise<ServiceResult<Cart>>;
+  IncrementCartItem(CartId: string): Promise<ServiceResult<Cart>>;
+  DecrementCartItem(CartId: string): Promise<ServiceResult<Cart>>;
+  DeleteCart(CartId: string): Promise<ServiceResult<Cart>>;
+  GetUserCarts(UserId: string): Promise<ServiceResult<Cart>>;
+  GetAllCarts(): Promise<ServiceResult<Cart>>;
 }
 
 export interface IRecoveryService {
-  CreateRecovery(Recovery: CreateRecoveryDto): ServiceResult<Recovery>;
-  UpdateRecovery(RecoveryId: string, Recovery: UpdateRecoveryDto): ServiceResult<Recovery>;
-  DeleteRecovery(RecoveryId: string): ServiceResult<Recovery>;
-  GetAllRecoveries(): ServiceResult<Recovery>;
+  CreateRecovery(Recovery: CreateRecoveryDto): Promise<ServiceResult<Recovery>>;
+  UpdateRecovery(RecoveryId: string, Recovery: UpdateRecoveryDto): Promise<ServiceResult<Recovery>>;
+  DeleteRecovery(RecoveryId: string): Promise<ServiceResult<Recovery>>;
+  GetAllRecoveries(): Promise<ServiceResult<Recovery>>;
 }
 
 export interface IPaymentService {
-  CreatePayment(Payment: CreatePaymentDto): ServiceResult<Payment>;
-  GetUserPayments(UserId: string): ServiceResult<Payment>;
-  GetAllPayments(): ServiceResult<Payment>;
-  DeletePayment(PaymentId: string): ServiceResult<Payment>;
+  CreatePayment(Payment: CreatePaymentDto): Promise<ServiceResult<Payment>>;
+  GetUserPayments(UserId: string): Promise<ServiceResult<Payment>>;
+  GetAllPayments(): Promise<ServiceResult<Payment>>;
+  DeletePayment(PaymentId: string): Promise<ServiceResult<Payment>>;
+}
+
+export interface IReviewsService {
+  CreateReview(Review: CreateReviewDto): Promise<ServiceResult<Review>>;
+  UpdateReview(ReviewId: string, Review: CreateReviewDto): Promise<ServiceResult<Review>>;
+  DeleteReview(ReviewId: string): Promise<ServiceResult<Review>>;
+  GetAllReviews(): Promise<ServiceResult<Review>>;
+  GetReviewsByUserId(UserId: string): Promise<ServiceResult<Review>>;
+}
+
+export interface INotificationService {
+  SendNotification(Notification: CreateNotificationDto): Promise<ServiceResult<Notification>>;
+  GetUserNotifications(UserId: string): Promise<ServiceResult<Notification>>;
+  DeleteNotification(NotificationId: string): Promise<ServiceResult<Notification>>;
+  MarkNotificationAsRead(NotificationId: string): Promise<ServiceResult<Notification>>;
 }
