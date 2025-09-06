@@ -6,6 +6,7 @@ import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { v4 } from "uuid";
 import bcrypt from "bcrypt";
+import { date } from "joi";
 
 export class UserService implements IUserService {
 
@@ -92,13 +93,71 @@ export class UserService implements IUserService {
 
   }
   async DeleteUser(UserId: string): Promise<ServiceResult<User>> {
-    throw new Error("Method not implemented.");
+    
+    let UserExists = await this.prisma.user.findUnique({
+      where: {
+        UserId
+      }
+    });
+
+    if (UserExists == null) return ServiceResponse.failure<User>(ErrorCode.NOTFOUND, "your details are unavailable at the moment.");
+
+    let DeleteUser = await this.prisma.user.delete({
+      where: {
+        UserId
+      }
+    });
+
+    if (DeleteUser == null) return ServiceResponse.failure<User>(ErrorCode.SERVER, "unable to delete user at the moment.");
+
+    return ServiceResponse.success<User>("user deleted successfully.");
   }
   async GetUserByUserId(UserId: string): Promise<ServiceResult<User>> {
-    throw new Error("Method not implemented.");
+    
+    let UserExists = await this.prisma.user.findUnique({
+      where: {
+        UserId
+      },
+      include: {
+        Bookings: true,
+        Accommodations: true,
+        Orders: true,
+        Recoveries: true,
+        Payments: true,
+        Reviews: true,
+        Carts: true,
+        Notifications: true
+      }
+    });
+
+    if (UserExists == null) return ServiceResponse.failure<User>(ErrorCode.NOTFOUND, "your details are unavailable at the moment.");
+
+    return ServiceResponse.success<User>("user details retrieved successfully.", UserExists);
   }
   async GetAllUsers(): Promise<ServiceResult<User>> {
-    throw new Error("Method not implemented.");
+    
+    let Users = await this.prisma.user.findMany({
+      where: {
+        Role: {
+          not: "admin"
+        }
+      },
+      orderBy: {
+        CreatedAt: 'desc'
+      },
+      include: {
+        Bookings: true,
+        Accommodations: true,
+        Orders: true,
+        Recoveries: true,
+        Payments: true,
+        Reviews: true
+      }
+    });
+
+    if (Users == null) return ServiceResponse.failure<User>(ErrorCode.NOTFOUND, "no users available at the moment.");
+
+    return ServiceResponse.success<User>("users retrieved successfully.", undefined, Users);
   }
   
 }

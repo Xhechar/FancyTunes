@@ -34,6 +34,16 @@ export interface UpdateRoomDto {
   RoomImage?: string;
 }
 
+export interface CreateBusinessRoomDto {
+  RoomNumber: string;
+  Name: string;
+  Description: string;
+  Capacity: number;
+  PricePerHour: string;
+  Amenities?: string;
+  BusinessRoomImage?: string;
+}
+
 export interface CreateDelicacyDto {
   Name: string;
   Description: string;
@@ -55,21 +65,15 @@ export interface UpdateDelicacyDto {
 export interface CreateAccommodationDto {
   UserId: string;
   RoomId: string;
-  CheckInDate: string;
-  CheckOutDate: string;
-  TotalAmount: string;
+  CheckInDate: Date;
+  CheckOutDate: Date;
   SpecialRequests?: string;
-  PaymentStatus: string;
-  IsActive: boolean;
 }
 
 export interface UpdateAccommodationDto {
-  CheckInDate?: string;
-  CheckOutDate?: string;
-  TotalAmount?: string;
+  CheckInDate?: Date;
+  CheckOutDate?: Date;
   SpecialRequests?: string;
-  PaymentStatus?: string;
-  IsActive?: boolean;
 }
 
 export interface CreateOrderDto {
@@ -86,14 +90,14 @@ export interface UpdateOrderDto {
   TotalAmount?: string;
   OrderStatus?: string;
   PaymentStatus?: string;
-  DeliveredAt?: string;
+  DeliveredAt?: Date;
 }
 
 export interface CreateBookingDto {
   UserId: string;
   RoomId: string;
-  CheckInDate: string;
-  CheckOutDate: string;
+  CheckInDate: Date;
+  CheckOutDate: Date;
   NumberOfGuests: number;
   PaymentStatus: string;
   TotalAmount: string;
@@ -102,8 +106,8 @@ export interface CreateBookingDto {
 }
 
 export interface UpdateBookingDto {
-  CheckInDate?: string;
-  CheckOutDate?: string;
+  CheckInDate?: Date;
+  CheckOutDate?: Date;
   NumberOfGuests?: number;
   PaymentStatus?: string;
   TotalAmount?: string;
@@ -127,11 +131,6 @@ export interface CreateRecoveryDto {
   UserId: string;
   Code: string;
   ExpiresAt: string;
-}
-
-export interface UpdateRecoveryDto {
-  Code?: string;
-  ExpiresAt?: string;
 }
 
 export interface CreateReviewDto {
@@ -179,13 +178,6 @@ export interface CreatePaymentDto {
   PaymentStatus: string;
   Reference: string;
   PaidAt: string;
-}
-
-export interface UpdatePaymentDto {
-  Amount?: string;
-  PaymentStatus?: string;
-  Reference?: string;
-  PaidAt?: string;
 }
 
 export interface CreateRoomImageDto {

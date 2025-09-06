@@ -35,9 +35,25 @@ model User {
   Notifications    Notification[]
 }
 
+model BusinessRoom {
+  BusinessRoomId   String           @id
+  RoomNumber       String         @unique
+  Name             String
+  Description      String
+  Capacity         Int
+  PricePerHour     Decimal
+  Amenities        String?
+  BusinessRoomImage String?
+  IsAvailable      Boolean          @default(true)
+  CreatedAt        DateTime         @default(now())
+  UpdatedAt        DateTime         @updatedAt
+
+  Bookings         Booking[]
+}
+
 model Room {
   RoomId           String           @id
-  RoomNumber       String
+  RoomNumber       String     @unique
   RoomType         String
   PricePerNight    Decimal
   Description      String
@@ -48,7 +64,6 @@ model Room {
   UpdatedAt        DateTime         @updatedAt
 
   Accommodations   Accommodation[]
-  Bookings         Booking[]
   Reviews          Review[]
   RoomImages       RoomImage[]
 }
@@ -79,7 +94,7 @@ model Accommodation {
   TotalAmount      Decimal
   SpecialRequests   String?
   PaymentStatus    String           @default("unpaid")
-  IsActive         Boolean          @default(true)  
+  IsActive         Boolean          @default(false)  
   CreatedAt        DateTime         @default(now())
   UpdatedAt        DateTime         @updatedAt
 
@@ -106,9 +121,9 @@ model Order {
 model Booking {
   BookingId        String           @id
   UserId           String
-  RoomId           String
-  CheckInDate      DateTime
-  CheckOutDate     DateTime
+  BusinessRoomId           String
+  DurationInHours  Int
+  BookingDate      DateTime
   NumberOfGuests   Int
   TotalAmount      Decimal
   SpecialRequests   String?
@@ -118,7 +133,7 @@ model Booking {
   UpdatedAt        DateTime         @updatedAt
 
   User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
-  Room             Room             @relation(fields: [RoomId], references: [RoomId], onDelete: NoAction, onUpdate: NoAction)
+  BusinessRoom             BusinessRoom             @relation(fields: [BusinessRoomId], references: [BusinessRoomId], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Cart {
