@@ -1,3 +1,4 @@
+import { string } from "joi";
 import { TokenDetails } from "../utils/token.details";
 import { ServiceResult } from "./service.result";
 
@@ -23,11 +24,11 @@ export class ServiceResponse<T> {
     };
   }
 
-  static auth<T>(tokenDetails: TokenDetails): ServiceResult<T> {
+  static auth<T>(token: string): ServiceResult<T> {
     return {
       success: true,
       message: "login successfull.",
-      tokenData: tokenDetails,
+      token
     };
   }
 }

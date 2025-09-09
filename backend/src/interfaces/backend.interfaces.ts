@@ -22,7 +22,7 @@ export interface User {
 
 export interface Room {
   RoomId: string;
-  RoomNumber: string;
+  RoomCount: number;
   RoomType: string;
   PricePerNight: number;
   Description: string;
@@ -72,6 +72,20 @@ export interface Accommodation {
   Room: Room;
 }
 
+export interface BusinessRoom {
+  BusinessRoomId: string;
+  RoomCount?: number;
+  Name: string;
+  Description: string;
+  Capacity: number;
+  PricePerHour: number;
+  Amenities?: string;
+  BusinessRoomImage?: string;
+  IsAvailable: boolean;
+  CreatedAt: Date;
+  UpdatedAt: Date;
+}
+
 export interface Order {
   OrderId: string;
   UserId: string;
@@ -91,7 +105,7 @@ export interface Order {
 export interface Booking {
   BookingId: string;
   UserId: string;
-  RoomId: string;
+  BusinessRoomId: string;
   CheckInDate: Date;
   CheckOutDate: Date;
   NumberOfGuests: number;
@@ -103,7 +117,7 @@ export interface Booking {
   UpdatedAt: Date;
 
   User: User;
-  Room: Room;
+  BusinessRoom: BusinessRoom;
 }
 
 export interface Cart {
@@ -196,5 +210,6 @@ export interface LoginDetails {
 
 export interface ChangePasswoerdDto {
   Email: string,
-  NewPassword: string
+  NewPassword: string,
+  VerificationCode: number
 }

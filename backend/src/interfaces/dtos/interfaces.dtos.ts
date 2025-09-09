@@ -15,7 +15,7 @@ export interface UpdateUserDto {
 }
 
 export interface CreateRoomDto {
-  RoomNumber: string;
+  RoomCount: number;
   RoomType: string;
   PricePerNight: string;
   Description: string;
@@ -25,7 +25,7 @@ export interface CreateRoomDto {
 }
 
 export interface UpdateRoomDto {
-  RoomNumber?: string;
+  RoomCount?: number;
   RoomType?: string;
   PricePerNight?: string;
   Description?: string;
@@ -35,11 +35,21 @@ export interface UpdateRoomDto {
 }
 
 export interface CreateBusinessRoomDto {
-  RoomNumber: string;
+  RoomCount: number;
   Name: string;
   Description: string;
   Capacity: number;
   PricePerHour: string;
+  Amenities?: string;
+  BusinessRoomImage?: string;
+}
+
+export interface UpdateBusinessRoomDto {
+  RoomCount?: number;
+  Name?: string;
+  Description?: string;
+  Capacity?: number;
+  PricePerHour?: string;
   Amenities?: string;
   BusinessRoomImage?: string;
 }
@@ -94,25 +104,19 @@ export interface UpdateOrderDto {
 }
 
 export interface CreateBookingDto {
-  UserId: string;
-  RoomId: string;
-  CheckInDate: Date;
-  CheckOutDate: Date;
   NumberOfGuests: number;
-  PaymentStatus: string;
-  TotalAmount: string;
+  DurationInHours: number;
+  BookingDate: Date;
+  TotalAmount: number;
   SpecialRequests?: string;
-  BookingStatus: string;
 }
 
 export interface UpdateBookingDto {
-  CheckInDate?: Date;
-  CheckOutDate?: Date;
   NumberOfGuests?: number;
-  PaymentStatus?: string;
-  TotalAmount?: string;
+  DurationInHours?: number;
+  BookingDate?: Date;
+  TotalAmount?: number;
   SpecialRequests?: string;
-  BookingStatus?: string;
 }
 
 export interface CreateCartDto {

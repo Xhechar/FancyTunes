@@ -6,5 +6,5 @@ export interface ServiceResult<T> {
   error?: string;
   data?: T;
   dataList?: T[];
-  tokenData?: TokenDetails;
+  token?: string;
 }

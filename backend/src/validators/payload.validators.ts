@@ -203,59 +203,82 @@ export const UpdateOrderSchema = Joi.object({
 
 // booking validation schema
 export const CreateBookingSchema = Joi.object({
-  UserId: Joi.string().required(),
-  RoomId: Joi.string().required(),
-  CheckInDate: Joi.date().iso().required(),
-  CheckOutDate: Joi.date().iso().required(),
-  NumberOfGuests: Joi.number().integer().min(1).required(),
-  PaymentStatus: Joi.string().valid("unpaid", "paid").default("unpaid"),
-  TotalAmount: Joi.number().precision(2).required(),
-  SpecialRequests: Joi.string().optional(),
-  BookingStatus: Joi.string()
-    .valid("pending", "confirmed", "cancelled")
-    .default("pending"),
+  NumberOfGuests: Joi.number()
+    .integer()
+    .min(1)
+    .required()
+    .messages({
+      "any.required": "Number of guests is required.",
+      "number.base": "Number of guests must be a number.",
+      "number.integer": "Number of guests must be an integer.",
+      "number.min": "Number of guests must be at least 1.",
+    }),
+  DurationInHours: Joi.number()
+    .integer()
+    .min(1)
+    .required()
+    .messages({
+      "any.required": "Duration in hours is required.",
+      "number.base": "Duration in hours must be a number.",
+      "number.integer": "Duration in hours must be an integer.",
+      "number.min": "Duration in hours must be at least 1.",
+    }),
+  BookingDate: Joi.date()
+    .iso()
+    .required()
+    .messages({
+      "any.required": "Booking date is required.",
+      "date.base": "Booking date must be a valid ISO date.",
+    }),
+  TotalAmount: Joi.number()
+    .precision(2)
+    .required()
+    .messages({
+      "any.required": "Total amount is required.",
+      "number.base": "Total amount must be a valid number.",
+    }),
+  SpecialRequests: Joi.string()
+    .optional()
+    .messages({
+      "string.base": "Special requests must be a text value.",
+    }),
 });
 
 export const UpdateBookingSchema = Joi.object({
-  CheckInDate: Joi.date().iso(),
-  CheckOutDate: Joi.date().iso(),
-  NumberOfGuests: Joi.number().integer().min(1),
-  PaymentStatus: Joi.string().valid("unpaid", "paid"),
-  TotalAmount: Joi.number().precision(2),
-  SpecialRequests: Joi.string(),
-  BookingStatus: Joi.string().valid("pending", "confirmed", "cancelled"),
-});
-
-// cart validation schema
-export const CreateCartSchema = Joi.object({
-  UserId: Joi.string().required(),
-  DelicacyId: Joi.string().required(),
-  Quantity: Joi.number().integer().min(1).required(),
-  TotalAmount: Joi.number().precision(2).required(),
-});
-
-export const UpdateCartSchema = Joi.object({
-  Quantity: Joi.number().integer().min(1),
-  TotalAmount: Joi.number().precision(2),
-});
-
-// recovery validation schema
-export const CreateRecoverySchema = Joi.object({
-  UserId: Joi.string().required(),
-  VerificationCode: Joi.number().required(),
-  ExpiresAt: Joi.date().iso().required(),
-});
-
-export const UpdateRecoverySchema = Joi.object({
-  VerificationCode: Joi.number(),
-  ExpiresAt: Joi.date().iso(),
+  NumberOfGuests: Joi.number()
+    .integer()
+    .min(1)
+    .messages({
+      "number.base": "Number of guests must be a number.",
+      "number.integer": "Number of guests must be an integer.",
+      "number.min": "Number of guests must be at least 1.",
+    }),
+  DurationInHours: Joi.number()
+    .integer()
+    .min(1)
+    .messages({
+      "number.base": "Duration in hours must be a number.",
+      "number.integer": "Duration in hours must be an integer.",
+      "number.min": "Duration in hours must be at least 1.",
+    }),
+  BookingDate: Joi.date()
+    .iso()
+    .messages({
+      "date.base": "Booking date must be a valid ISO date.",
+    }),
+  TotalAmount: Joi.number()
+    .precision(2)
+    .messages({
+      "number.base": "Total amount must be a valid number.",
+    }),
+  SpecialRequests: Joi.string()
+    .messages({
+      "string.base": "Special requests must be a text value.",
+    }),
 });
 
 // review validation schema
 export const CreateReviewSchema = Joi.object({
-  UserId: Joi.string().required(),
-  RoomId: Joi.string().optional(),
-  DelicacyId: Joi.string().optional(),
   Rating: Joi.number().integer().min(1).max(5).required(),
   Comment: Joi.string().required(),
 });
@@ -267,7 +290,6 @@ export const UpdateReviewSchema = Joi.object({
 
 // notification validation schema
 export const CreateNotificationSchema = Joi.object({
-  UserId: Joi.string().required(),
   Title: Joi.string().required(),
   Message: Joi.string().required(),
   IsRead: Joi.boolean().default(false),
@@ -324,4 +346,115 @@ export const CreateRoomImageSchema = Joi.object({
 
 export const UpdateRoomImageSchema = Joi.object({
   ImageUrl: Joi.string().uri(),
+});
+
+export const createBusinessRoomSchema = Joi.object({
+  RoomNumber: Joi.string()
+    .optional()
+    .messages({
+      "string.base": "RoomNumber must be a text value.",
+    }),
+  Name: Joi.string()
+    .required()
+    .messages({
+      "any.required": "Name is required.",
+      "string.base": "Name must be a text value.",
+      "string.empty": "Name cannot be empty.",
+    }),
+  Description: Joi.string()
+    .required()
+    .messages({
+      "any.required": "Description is required.",
+      "string.base": "Description must be a text value.",
+      "string.empty": "Description cannot be empty.",
+    }),
+  Capacity: Joi.number()
+    .integer()
+    .min(1)
+    .required()
+    .messages({
+      "any.required": "Capacity is required.",
+      "number.base": "Capacity must be a number.",
+      "number.integer": "Capacity must be an integer.",
+      "number.min": "Capacity must be at least 1.",
+    }),
+  PricePerHour: Joi.number()
+    .positive()
+    .required()
+    .messages({
+      "any.required": "PricePerHour is required.",
+      "number.base": "PricePerHour must be a number.",
+      "number.positive": "PricePerHour must be greater than 0.",
+    }),
+  Amenities: Joi.string()
+    .optional()
+    .messages({
+      "string.base": "Amenities must be a text value.",
+    }),
+  BusinessRoomImage: Joi.string()
+    .uri()
+    .optional()
+    .messages({
+      "string.base": "BusinessRoomImage must be a text value.",
+      "string.uri": "BusinessRoomImage must be a valid URL.",
+    }),
+  IsAvailable: Joi.boolean()
+    .required()
+    .messages({
+      "any.required": "IsAvailable is required.",
+      "boolean.base": "IsAvailable must be true or false.",
+    }),
+});
+
+export const updateBusinessRoomSchema = Joi.object({
+  RoomNumber: Joi.string()
+    .optional()
+    .messages({
+      "string.base": "RoomNumber must be a text value.",
+    }),
+  Name: Joi.string()
+    .optional()
+    .messages({
+      "string.base": "Name must be a text value.",
+      "string.empty": "Name cannot be empty.",
+    }),
+  Description: Joi.string()
+    .optional()
+    .messages({
+      "string.base": "Description must be a text value.",
+      "string.empty": "Description cannot be empty.",
+    }),
+  Capacity: Joi.number()
+    .integer()
+    .min(1)
+    .optional()
+    .messages({
+      "number.base": "Capacity must be a number.",
+      "number.integer": "Capacity must be an integer.",
+      "number.min": "Capacity must be at least 1.",
+    }),
+  PricePerHour: Joi.number()
+    .positive()
+    .optional()
+    .messages({
+      "number.base": "PricePerHour must be a number.",
+      "number.positive": "PricePerHour must be greater than 0.",
+    }),
+  Amenities: Joi.string()
+    .optional()
+    .messages({
+      "string.base": "Amenities must be a text value.",
+    }),
+  BusinessRoomImage: Joi.string()
+    .uri()
+    .optional()
+    .messages({
+      "string.base": "BusinessRoomImage must be a text value.",
+      "string.uri": "BusinessRoomImage must be a valid URL.",
+    }),
+  IsAvailable: Joi.boolean()
+    .optional()
+    .messages({
+      "boolean.base": "IsAvailable must be true or false.",
+    }),
 });

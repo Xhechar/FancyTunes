@@ -1,5 +1,5 @@
 import { Accommodation, Booking, Cart, Delicacy, Order, Payment, Recovery, Review, Room, User } from "@prisma/client";
-import { CreateAccommodationDto, CreateBookingDto, CreateCartDto, CreateDelicacyDto, CreateNotificationDto, CreateOrderDto, CreatePaymentDto, CreateRecoveryDto, CreateReviewDto, CreateRoomDto, CreateUserDto, UpdateAccommodationDto, UpdateBookingDto, UpdateCartDto, UpdateDelicacyDto, UpdateOrderDto, UpdateRecoveryDto, UpdateRoomDto, UpdateUserDto } from "../dtos/interfaces.dtos";
+import { CreateAccommodationDto, CreateBookingDto, CreateCartDto, CreateDelicacyDto, CreateNotificationDto, CreateOrderDto, CreatePaymentDto, CreateRecoveryDto, CreateReviewDto, CreateRoomDto, CreateUserDto, UpdateAccommodationDto, UpdateBookingDto, UpdateCartDto, UpdateDelicacyDto, UpdateOrderDto, UpdateRoomDto, UpdateUserDto } from "../dtos/interfaces.dtos";
 import { ServiceResult } from "../service.result/service.result";
 import { LoginDetails, ChangePasswoerdDto } from "../backend.interfaces";
 
@@ -37,7 +37,7 @@ export interface IDelicacyService {
 
 export interface IAccommodationService {
   CreateAccommodation(Accommodation: CreateAccommodationDto): Promise<ServiceResult<Accommodation>>;
-  UpdateAccommodation(AccommodationId: string, Accommodation: UpdateAccommodationDto): Promise<ServiceResult<Accommodation>>;
+  UpdateAccommodation(UserId: string, AccommodationId: string, Accommodation: UpdateAccommodationDto): Promise<ServiceResult<Accommodation>>;
   DeleteAccommodation(AccommodationId: string): Promise<ServiceResult<Accommodation>>;
   GetAllAccommodations(): Promise<ServiceResult<Accommodation>>;
   GetUserAccommodations(UserId: string): Promise<ServiceResult<Accommodation>>;
@@ -56,8 +56,9 @@ export interface IOrderService {
 }
 
 export interface IBookingService {
-  CreateBooking(Booking: CreateBookingDto): Promise<ServiceResult<Booking>>;
-  UpdateBooking(BookingId: string, Booking: UpdateBookingDto): Promise<ServiceResult<Booking>>;
+  CreateBooking(UserId: string, BusinessRoomId: string, Booking: CreateBookingDto): Promise<ServiceResult<Booking>>;
+  UpdateBooking(UserId: string, BookingId: string, Booking: UpdateBookingDto): Promise<ServiceResult<Booking>>;
+  CompleteBookingPayment(UserId: string, BookingId: string): Promise<ServiceResult<Booking>>;
   UpdateBookingStatus(BookingId: string, BookingStatus: string): Promise<ServiceResult<Booking>>;
   DeleteBooking(BookingId: string): Promise<ServiceResult<Booking>>;
   GetAllBookings(): Promise<ServiceResult<Booking>>;
@@ -80,7 +81,6 @@ export interface ICartService {
 
 export interface IRecoveryService {
   CreateRecovery(Recovery: CreateRecoveryDto): Promise<ServiceResult<Recovery>>;
-  UpdateRecovery(RecoveryId: string, Recovery: UpdateRecoveryDto): Promise<ServiceResult<Recovery>>;
   DeleteRecovery(RecoveryId: string): Promise<ServiceResult<Recovery>>;
   GetAllRecoveries(): Promise<ServiceResult<Recovery>>;
 }

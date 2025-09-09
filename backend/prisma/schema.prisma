@@ -37,7 +37,7 @@ model User {
 
 model BusinessRoom {
   BusinessRoomId   String           @id
-  RoomNumber       String         @unique
+  RoomCount       Int
   Name             String
   Description      String
   Capacity         Int
@@ -53,7 +53,7 @@ model BusinessRoom {
 
 model Room {
   RoomId           String           @id
-  RoomNumber       String     @unique
+  RoomCount       Int
   RoomType         String
   PricePerNight    Decimal
   Description      String
