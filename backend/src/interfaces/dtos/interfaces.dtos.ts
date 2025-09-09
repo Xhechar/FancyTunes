@@ -57,7 +57,7 @@ export interface UpdateBusinessRoomDto {
 export interface CreateDelicacyDto {
   Name: string;
   Description: string;
-  Price: string;
+  Price: number;
   DelicacyImage: string;
   Category: string;
   IsAvailable: boolean;
@@ -66,7 +66,7 @@ export interface CreateDelicacyDto {
 export interface UpdateDelicacyDto {
   Name?: string;
   Description?: string;
-  Price?: string;
+  Price?: number;
   DelicacyImage?: string;
   Category?: string;
   IsAvailable?: boolean;
@@ -120,15 +120,11 @@ export interface UpdateBookingDto {
 }
 
 export interface CreateCartDto {
-  UserId: string;
-  DelicacyId: string;
   Quantity: number;
-  TotalAmount: string;
 }
 
 export interface UpdateCartDto {
   Quantity?: number;
-  TotalAmount?: string;
 }
 
 export interface CreateRecoveryDto {
@@ -138,9 +134,9 @@ export interface CreateRecoveryDto {
 }
 
 export interface CreateReviewDto {
-  UserId: string;
   RoomId?: string;
   DelicacyId?: string;
+  BusinessRoomId?: string;
   Rating: number;
   Comment: string;
 }

@@ -1,5 +1,5 @@
-import { Accommodation, Booking, Cart, Delicacy, Order, Payment, Recovery, Review, Room, User } from "@prisma/client";
-import { CreateAccommodationDto, CreateBookingDto, CreateCartDto, CreateDelicacyDto, CreateNotificationDto, CreateOrderDto, CreatePaymentDto, CreateRecoveryDto, CreateReviewDto, CreateRoomDto, CreateUserDto, UpdateAccommodationDto, UpdateBookingDto, UpdateCartDto, UpdateDelicacyDto, UpdateOrderDto, UpdateRoomDto, UpdateUserDto } from "../dtos/interfaces.dtos";
+import { Accommodation, Booking, BusinessRoom, Cart, Delicacy, Order, Payment, Recovery, Review, Room, User } from "@prisma/client";
+import { CreateAccommodationDto, CreateBookingDto, CreateBusinessRoomDto, CreateCartDto, CreateDelicacyDto, CreateNotificationDto, CreateOrderDto, CreatePaymentDto, CreateRecoveryDto, CreateReviewDto, CreateRoomDto, CreateUserDto, UpdateAccommodationDto, UpdateBookingDto, UpdateBusinessRoomDto, UpdateCartDto, UpdateDelicacyDto, UpdateOrderDto, UpdateRoomDto, UpdateUserDto } from "../dtos/interfaces.dtos";
 import { ServiceResult } from "../service.result/service.result";
 import { LoginDetails, ChangePasswoerdDto } from "../backend.interfaces";
 
@@ -33,6 +33,8 @@ export interface IDelicacyService {
   DeleteDelicacy(DelicacyId: string): Promise<ServiceResult<Delicacy>>;
   GetDelicacyByDelicacyId(DelicacyId: string): Promise<ServiceResult<Delicacy>>;
   GetAllDelicacies(): Promise<ServiceResult<Delicacy>>;
+  GetAvailableDelicacies(): Promise<ServiceResult<Delicacy>>;
+  GetDelicaciesByCategory(Category: string): Promise<ServiceResult<Delicacy>>;
 }
 
 export interface IAccommodationService {
@@ -70,13 +72,11 @@ export interface IBookingService {
 }
 
 export interface ICartService {
-  CreateCart(Cart: CreateCartDto): Promise<ServiceResult<Cart>>;
-  UpdateCart(CartId: string, Cart: UpdateCartDto): Promise<ServiceResult<Cart>>;
+  CreateCart(UserId:string, DelicacyId:string, Cart: CreateCartDto): Promise<ServiceResult<Cart>>;
   IncrementCartItem(CartId: string): Promise<ServiceResult<Cart>>;
   DecrementCartItem(CartId: string): Promise<ServiceResult<Cart>>;
   DeleteCart(CartId: string): Promise<ServiceResult<Cart>>;
   GetUserCarts(UserId: string): Promise<ServiceResult<Cart>>;
-  GetAllCarts(): Promise<ServiceResult<Cart>>;
 }
 
 export interface IRecoveryService {
@@ -93,8 +93,8 @@ export interface IPaymentService {
 }
 
 export interface IReviewsService {
-  CreateReview(Review: CreateReviewDto): Promise<ServiceResult<Review>>;
-  UpdateReview(ReviewId: string, Review: CreateReviewDto): Promise<ServiceResult<Review>>;
+  CreateReview(UserId: string, Review: CreateReviewDto): Promise<ServiceResult<Review>>;
+  UpdateReview(UserId: string, ReviewId: string, Review: CreateReviewDto): Promise<ServiceResult<Review>>;
   DeleteReview(ReviewId: string): Promise<ServiceResult<Review>>;
   GetAllReviews(): Promise<ServiceResult<Review>>;
   GetReviewsByUserId(UserId: string): Promise<ServiceResult<Review>>;
@@ -105,4 +105,13 @@ export interface INotificationService {
   GetUserNotifications(UserId: string): Promise<ServiceResult<Notification>>;
   DeleteNotification(NotificationId: string): Promise<ServiceResult<Notification>>;
   MarkNotificationAsRead(NotificationId: string): Promise<ServiceResult<Notification>>;
+}
+
+export interface IBusinessRoomService {
+  CreateBusinessRoom(Room: CreateBusinessRoomDto): Promise<ServiceResult<BusinessRoom>>;
+  UpdateBusinessRoom(BusinessRoomId: string, Room: UpdateBusinessRoomDto): Promise<ServiceResult<BusinessRoom>>;
+  DeleteBusinessRoom(BusinessRoomId: string): Promise<ServiceResult<BusinessRoom>>;
+  GetBusinessRoomById(BusinessRoomId: string): Promise<ServiceResult<BusinessRoom>>;
+  GetAllBusinessRooms(): Promise<ServiceResult<BusinessRoom>>;
+  GetAvailableBusinessRooms(): Promise<ServiceResult<BusinessRoom>>;
 }

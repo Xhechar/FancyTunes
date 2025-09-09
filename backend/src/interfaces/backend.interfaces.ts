@@ -20,6 +20,22 @@ export interface User {
   Notifications: Notification[];
 }
 
+export interface BussinessRoom {
+  BusinessRoomId: string;
+  RoomCount?: number;
+  Name: string;
+  Description: string;
+  Capacity: number;
+  PricePerHour: number;
+  Amenities?: string;
+  BusinessRoomImage?: string;
+  IsAvailable: boolean;
+  CreatedAt: Date;
+  UpdatedAt: Date;
+
+  Bookings: Booking[];
+}
+
 export interface Room {
   RoomId: string;
   RoomCount: number;

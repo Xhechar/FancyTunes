@@ -49,6 +49,7 @@ model BusinessRoom {
   UpdatedAt        DateTime         @updatedAt
 
   Bookings         Booking[]
+  Reviews          Review[]
 }
 
 model Room {
@@ -191,6 +192,7 @@ model Review {
   UserId           String
   RoomId           String?
   DelicacyId       String?
+  BusinessRoomId   String?
   Rating           Int
   Comment          String
   CreatedAt        DateTime         @default(now())
@@ -198,6 +200,7 @@ model Review {
   User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
   Room             Room?            @relation(fields: [RoomId], references: [RoomId], onDelete: NoAction, onUpdate: NoAction)
   Delicacy         Delicacy?        @relation(fields: [DelicacyId], references: [DelicacyId], onDelete: NoAction, onUpdate: NoAction)
+  BusinessRoom     BusinessRoom?    @relation(fields: [BusinessRoomId], references: [BusinessRoomId], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Notification {
