@@ -229,3 +229,30 @@ export interface ChangePasswoerdDto {
   NewPassword: string,
   VerificationCode: number
 }
+
+export interface StkPushResponse {
+  MerchantRequestID: string;
+  CheckoutRequestID: string;
+  ResponseCode: string;
+  ResponseDescription: string;
+  CustomerMessage: string;
+}
+
+export interface StkPushData {
+  Amount: number;
+  PhoneNumber: string;
+}
+
+export interface StkPayloadData {
+  BusinessShortCode: string;
+  Password: string;
+  Timestamp: string;
+  TransactionType: string;
+  Amount: number;
+  PartyA: string;
+  PartyB: string;
+  PhoneNumber: string;
+  CallBackURL: string;
+  AccountReference: string;
+  TransactionDesc: string;
+}

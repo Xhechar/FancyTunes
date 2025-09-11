@@ -101,6 +101,7 @@ model Accommodation {
 
   User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
   Room             Room             @relation(fields: [RoomId], references: [RoomId], onDelete: NoAction, onUpdate: NoAction)
+  Payments         Payment[]
 }
 
 model Order {
@@ -110,13 +111,14 @@ model Order {
   Quantity         Int
   TotalAmount      Decimal
   OrderStatus      String        @default("pending")
-  OrderedAt        DateTime
+  OrderedAt        DateTime      @default(now())
   DeliveredAt      DateTime?
   PaymentStatus    String        @default("unpaid")
 
   User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
   Delicacy         Delicacy         @relation(fields: [DelicacyId], references: [DelicacyId], onDelete: NoAction, onUpdate: NoAction)
   OrderItems       OrderItem[]
+  Payments         Payment[]
 }
 
 model Booking {
@@ -135,6 +137,7 @@ model Booking {
 
   User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
   BusinessRoom             BusinessRoom             @relation(fields: [BusinessRoomId], references: [BusinessRoomId], onDelete: NoAction, onUpdate: NoAction)
+  Payments         Payment[]
 }
 
 model Cart {
@@ -164,15 +167,19 @@ model Payment {
   UserId           String
   Amount           Decimal
   PaymentMethod    String
-  PaymentReference String
-  TransactionId    String
+  PaymentReference String            @unique
+  ResultDescription    String
   Status           String
   BookingId        String?
   OrderId          String?
+  AccommodationId  String?
   PaidAt           DateTime
   CreatedAt        DateTime         @default(now())
 
   User             User             @relation(fields: [UserId], references: [UserId], onDelete: NoAction, onUpdate: NoAction)
+  Booking          Booking?         @relation(fields: [BookingId], references: [BookingId], onDelete: NoAction, onUpdate: NoAction)
+  Order            Order?           @relation(fields: [OrderId], references: [OrderId], onDelete: NoAction, onUpdate: NoAction)
+  Accommodation    Accommodation?   @relation(fields: [AccommodationId], references: [AccommodationId], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model OrderItem {

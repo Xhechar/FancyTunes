@@ -1,6 +1,5 @@
 import { Payment, PrismaClient } from "@prisma/client";
 import { IPaymentService } from "../interfaces/abstracts/services.abstracts";
-import { CreatePaymentDto } from "../interfaces/dtos/interfaces.dtos";
 import { ServiceResult } from "../interfaces/service.result/service.result";
 
 export class PaymentService implements IPaymentService {
@@ -9,7 +8,7 @@ export class PaymentService implements IPaymentService {
     log: ["error"]
   });
   
-  async CreatePayment(Payment: CreatePaymentDto): Promise<ServiceResult<Payment>> {
+  async CreatePayment(): Promise<ServiceResult<Payment>> {
     throw new Error("Method not implemented.");
   }
   async GetUserPayments(UserId: string): Promise<ServiceResult<Payment>> {
@@ -19,6 +18,10 @@ export class PaymentService implements IPaymentService {
     throw new Error("Method not implemented.");
   }
   async DeletePayment(PaymentId: string): Promise<ServiceResult<Payment>> {
+    throw new Error("Method not implemented.");
+  }
+
+  async MpesaCallback(data: any): Promise<void> {
     throw new Error("Method not implemented.");
   }
 }

@@ -1,5 +1,5 @@
 import { Accommodation, Booking, BusinessRoom, Cart, Delicacy, Order, Payment, Recovery, Review, Room, User } from "@prisma/client";
-import { CreateAccommodationDto, CreateBookingDto, CreateBusinessRoomDto, CreateCartDto, CreateDelicacyDto, CreateNotificationDto, CreateOrderDto, CreatePaymentDto, CreateRecoveryDto, CreateReviewDto, CreateRoomDto, CreateUserDto, UpdateAccommodationDto, UpdateBookingDto, UpdateBusinessRoomDto, UpdateCartDto, UpdateDelicacyDto, UpdateOrderDto, UpdateRoomDto, UpdateUserDto } from "../dtos/interfaces.dtos";
+import { CreateAccommodationDto, CreateBookingDto, CreateBusinessRoomDto, CreateCartDto, CreateDelicacyDto, CreateNotificationDto, CreateRecoveryDto, CreateReviewDto, CreateRoomDto, CreateUserDto, UpdateAccommodationDto, UpdateBookingDto, UpdateBusinessRoomDto, UpdateCartDto, UpdateDelicacyDto, UpdateRoomDto, UpdateUserDto } from "../dtos/interfaces.dtos";
 import { ServiceResult } from "../service.result/service.result";
 import { LoginDetails, ChangePasswoerdDto } from "../backend.interfaces";
 
@@ -46,8 +46,8 @@ export interface IAccommodationService {
 }
 
 export interface IOrderService {
-  CreateOrder(Order: CreateOrderDto): Promise<ServiceResult<Order>>;
-  UpdateOrder(OrderId: string, Order: UpdateOrderDto): Promise<ServiceResult<Order>>;
+  CreateOrder(UserId: string): Promise<ServiceResult<Order>>;
+  UpdateOrder(OrderId: string): Promise<ServiceResult<Order>>;
   DeleteOrder(OrderId: string): Promise<ServiceResult<Order>>;
   GetUserOrders(UserId: string): Promise<ServiceResult<Order>>;
   GetAllOrders(): Promise<ServiceResult<Order>>;
@@ -86,7 +86,7 @@ export interface IRecoveryService {
 }
 
 export interface IPaymentService {
-  CreatePayment(Payment: CreatePaymentDto): Promise<ServiceResult<Payment>>;
+  CreatePayment(): Promise<ServiceResult<Payment>>;
   GetUserPayments(UserId: string): Promise<ServiceResult<Payment>>;
   GetAllPayments(): Promise<ServiceResult<Payment>>;
   DeletePayment(PaymentId: string): Promise<ServiceResult<Payment>>;

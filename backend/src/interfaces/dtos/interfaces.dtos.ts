@@ -86,23 +86,6 @@ export interface UpdateAccommodationDto {
   SpecialRequests?: string;
 }
 
-export interface CreateOrderDto {
-  UserId: string;
-  DelicacyId: string;
-  Quantity: number;
-  TotalAmount: string;
-  OrderStatus: string;
-  PaymentStatus: string;
-}
-
-export interface UpdateOrderDto {
-  Quantity?: number;
-  TotalAmount?: string;
-  OrderStatus?: string;
-  PaymentStatus?: string;
-  DeliveredAt?: Date;
-}
-
 export interface CreateBookingDto {
   NumberOfGuests: number;
   DurationInHours: number;
@@ -169,15 +152,6 @@ export interface CreateOrderItemDto {
 export interface UpdateOrderItemDto {
   Quantity?: number;
   Price?: string;
-}
-
-export interface CreatePaymentDto {
-  UserId: string;
-  Amount: string;
-  PaymentMethod: string;
-  PaymentStatus: string;
-  Reference: string;
-  PaidAt: string;
 }
 
 export interface CreateRoomImageDto {
