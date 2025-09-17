@@ -3,6 +3,7 @@ import { CreateAccommodationDto, UpdateAccommodationDto } from "../interfaces/dt
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { AccommodationsService } from "../services/accommodations.service";
+import { getUserIdFromToken } from "../middlewares/backend.middleware";
 
 export class AccommodationController {
 
@@ -10,6 +11,10 @@ export class AccommodationController {
 
   async UpdateAccommodation(Req: Request, Res: Response) {
     try {
+
+      let result = await this.accommodationService.UpdateAccommodation(getUserIdFromToken(Req), Req.params.AccommodationId, Req.body as UpdateAccommodationDto);
+
+      return Res.status(200).json(result);
       
     } catch (error) {
       return Res.status(500).json(ServiceResponse.failure<object>(ErrorCode.SERVER, error instanceof Error ? error.message : "an internal server error occured."));
@@ -17,6 +22,10 @@ export class AccommodationController {
   }
   async DeleteAccommodation(Req: Request, Res: Response) {
     try {
+
+      let result = await this.accommodationService.DeleteAccommodation(Req.params.AccommodationId);
+
+      return Res.status(200).json(result);
       
     } catch (error) {
       return Res.status(500).json(ServiceResponse.failure<object>(ErrorCode.SERVER, error instanceof Error ? error.message : "an internal server error occured."));
@@ -24,6 +33,10 @@ export class AccommodationController {
   }
   async GetAllAccommodations(Req: Request, Res: Response) {
     try {
+
+      let result = await this.accommodationService.GetAllAccommodations();
+
+      return Res.status(200).json(result);
       
     } catch (error) {
       return Res.status(500).json(ServiceResponse.failure<object>(ErrorCode.SERVER, error instanceof Error ? error.message : "an internal server error occured."));
@@ -31,6 +44,10 @@ export class AccommodationController {
   }
   async GetUserAccommodations(Req: Request, Res: Response) {
     try {
+
+      let result = await this.accommodationService.GetUserAccommodations(getUserIdFromToken(Req));
+
+      return Res.status(200).json(result);
       
     } catch (error) {
       return Res.status(500).json(ServiceResponse.failure<object>(ErrorCode.SERVER, error instanceof Error ? error.message : "an internal server error occured."));

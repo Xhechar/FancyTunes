@@ -73,9 +73,9 @@ export interface IBookingService {
 
 export interface ICartService {
   CreateCart(UserId:string, DelicacyId:string, Cart: CreateCartDto): Promise<ServiceResult<Cart>>;
-  IncrementCartItem(CartId: string): Promise<ServiceResult<Cart>>;
-  DecrementCartItem(CartId: string): Promise<ServiceResult<Cart>>;
-  DeleteCart(CartId: string): Promise<ServiceResult<Cart>>;
+  IncrementCartItem(UserId:string, CartId: string): Promise<ServiceResult<Cart>>;
+  DecrementCartItem(UserId:string, CartId: string): Promise<ServiceResult<Cart>>;
+  DeleteCart(UserId:string, CartId: string): Promise<ServiceResult<Cart>>;
   GetUserCarts(UserId: string): Promise<ServiceResult<Cart>>;
 }
 

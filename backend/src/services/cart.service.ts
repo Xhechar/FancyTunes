@@ -6,6 +6,7 @@ import { ErrorCode } from "../interfaces/enum/response.enum";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { v4 } from "uuid";
 import { io } from "../server";
+import { EmitToSingleUser } from "../sockets/socket.io";
 
 export class CartService implements ICartService {
 
@@ -48,11 +49,20 @@ export class CartService implements ICartService {
     return ServiceResponse.success<Cart>("item added to cart successfully");
   }
 
-  async IncrementCartItem(CartId: string): Promise<ServiceResult<Cart>> {
+  async IncrementCartItem(UserId: string, CartId: string): Promise<ServiceResult<Cart>> {
+
+    let UserExists = await this.prisma.user.findUnique({
+      where: {
+        UserId
+      }
+    });
+
+    if (!UserExists) return ServiceResponse.failure<Cart>(ErrorCode.NOTFOUND, "your details are not availabele, kindly register.");
     
     let CartExists = await this.prisma.cart.findUnique({
       where: {
-        CartId
+        CartId,
+        UserId: UserExists.UserId
       }
     });
 
@@ -71,15 +81,24 @@ export class CartService implements ICartService {
 
     if (!UpdateCart) return ServiceResponse.failure<Cart>(ErrorCode.SERVER, "unable to update cart item at the moment");
 
-    io.emit("cart-updated", UpdateCart);
+    EmitToSingleUser(io, UserId, "cart-updated", UpdateCart);
 
     return ServiceResponse.success<Cart>("cart item updated successfully");
   }
-  async DecrementCartItem(CartId: string): Promise<ServiceResult<Cart>> {
+  async DecrementCartItem(UserId: string, CartId: string): Promise<ServiceResult<Cart>> {
+
+    let UserExists = await this.prisma.user.findUnique({
+      where: {
+        UserId
+      }
+    });
+
+    if (!UserExists) return ServiceResponse.failure<Cart>(ErrorCode.NOTFOUND, "your details are not availabele, kindly register.");
     
     let CartExists = await this.prisma.cart.findUnique({
       where: {
-        CartId
+        CartId,
+        UserId: UserExists.UserId
       }
     });
 
@@ -102,15 +121,24 @@ export class CartService implements ICartService {
 
     if (!UpdateCart) return ServiceResponse.failure<Cart>(ErrorCode.SERVER, "unable to update cart item at the moment");
 
-    io.emit("cart-updated", UpdateCart);
+    EmitToSingleUser(io, UserExists.UserId, "cart-updated", UpdateCart);
     
     return ServiceResponse.success<Cart>("cart item updated successfully");
   }
-  async DeleteCart(CartId: string): Promise<ServiceResult<Cart>> {
+  async DeleteCart(UserId: string, CartId: string): Promise<ServiceResult<Cart>> {
+
+    let UserExists = await this.prisma.user.findUnique({
+      where: {
+        UserId
+      }
+    });
+
+    if (!UserExists) return ServiceResponse.failure<Cart>(ErrorCode.NOTFOUND, "your details are not availabele, kindly register.");
     
     let CartExists = await this.prisma.cart.findUnique({
       where: {
-        CartId
+        CartId,
+        UserId: UserExists.UserId
       }
     });
 
@@ -124,7 +152,7 @@ export class CartService implements ICartService {
 
     if (!DeleteCart) return ServiceResponse.failure<Cart>(ErrorCode.SERVER, "unable to delete cart item at the moment");
 
-    io.emit("cart-deleted", DeleteCart);
+    EmitToSingleUser(io, CartExists.UserId, "cart-deleted", DeleteCart);
 
     return ServiceResponse.success<Cart>("cart item deleted successfully");
   }

@@ -120,15 +120,74 @@ export class PaymentService implements IPaymentService {
   }
 
   async GetUserPayments(UserId: string): Promise<ServiceResult<Payment>> {
-    throw new Error("Method not implemented.");
+    
+    let UserExists = await this.prisma.user.findUnique({
+      where: {
+        UserId
+      }
+    });
+
+    if (!UserExists) return ServiceResponse.failure<Payment>(ErrorCode.NOTFOUND, "your details are not available at the monent.");
+
+    let Payments = await this.prisma.payment.findMany({
+      where: {
+        UserId
+      },
+      orderBy: {
+        CreatedAt: "desc"
+      },
+      include: {
+        Accommodation: true,
+        Booking: true,
+        Order: true
+      }
+    });
+
+    if (!Payments) return ServiceResponse.failure<Payment>(ErrorCode.SERVER, "unable to fetch your payments at the moment.");
+
+    return ServiceResponse.success<Payment>("your payments fetched successfully", undefined, Payments);
   }
 
   async GetAllPayments(): Promise<ServiceResult<Payment>> {
-    throw new Error("Method not implemented.");
+    
+    let Payments = await this.prisma.payment.findMany({
+      orderBy: {
+        CreatedAt: "desc"
+      },
+      include: {
+        User: true,
+        Accommodation: true,
+        Booking: true,
+        Order: true
+      }
+    });
+
+    if (!Payments) return ServiceResponse.failure<Payment>(ErrorCode.SERVER, "unable to fetch payments at the moment.");
+
+    return ServiceResponse.success<Payment>("payments fetched successfully", undefined, Payments);
   }
 
   async DeletePayment(PaymentId: string): Promise<ServiceResult<Payment>> {
-    throw new Error("Method not implemented.");
+    
+    let PaymentExists = await this.prisma.payment.findUnique({
+      where: {
+        PaymentId
+      }
+    });
+
+    if (!PaymentExists) return ServiceResponse.failure<Payment>(ErrorCode.NOTFOUND, "payment specified does not exist");
+
+    let DeletePayment = await this.prisma.payment.delete({
+      where: {
+        PaymentId
+      }
+    });
+
+    if (!DeletePayment) return ServiceResponse.failure<Payment>(ErrorCode.SERVER, "unable to delete payment at the moment");
+
+    EmitToSingleUser(io, PaymentExists.UserId, "payment-deleted", DeletePayment);
+
+    return ServiceResponse.success<Payment>("payment deleted successfully");
   }
 
   async MpesaCallback(SafaricomvResponse: any): Promise<void> {
