@@ -6,6 +6,7 @@ import { Accommodation } from "@prisma/client";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { v4 } from "uuid";
+import { io } from "../server";
 
 export class AccommodationsService implements IAccommodationService {
 
@@ -13,11 +14,11 @@ export class AccommodationsService implements IAccommodationService {
     log: ["error"]
   });
 
-  async CreateAccommodation(Accommodation: CreateAccommodationDto): Promise<ServiceResult<Accommodation>> {
+  async CreateAccommodation(UserId: string, RoomId: string, Accommodation: CreateAccommodationDto): Promise<ServiceResult<Accommodation>> {
     
     let UserExists = await this.prisma.user.findUnique({
       where: {
-        UserId: Accommodation.UserId
+        UserId
       }
     });
 
@@ -25,7 +26,7 @@ export class AccommodationsService implements IAccommodationService {
 
     let RoomExists = await this.prisma.room.findUnique({
       where: {
-        RoomId: Accommodation.RoomId
+        RoomId
       }
     });
 
@@ -34,13 +35,29 @@ export class AccommodationsService implements IAccommodationService {
     let CreateAccommodation = await this.prisma.accommodation.create({
       data: {
         AccommodationId: v4(),
+        UserId: UserExists.UserId,
+        RoomId: RoomExists.RoomId,
         ...Accommodation,
         IsActive: true,
         TotalAmount: Number(RoomExists.PricePerNight) * (new Date(Accommodation.CheckOutDate).getTime() - new Date(Accommodation.CheckInDate).getTime()) / (1000 * 3600 * 24),
+        PaymentStatus: "paid"
       }
     });
 
     if (!CreateAccommodation) return ServiceResponse.failure<Accommodation>(ErrorCode.SERVER, "unable to create accommodation");
+
+    let UpdateRoom = await this.prisma.room.update({
+      data: {
+        RoomCount: {
+          decrement: 1
+        }
+      },
+      where: {
+        RoomId: RoomExists.RoomId
+      }
+    });
+
+    io.emit("room-updated", UpdateRoom);
 
     return ServiceResponse.success<Accommodation>("accommodation created successfully");
   }

@@ -4,6 +4,8 @@ import { ServiceResult } from "../interfaces/service.result/service.result";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { v4 } from "uuid";
+import { EmitToSingleUser } from "../sockets/socket.io";
+import { io } from "../server";
 
 export class OrderService implements IOrderService {
 
@@ -53,6 +55,8 @@ export class OrderService implements IOrderService {
         UserId
       }
     });
+
+    EmitToSingleUser(io, UserId, "order-created", CreateOrders);
 
     return ServiceResponse.success<Order>("order placed successfully");
   }

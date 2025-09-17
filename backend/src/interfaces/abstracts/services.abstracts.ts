@@ -1,7 +1,7 @@
 import { Accommodation, Booking, BusinessRoom, Cart, Delicacy, Order, Payment, Recovery, Review, Room, User } from "@prisma/client";
 import { CreateAccommodationDto, CreateBookingDto, CreateBusinessRoomDto, CreateCartDto, CreateDelicacyDto, CreateNotificationDto, CreateRecoveryDto, CreateReviewDto, CreateRoomDto, CreateUserDto, UpdateAccommodationDto, UpdateBookingDto, UpdateBusinessRoomDto, UpdateCartDto, UpdateDelicacyDto, UpdateRoomDto, UpdateUserDto } from "../dtos/interfaces.dtos";
 import { ServiceResult } from "../service.result/service.result";
-import { LoginDetails, ChangePasswoerdDto } from "../backend.interfaces";
+import { LoginDetails, ChangePasswoerdDto, CreatePaymentData } from "../backend.interfaces";
 
 export interface IAuthService {
   loginUser(loginDetails: LoginDetails): Promise<ServiceResult<object>>;
@@ -38,7 +38,7 @@ export interface IDelicacyService {
 }
 
 export interface IAccommodationService {
-  CreateAccommodation(Accommodation: CreateAccommodationDto): Promise<ServiceResult<Accommodation>>;
+  CreateAccommodation(UserId: string, RoomId: string, Accommodation: CreateAccommodationDto): Promise<ServiceResult<Accommodation>>;
   UpdateAccommodation(UserId: string, AccommodationId: string, Accommodation: UpdateAccommodationDto): Promise<ServiceResult<Accommodation>>;
   DeleteAccommodation(AccommodationId: string): Promise<ServiceResult<Accommodation>>;
   GetAllAccommodations(): Promise<ServiceResult<Accommodation>>;
@@ -86,7 +86,7 @@ export interface IRecoveryService {
 }
 
 export interface IPaymentService {
-  CreatePayment(): Promise<ServiceResult<Payment>>;
+  CreatePayment(UserId: string, CommodityId: string, PaymentData: CreatePaymentData): Promise<ServiceResult<Payment>>;
   GetUserPayments(UserId: string): Promise<ServiceResult<Payment>>;
   GetAllPayments(): Promise<ServiceResult<Payment>>;
   DeletePayment(PaymentId: string): Promise<ServiceResult<Payment>>;

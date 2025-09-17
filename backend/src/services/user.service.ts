@@ -6,7 +6,6 @@ import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { v4 } from "uuid";
 import bcrypt from "bcrypt";
-import { date } from "joi";
 
 export class UserService implements IUserService {
 

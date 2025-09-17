@@ -33,6 +33,7 @@ model User {
   Payments         Payment[]
   Reviews          Review[]
   Notifications    Notification[]
+  PaymentSharedData   PaymentSharedData[]
 }
 
 model BusinessRoom {
@@ -227,4 +228,16 @@ model RoomImage {
   ImageUrl         String
 
   Room             Room             @relation(fields: [RoomId], references: [RoomId], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model PaymentSharedData {
+  PaymentSharedDataId   String      @id
+  UserId    String
+  ServiceType   String
+  CommodityId   String
+  Amount    Decimal
+  IsUsed    Boolean    @default(false)
+  CreatedAt   DateTime    @default(now())
+
+  User    User    @relation(fields: [UserId], references: [UserId], onUpdate: NoAction, onDelete: NoAction)
 }

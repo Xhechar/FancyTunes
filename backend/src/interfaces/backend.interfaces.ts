@@ -1,3 +1,5 @@
+import { CreateAccommodationDto, CreateBookingDto } from "./dtos/interfaces.dtos";
+
 export interface User {
   UserId: string;
   FullName: string;
@@ -255,4 +257,20 @@ export interface StkPayloadData {
   CallBackURL: string;
   AccountReference: string;
   TransactionDesc: string;
+}
+
+export interface PaymentSharedData {
+  ServiceType: string;
+  CommodityId: string;
+  UserId: string;
+  Amount: number;
+  Accommodation?: CreateAccommodationDto;
+  Booking?: CreateBookingDto;
+}
+
+export interface CreatePaymentData {
+  ServiceType: string;
+  Amount: number;
+  Accommodation?: CreateAccommodationDto,
+  Booking?: CreateBookingDto
 }

@@ -7,6 +7,7 @@ import { ErrorCode } from "../interfaces/enum/response.enum";
 import { v4 } from "uuid";
 import { CreateBookingSchema, UpdateBookingSchema } from "../validators/payload.validators";
 import { io } from "../server";
+import { EmitToSingleUser } from "../sockets/socket.io";
 
 export class BookingService implements IBookingService {
 
@@ -42,12 +43,12 @@ export class BookingService implements IBookingService {
         UserId,
         BusinessRoomId,
         ...Booking,
+        BookingStatus: "complete",
+        PaymentStatus: "paid"
       }
     });
 
     if (CreateBooking == null) return ServiceResponse.failure<Booking>(ErrorCode.SERVER, "unable to create booking at the moment, kindly try again later.");
-
-    io.emit("booking-created", CreateBooking);
 
     let DecreaseRoomCount = await this.prisma.businessRoom.update({
       where: {
@@ -60,7 +61,9 @@ export class BookingService implements IBookingService {
 
     if (DecreaseRoomCount == null) return ServiceResponse.failure<Booking>(ErrorCode.SERVER, "unable to update room count at the moment, kindly try again later.");
 
-    io.emit("room-booked", DecreaseRoomCount);
+    io.emit("business-room-updated", DecreaseRoomCount);
+
+    EmitToSingleUser(io, UserId, "booking-created", CreateBooking);
 
     return ServiceResponse.success<Booking>("booking created successfully.");
   }
@@ -99,7 +102,7 @@ export class BookingService implements IBookingService {
 
     if (UpdateBooking == null) return ServiceResponse.failure<Booking>(ErrorCode.SERVER, "unable to update booking details at the moment, kindly try again later.");
 
-    io.emit("booking-updated", UpdateBooking);
+    EmitToSingleUser(io, UserId, "booking-updated", UpdateBooking);
 
     return ServiceResponse.success<Booking>("booking details updated successfully.");
   }

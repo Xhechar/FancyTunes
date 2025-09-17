@@ -5,6 +5,7 @@ import { ServiceResult } from "../interfaces/service.result/service.result";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { v4 } from "uuid";
+import { io } from "../server";
 
 export class CartService implements ICartService {
 
@@ -42,6 +43,8 @@ export class CartService implements ICartService {
 
     if (!AddToCart) return ServiceResponse.failure<Cart>(ErrorCode.SERVER, "unable to add item to cart at the moment, try again later");
 
+    io.emit("cart-created", AddToCart);
+
     return ServiceResponse.success<Cart>("item added to cart successfully");
   }
 
@@ -67,6 +70,8 @@ export class CartService implements ICartService {
     });
 
     if (!UpdateCart) return ServiceResponse.failure<Cart>(ErrorCode.SERVER, "unable to update cart item at the moment");
+
+    io.emit("cart-updated", UpdateCart);
 
     return ServiceResponse.success<Cart>("cart item updated successfully");
   }
@@ -96,6 +101,8 @@ export class CartService implements ICartService {
     });
 
     if (!UpdateCart) return ServiceResponse.failure<Cart>(ErrorCode.SERVER, "unable to update cart item at the moment");
+
+    io.emit("cart-updated", UpdateCart);
     
     return ServiceResponse.success<Cart>("cart item updated successfully");
   }
@@ -116,6 +123,8 @@ export class CartService implements ICartService {
     });
 
     if (!DeleteCart) return ServiceResponse.failure<Cart>(ErrorCode.SERVER, "unable to delete cart item at the moment");
+
+    io.emit("cart-deleted", DeleteCart);
 
     return ServiceResponse.success<Cart>("cart item deleted successfully");
   }

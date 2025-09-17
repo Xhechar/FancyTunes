@@ -73,8 +73,6 @@ export interface UpdateDelicacyDto {
 }
 
 export interface CreateAccommodationDto {
-  UserId: string;
-  RoomId: string;
   CheckInDate: Date;
   CheckOutDate: Date;
   SpecialRequests?: string;
@@ -161,4 +159,16 @@ export interface CreateRoomImageDto {
 
 export interface UpdateRoomImageDto {
   ImageUrl?: string;
+}
+
+export interface CreatePaymentDto {
+  Amount: number,
+  PaymentMethod: string,
+  PaymentReference: string,
+  ResultDescription: string,
+  Status: string,
+  BookingId?: string,
+  OrderId?: string,
+  AccommodationId?: string
+  PaidAt: Date
 }
