@@ -16,9 +16,10 @@ import { DelicacyRouter } from "./routes/delicacies.routes";
 import { NotificationRouter } from "./routes/notifications.routes";
 import { OrderRouter } from "./routes/order.routes";
 import { PaymentRouter } from "./routes/payments.routes";
-import { ReviewRouter } from "./routes/reviews.routes";
+import { ReviewsRouter } from "./routes/reviews.routes";
 import { RoomRouter } from "./routes/rooms.routes";
 import { UserRouter } from "./routes/user.routes";
+import { BusinessRoomRouter } from "./routes/business.room.routes";
 
 dotenv.config();
 
@@ -35,12 +36,13 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use("/accommodation", AccommodationRouter);
 app.use("/auth", AuthRouter);
 app.use("/booking", BookingRouter);
+app.use("/budiness-room", BusinessRoomRouter);
 app.use("cart", CartRouter);
 app.use("/delicacy", DelicacyRouter);
 app.use("/notification", NotificationRouter);
 app.use("/order", OrderRouter);
 app.use("/payment", PaymentRouter);
-app.use("/review", ReviewRouter);
+app.use("/review", ReviewsRouter);
 app.use("/room", RoomRouter);
 app.use("/user", UserRouter);
 
