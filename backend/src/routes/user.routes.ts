@@ -19,7 +19,7 @@ UserRouter.put(
 );
 
 UserRouter.patch(
-  "/update-user-profile-image",
+  "/update-user-profile-image/:ProfileImage",
   verifyToken,
   verifyUser,
   async (Req, Res) => await userController.UpdateUserProfileImage(Req, Res)

@@ -1,3 +1,8 @@
+import {
+  CreateAccommodationDto,
+  CreateBookingDto,
+} from "./dtos/interfaces.dtos";
+
 export interface User {
   UserId: string;
   FullName: string;
@@ -7,8 +12,8 @@ export interface User {
   Role: string;
   ProfileImage?: string;
   IsWelcome: boolean;
-  CreatedAt: string;
-  UpdatedAt: string;
+  CreatedAt: Date;
+  UpdatedAt: Date;
 
   Bookings: Booking[];
   Accommodations: Accommodation[];
@@ -20,17 +25,33 @@ export interface User {
   Notifications: Notification[];
 }
 
+export interface BussinessRoom {
+  BusinessRoomId: string;
+  RoomCount?: number;
+  Name: string;
+  Description: string;
+  Capacity: number;
+  PricePerHour: number;
+  Amenities?: string;
+  BusinessRoomImage?: string;
+  IsAvailable: boolean;
+  CreatedAt: Date;
+  UpdatedAt: Date;
+
+  Bookings: Booking[];
+}
+
 export interface Room {
   RoomId: string;
-  RoomNumber: string;
+  RoomCount: number;
   RoomType: string;
   PricePerNight: number;
   Description: string;
   Capacity: number;
   Status: string;
   RoomImage?: string;
-  CreatedAt: string;
-  UpdatedAt: string;
+  CreatedAt: Date;
+  UpdatedAt: Date;
 
   Accommodations: Accommodation[];
   Bookings: Booking[];
@@ -46,8 +67,8 @@ export interface Delicacy {
   DelicacyImage: string;
   Category: string;
   IsAvailable: boolean;
-  CreatedAt: string;
-  UpdatedAt: string;
+  CreatedAt: Date;
+  UpdatedAt: Date;
 
   Orders: Order[];
   Carts: Cart[];
@@ -59,8 +80,8 @@ export interface Accommodation {
   AccommodationId: string;
   UserId: string;
   RoomId: string;
-  CheckInDate: string;
-  CheckOutDate: string;
+  CheckInDate: Date;
+  CheckOutDate: Date;
   TotalAmount: number;
   SpecialRequests?: string;
   PaymentStatus: string;
@@ -72,6 +93,20 @@ export interface Accommodation {
   Room: Room;
 }
 
+export interface BusinessRoom {
+  BusinessRoomId: string;
+  RoomCount?: number;
+  Name: string;
+  Description: string;
+  Capacity: number;
+  PricePerHour: number;
+  Amenities?: string;
+  BusinessRoomImage?: string;
+  IsAvailable: boolean;
+  CreatedAt: Date;
+  UpdatedAt: Date;
+}
+
 export interface Order {
   OrderId: string;
   UserId: string;
@@ -79,8 +114,8 @@ export interface Order {
   Quantity: number;
   TotalAmount: number;
   OrderStatus: string;
-  OrderedAt: string;
-  DeliveredAt?: string;
+  OrderedAt: Date;
+  DeliveredAt?: Date;
   PaymentStatus: string;
 
   User: User;
@@ -91,19 +126,19 @@ export interface Order {
 export interface Booking {
   BookingId: string;
   UserId: string;
-  RoomId: string;
-  CheckInDate: string;
-  CheckOutDate: string;
+  BusinessRoomId: string;
+  CheckInDate: Date;
+  CheckOutDate: Date;
   NumberOfGuests: number;
   TotalAmount: number;
   SpecialRequests?: string;
   BookingStatus: string;
   PaymentStatus: string;
-  CreatedAt: string;
-  UpdatedAt: string;
+  CreatedAt: Date;
+  UpdatedAt: Date;
 
   User: User;
-  Room: Room;
+  BusinessRoom: BusinessRoom;
 }
 
 export interface Cart {
@@ -111,7 +146,7 @@ export interface Cart {
   UserId: string;
   DelicacyId: string;
   Quantity: number;
-  AddedAt: string;
+  AddedAt: Date;
 
   User: User;
   Delicacy: Delicacy;
@@ -121,9 +156,9 @@ export interface Recovery {
   RecoveryId: string;
   UserId: string;
   VerificationCode: number;
-  ExpiresAt: string;
+  ExpiresAt: Date;
   IsUsed: boolean;
-  CreatedAt: string;
+  CreatedAt: Date;
 
   User: User;
 }
@@ -139,7 +174,7 @@ export interface Payment {
   BookingId?: string;
   OrderId?: string;
   PaidAt: string;
-  CreatedAt: string;
+  CreatedAt: Date;
 
   User: User;
 }
@@ -163,7 +198,7 @@ export interface Review {
   DelicacyId?: string;
   Rating: number;
   Comment: string;
-  CreatedAt: string;
+  CreatedAt: Date;
 
   User: User;
   Room?: Room;
@@ -176,7 +211,7 @@ export interface Notification {
   Title: string;
   Message: string;
   IsRead: boolean;
-  CreatedAt: string;
+  CreatedAt: Date;
 
   User: User;
 }
@@ -187,4 +222,58 @@ export interface RoomImage {
   ImageUrl: string;
 
   Room: Room;
+}
+
+export interface LoginDetails {
+  Email: string;
+  Password: string;
+}
+
+export interface ChangePasswoerdDto {
+  Email: string;
+  NewPassword: string;
+  VerificationCode: number;
+}
+
+export interface StkPushResponse {
+  MerchantRequestID: string;
+  CheckoutRequestID: string;
+  ResponseCode: string;
+  ResponseDescription: string;
+  CustomerMessage: string;
+}
+
+export interface StkPushData {
+  Amount: number;
+  PhoneNumber: string;
+}
+
+export interface StkPayloadData {
+  BusinessShortCode: string;
+  Password: string;
+  Timestamp: string;
+  TransactionType: string;
+  Amount: number;
+  PartyA: string;
+  PartyB: string;
+  PhoneNumber: string;
+  CallBackURL: string;
+  AccountReference: string;
+  TransactionDesc: string;
+}
+
+export interface PaymentSharedData {
+  ServiceType: string;
+  CommodityId: string;
+  UserId: string;
+  Amount: number;
+  Accommodation?: CreateAccommodationDto;
+  Booking?: CreateBookingDto;
+}
+
+export interface CreatePaymentData {
+  ServiceType: string;
+  Amount: number;
+  Accommodation?: CreateAccommodationDto;
+  Booking?: CreateBookingDto;
 }

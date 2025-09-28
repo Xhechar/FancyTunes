@@ -1,6 +1,6 @@
 import { IReviewsService } from "../interfaces/abstracts/services.abstracts";
 import { PrismaClient, Review } from "@prisma/client";
-import { CreateReviewDto } from "../interfaces/dtos/interfaces.dtos";
+import { CreateReviewDto, UpdateReviewDto } from "../interfaces/dtos/interfaces.dtos";
 import { ServiceResult } from "../interfaces/service.result/service.result";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
@@ -42,7 +42,7 @@ export class ReviewsService implements IReviewsService {
 
     return ServiceResponse.success<Review>("review created successfully");
   }
-  async UpdateReview(UserId: string, ReviewId: string, Review: CreateReviewDto): Promise<ServiceResult<Review>> {
+  async UpdateReview(UserId: string, ReviewId: string, Review: UpdateReviewDto): Promise<ServiceResult<Review>> {
     
     let { error } = UpdateReviewSchema.validate(Review);
 

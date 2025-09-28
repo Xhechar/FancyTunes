@@ -28,7 +28,7 @@ const app = Express();
 app.use(bodyParser.json());
 app.use(
   cors({
-    origin: ["http://3000"],
+    origin: ["http://localhost:3000"],
   })
 );
 app.use(cookieParser(process.env.COOKIE_SECRET));
@@ -56,7 +56,7 @@ const server = http.createServer(app);
 
 export const io: Server = new Server(server, {
   cors: {
-    origin: ["http://3000"],
+    origin: ["http://localhost:3000"],
   },
 });
 

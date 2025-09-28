@@ -8,7 +8,7 @@ const authController: AuthController = new AuthController();
 AuthRouter.post("/login-user", async (Req, Res) =>
   authController.loginUser(Req, Res)
 );
-AuthRouter.post("/verify-mail:/Email", async (Req, Res) =>
+AuthRouter.post("/verify-mail/:Email", async (Req, Res) =>
   authController.verifyMail(Req, Res)
 );
 AuthRouter.put("/change-password", async (Req, Res) =>

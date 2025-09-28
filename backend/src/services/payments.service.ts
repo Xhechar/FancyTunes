@@ -190,7 +190,7 @@ export class PaymentService implements IPaymentService {
     return ServiceResponse.success<Payment>("payment deleted successfully");
   }
 
-  async MpesaCallback(SafaricomvResponse: any): Promise<void> {
+  async MpesaCallback(SafaricomResponse: any): Promise<void> {
     
     if(lodash.isEmpty(SharedDataService.SharedData)) {
       console.log("Shared Data Service Has no data.");
@@ -202,14 +202,14 @@ export class PaymentService implements IPaymentService {
 
         if (Result.success) {
 
-          let ItemArray = SafaricomvResponse.Body.stkCallback.CallbackMetadata.Item;
+          let ItemArray = SafaricomResponse.Body.stkCallback.CallbackMetadata.Item;
           
           let PaymentData: CreatePaymentDto = {
             Amount: ItemArray[0].Value,
             PaymentMethod: "Safaricom MPESA",
             PaymentReference: ItemArray[1].Value,
-            ResultDescription: SafaricomvResponse.Body.stkCallback.ResultDesc,
-            Status: SafaricomvResponse.Body.stkCallback.ResultCode,
+            ResultDescription: SafaricomResponse.Body.stkCallback.ResultDesc,
+            Status: SafaricomResponse.Body.stkCallback.ResultCode,
             PaidAt: ItemArray[3].Value,
             AccommodationId: SharedDataService.SharedData.CommodityId
           };
@@ -225,14 +225,14 @@ export class PaymentService implements IPaymentService {
 
         if (Result.success) {
 
-          let ItemArray = SafaricomvResponse.Body.stkCallback.CallbackMetadata.Item;
+          let ItemArray = SafaricomResponse.Body.stkCallback.CallbackMetadata.Item;
 
           let PaymentData: CreatePaymentDto = {
             Amount: ItemArray[0].Value,
             PaymentMethod: "Safaricom MPESA",
             PaymentReference: ItemArray[1].Value,
-            ResultDescription: SafaricomvResponse.Body.stkCallback.ResultDesc,
-            Status: SafaricomvResponse.Body.stkCallback.ResultCode,
+            ResultDescription: SafaricomResponse.Body.stkCallback.ResultDesc,
+            Status: SafaricomResponse.Body.stkCallback.ResultCode,
             PaidAt: ItemArray[3].Value,
             BookingId: Result.data?.BookingId
           };
@@ -248,14 +248,14 @@ export class PaymentService implements IPaymentService {
 
         if (Result.success) {
           
-          let ItemArray = SafaricomvResponse.Body.stkCallback.CallbackMetadata.Item;
+          let ItemArray = SafaricomResponse.Body.stkCallback.CallbackMetadata.Item;
 
           let PaymentData: CreatePaymentDto = {
             Amount: ItemArray[0].Value,
             PaymentMethod: "Safaricom MPESA",
             PaymentReference: ItemArray[1].Value,
-            ResultDescription: SafaricomvResponse.Body.stkCallback.ResultDesc,
-            Status: SafaricomvResponse.Body.stkCallback.ResultCode,
+            ResultDescription: SafaricomResponse.Body.stkCallback.ResultDesc,
+            Status: SafaricomResponse.Body.stkCallback.ResultCode,
             PaidAt: ItemArray[3].Value,
             OrderId: Result.data?.OrderId
           };

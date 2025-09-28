@@ -343,7 +343,9 @@ export const Landing: React.FC = () => {
         <div className="container">
           <div className="features-grid">
             <div className="feature-card">
-              <div className="feature-icon">{/* <Building size={32} /> */}</div>
+              <div className="feature-icon">
+                {<Building size={32} />}
+              </div>
               <h3>Premium Spaces</h3>
               <p>
                 Conference halls and meeting bays for all your business needs
