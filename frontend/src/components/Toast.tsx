@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { CheckCircle, XCircle, X, AlertCircle, Info } from "lucide-react";
 import styles from "../styles/components/Toast.module.css";
+import { ServiceResult } from "../shared/service.result/service.result";
 
-// Backend response interfaces
 export interface TokenDetails {
   token: string;
   refreshToken?: string;
@@ -10,16 +10,6 @@ export interface TokenDetails {
   userId?: string;
 }
 
-export interface ServiceResult<T> {
-  success: boolean;
-  message: string;
-  data?: T;
-  dataList?: T[];
-  error?: string;
-  tokenData?: TokenDetails;
-}
-
-// Toast types
 export type ToastType = "success" | "error" | "warning" | "info";
 
 export interface ToastProps {

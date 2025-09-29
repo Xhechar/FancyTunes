@@ -75,7 +75,7 @@ export const Dashboard: React.FC = () => {
   const [rooms] = useState<Room[]>([
     {
       RoomId: "1",
-      RoomNumber: "101",
+      RoomCount: 10,
       RoomType: "Deluxe Suite",
       PricePerNight: 150,
       Description: "Luxurious suite with ocean view and premium amenities",
@@ -83,8 +83,8 @@ export const Dashboard: React.FC = () => {
       Status: "Available",
       RoomImage:
         "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=500",
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
+      CreatedAt: new Date("2024-01-01"),
+      UpdatedAt: new Date("2024-01-01"),
       Accommodations: [],
       Bookings: [],
       Reviews: [],
@@ -92,7 +92,7 @@ export const Dashboard: React.FC = () => {
     },
     {
       RoomId: "2",
-      RoomNumber: "201",
+      RoomCount: 23,
       RoomType: "Conference Hall",
       PricePerNight: 300,
       Description: "Modern conference facility with state-of-the-art equipment",
@@ -100,8 +100,8 @@ export const Dashboard: React.FC = () => {
       Status: "Available",
       RoomImage:
         "https://images.unsplash.com/photo-1497366216548-37526070297c?w=500",
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
+      CreatedAt: new Date("2024-01-01"),
+      UpdatedAt: new Date("2024-01-01"),
       Accommodations: [],
       Bookings: [],
       Reviews: [],
@@ -119,8 +119,8 @@ export const Dashboard: React.FC = () => {
         "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=500",
       Category: "Main Course",
       IsAvailable: true,
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
+      CreatedAt: new Date("2024-01-01"),
+      UpdatedAt: new Date("2024-01-01"),
       Orders: [],
       Carts: [],
       OrderItems: [],
@@ -135,8 +135,8 @@ export const Dashboard: React.FC = () => {
         "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500",
       Category: "Dessert",
       IsAvailable: true,
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
+      CreatedAt: new Date("2024-01-01"),
+      UpdatedAt: new Date("2024-01-01"),
       Orders: [],
       Carts: [],
       OrderItems: [],
@@ -190,7 +190,7 @@ export const Dashboard: React.FC = () => {
       UserId: "current-user-id",
       DelicacyId: delicacy.DelicacyId,
       Quantity: 1,
-      AddedAt: new Date().toISOString(),
+      AddedAt: new Date(),
       User: {} as User,
       Delicacy: delicacy,
     };
@@ -368,7 +368,7 @@ export const Dashboard: React.FC = () => {
                     <div className={styles["room-header"]}>
                       <h3>{room.RoomType}</h3>
                       <span className={styles["room-number"]}>
-                        #{room.RoomNumber}
+                        #{room.RoomCount}
                       </span>
                     </div>
                     <p className={styles["room-description"]}>

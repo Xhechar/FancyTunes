@@ -6,8 +6,8 @@ import { ChangePasswoerdDto, LoginDetails } from "../interfaces/interfaces";
 export class AuthService {
   private static ApiUrl = `${BackendRoute}auth`;
 
-  static async Loginobject(LoginDetails: LoginDetails): Promise<ServiceResult<object>> {
-    const result = await axios.post(`${this.ApiUrl}/login-object`, LoginDetails, {
+  static async Login(LoginDetails: LoginDetails): Promise<ServiceResult<object>> {
+    const result = await axios.post(`${this.ApiUrl}/login-user`, LoginDetails, {
       withCredentials: true,
     });
     return result.data as ServiceResult<object>;

@@ -31,8 +31,8 @@ const mockOrders: Order[] = [
     Quantity: 2,
     TotalAmount: 45.5,
     OrderStatus: "Delivered",
-    OrderedAt: "2024-12-20T14:30:00Z",
-    DeliveredAt: "2024-12-20T15:45:00Z",
+    OrderedAt: new Date("2024-12-20T14:30:00Z"),
+    DeliveredAt: new Date("2024-12-20T15:45:00Z"),
     PaymentStatus: "Completed",
     User: {} as User,
     Delicacy: {
@@ -45,8 +45,8 @@ const mockOrders: Order[] = [
         "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=500",
       Category: "Main Course",
       IsAvailable: true,
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
+      CreatedAt: new Date("2024-01-01"),
+      UpdatedAt: new Date("2024-01-01"),
       Orders: [],
       Carts: [],
       OrderItems: [],
@@ -72,7 +72,7 @@ const mockOrders: Order[] = [
     Quantity: 1,
     TotalAmount: 18.99,
     OrderStatus: "Preparing",
-    OrderedAt: "2024-12-21T12:15:00Z",
+    OrderedAt: new Date("2024-12-21T12:15:00Z"),
     PaymentStatus: "Completed",
     User: {} as User,
     Delicacy: {
@@ -85,8 +85,8 @@ const mockOrders: Order[] = [
         "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=500",
       Category: "Main Course",
       IsAvailable: true,
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
+      CreatedAt: new Date("2024-01-01"),
+      UpdatedAt: new Date("2024-01-01"),
       Orders: [],
       Carts: [],
       OrderItems: [],
@@ -112,7 +112,7 @@ const mockOrders: Order[] = [
     Quantity: 3,
     TotalAmount: 35.97,
     OrderStatus: "On the way",
-    OrderedAt: "2024-12-21T18:20:00Z",
+    OrderedAt: new Date("2024-12-21T18:20:00Z"),
     PaymentStatus: "Completed",
     User: {} as User,
     Delicacy: {
@@ -125,8 +125,8 @@ const mockOrders: Order[] = [
         "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500",
       Category: "Dessert",
       IsAvailable: true,
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
+      CreatedAt: new Date("2024-01-01"),
+      UpdatedAt: new Date("2024-01-01"),
       Orders: [],
       Carts: [],
       OrderItems: [],
@@ -152,7 +152,7 @@ const mockOrders: Order[] = [
     Quantity: 2,
     TotalAmount: 29.98,
     OrderStatus: "Cancelled",
-    OrderedAt: "2024-12-19T16:45:00Z",
+    OrderedAt: new Date("2024-12-19T16:45:00Z"),
     PaymentStatus: "Refunded",
     User: {} as User,
     Delicacy: {
@@ -165,8 +165,8 @@ const mockOrders: Order[] = [
         "https://images.unsplash.com/photo-1551248429-40975aa4de74?w=500",
       Category: "Salad",
       IsAvailable: true,
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
+      CreatedAt: new Date("2024-01-01"),
+      UpdatedAt: new Date("2024-01-01"),
       Orders: [],
       Carts: [],
       OrderItems: [],
@@ -192,7 +192,7 @@ const mockOrders: Order[] = [
     Quantity: 1,
     TotalAmount: 24.5,
     OrderStatus: "Pending",
-    OrderedAt: "2024-12-21T19:30:00Z",
+    OrderedAt: new Date("2024-12-21T19:30:00Z"),
     PaymentStatus: "Pending",
     User: {} as User,
     Delicacy: {
@@ -205,8 +205,8 @@ const mockOrders: Order[] = [
         "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500",
       Category: "Main Course",
       IsAvailable: true,
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
+      CreatedAt: new Date("2024-01-01"),
+      UpdatedAt: new Date("2024-01-01"),
       Orders: [],
       Carts: [],
       OrderItems: [],
@@ -325,8 +325,9 @@ export const Orders: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+  const formatDate = (date: Date | string) => {
+    const d = typeof date === "string" ? new Date(date) : date;
+    return d.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -335,17 +336,17 @@ export const Orders: React.FC = () => {
     });
   };
 
-  const getEstimatedDeliveryTime = (orderedAt: string, status: string) => {
-    if (status === "Delivered" || status === "Cancelled") return null;
-
-    const orderTime = new Date(orderedAt);
-    const estimatedTime = new Date(orderTime.getTime() + 45 * 60 * 1000); // 45 minutes
-
-    return estimatedTime.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  const getEstimatedDeliveryTime = (orderedAt: Date | string, status: string) => {
+      if (status === "Delivered" || status === "Cancelled") return null;
+  
+      const orderTime = typeof orderedAt === "string" ? new Date(orderedAt) : orderedAt;
+      const estimatedTime = new Date(orderTime.getTime() + 45 * 60 * 1000); // 45 minutes
+  
+      return estimatedTime.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    };
 
   const handleCancelOrder = async (orderId: string) => {
     if (window.confirm("Are you sure you want to cancel this order?")) {

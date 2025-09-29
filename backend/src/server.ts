@@ -20,6 +20,8 @@ import { ReviewsRouter } from "./routes/reviews.routes";
 import { RoomRouter } from "./routes/rooms.routes";
 import { UserRouter } from "./routes/user.routes";
 import { BusinessRoomRouter } from "./routes/business.room.routes";
+import winston from "./logs/logger";
+import morgan from 'morgan';
 
 dotenv.config();
 
@@ -28,7 +30,8 @@ const app = Express();
 app.use(bodyParser.json());
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: "http://localhost:3000",
+    credentials: true
   })
 );
 app.use(cookieParser(process.env.COOKIE_SECRET));
@@ -37,7 +40,7 @@ app.use("/accommodation", AccommodationRouter);
 app.use("/auth", AuthRouter);
 app.use("/booking", BookingRouter);
 app.use("/budiness-room", BusinessRoomRouter);
-app.use("cart", CartRouter);
+app.use("/cart", CartRouter);
 app.use("/delicacy", DelicacyRouter);
 app.use("/notification", NotificationRouter);
 app.use("/order", OrderRouter);
@@ -45,6 +48,14 @@ app.use("/payment", PaymentRouter);
 app.use("/review", ReviewsRouter);
 app.use("/room", RoomRouter);
 app.use("/user", UserRouter);
+
+app.use(
+  morgan("combined", {
+    stream: {
+      write: (message: string) => winston.info(message.trim()),
+    },
+  })
+);
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   return res
@@ -56,12 +67,12 @@ const server = http.createServer(app);
 
 export const io: Server = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000"],
+    origin: "http://localhost:3000",
   },
 });
 
 setUpSocket(io);
 
 app.listen(3001, () => {
-  console.log("Server Is Running On Port 3001");
+  winston.info("Server is running on port 3001.")
 });

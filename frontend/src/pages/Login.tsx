@@ -9,8 +9,10 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
-import styles from "../styles/Login.module.css"; // CSS Module import
+import styles from "../styles/Login.module.css";
 import { useNavigate } from "react-router-dom";
+import Toast, { ToastProps } from "../components/Toast";
+import { AuthService } from "../services/auth.service";
 
 interface LoginFormData {
   email: string;
@@ -37,15 +39,32 @@ export const Login: React.FC = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     setIsSubmitting(true);
+    let response = await AuthService.Login({Email: data.email, Password: data.password});
 
-    try {
-      console.log("Login data:", data);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      alert("Login successful!");
-    } catch (error) {
-      console.error("Login failed:", error);
-    } finally {
+    if(response.success) {
       setIsSubmitting(false);
+      let toast: ToastProps = {
+        isVisible: true,
+        type: "success",
+        title: "SUCCESS",
+        message: response.message as string,
+        onClose: () => {}
+      }
+      
+      {<Toast {...toast}></Toast>}
+    } else {
+      setIsSubmitting(false);
+      let toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: response.error as string,
+        message: response.message as string,
+        onClose: () => {}
+      }
+      
+      {
+        <Toast {...toast}></Toast>;
+      }
     }
   };
 

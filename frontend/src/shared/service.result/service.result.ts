@@ -1,4 +1,3 @@
-import { TokenDetails } from "../utils/token.details";
 
 export interface ServiceResult<T> {
   success: boolean;

@@ -1,5 +1,3 @@
-import { string } from "joi";
-import { TokenDetails } from "../utils/token.details";
 import { ServiceResult } from "./service.result";
 
 export class ServiceResponse<T> {
