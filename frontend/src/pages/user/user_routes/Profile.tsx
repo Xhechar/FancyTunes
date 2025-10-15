@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { 
   User, 
@@ -23,20 +23,10 @@ import {
   Trash2
 } from 'lucide-react';
 import styles from "../../../styles/user/user_routes/Profile.module.css";
-
-// Interfaces
-interface User {
-  UserId: string;
-  FullName: string;
-  Email: string;
-  Phone: string;
-  Password: string;
-  Role: string;
-  ProfileImage?: string;
-  IsWelcome: boolean;
-  CreatedAt: string;
-  UpdatedAt: string;
-}
+import { User as UserInterface } from '../../../interfaces/interfaces';
+import { UsersService } from '../../../services/user.service';
+import Toast, { ToastProps } from '../../../components/Toast';
+import { UpdateUserDto } from '../../../interfaces/dtos/interfaces.dtos';
 
 interface ProfileFormData {
   FullName: string;
@@ -55,29 +45,40 @@ interface ProfileFormData {
   MarketingEmails: boolean;
 }
 
-// Mock user data
-const mockUser: User = {
-  UserId: 'user-123',
-  FullName: 'John Doe',
-  Email: 'john.doe@example.com',
-  Phone: '+1 (555) 123-4567',
-  Password: '********',
-  Role: 'Customer',
-  ProfileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-  IsWelcome: true,
-  CreatedAt: '2024-01-15T10:30:00Z',
-  UpdatedAt: '2024-08-20T14:22:00Z'
-};
-
 export const Profile: React.FC = () => {
-  const [user] = useState<User>(mockUser);
+  const [user, setUser] = useState<UserInterface | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<'personal' | 'security' | 'preferences'>('personal');
-  const [profileImage, setProfileImage] = useState(user.ProfileImage);
+  const [profileImage, setProfileImage] = useState(user?.ProfileImage);
   const [isUploading, setIsUploading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [ toast, setToast ] = useState<ToastProps | null>(null);
+
+  useEffect(() => {
+    const getUser = async() => {
+      let result = await UsersService.GetUserByUserId();
+
+      if (result.success) {
+        let toast: ToastProps = {
+          isVisible: true,
+          type: 'success',
+          title: 'SUCCESS',
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null)
+          }
+        };
+        
+        setToast(() => toast);
+        setUser(() => result.data as UserInterface);
+        setProfileImage(() => (result.data as UserInterface).ProfileImage ? result.data?.ProfileImage : undefined);
+      }
+    };
+
+    getUser();
+  }, []);
 
   const {
     register,
@@ -88,9 +89,9 @@ export const Profile: React.FC = () => {
     setValue
   } = useForm<ProfileFormData>({
     defaultValues: {
-      FullName: user.FullName,
-      Email: user.Email,
-      Phone: user.Phone,
+      FullName: user?.FullName,
+      Email: user?.Email,
+      Phone: user?.Phone,
       DateOfBirth: '1990-05-15',
       Address: '123 Main Street',
       City: 'New York',
@@ -105,7 +106,6 @@ export const Profile: React.FC = () => {
 
   const newPassword = watch('NewPassword');
 
-  // Custom validation rules
   const validationRules = {
     FullName: {
       required: 'Full name is required',
@@ -170,75 +170,112 @@ export const Profile: React.FC = () => {
     }
   };
 
-  // Handle form submission
   const onSubmit: SubmitHandler<ProfileFormData> = async (data) => {
     setSaveStatus('saving');
+
+    let userData: UpdateUserDto = {
+      FullName: data.FullName,
+      Email: data.Email,
+      Phone: data.Phone,
+      ProfileImage: profileImage
+    };
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      let result = await UsersService.UpdateUser(userData);
       
-      console.log('Profile updated:', data);
-      setSaveStatus('success');
-      setIsEditing(false);
+      if (result.success) {
+        setSaveStatus("success");
+        setIsEditing(false);
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+
+        setToast(() => toast);
+
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      } else {
+        setSaveStatus(() => "error");
+
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      }
       
-      // Reset success status after 3 seconds
-      setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (error) {
       setSaveStatus('error');
       setTimeout(() => setSaveStatus('idle'), 3000);
     }
   };
 
-  // Handle profile image upload
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type and size
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
-      return;
-    }
+      const toast: ToastProps = {
+        isVisible: true,
+        type: 'warning',
+        title: 'SUCCESS',
+        message: 'upload only image files.',
+        onClose: function (): void {
+          setToast(() => null);
+        }
+      };
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      alert('Image size must be less than 5MB');
+      setToast(() => toast);
       return;
     }
 
     setIsUploading(true);
     
     try {
-      // Simulate upload
-      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfileImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      let formData: FormData = new FormData();
+
+      formData.append("file", file);
+      formData.append("upload_preset", "some preset name");
+      formData.append("cloud_name", "dakyiye2e");
+
+      fetch("https://api.cloudinary.com/v1_1/dakyiye2e/image/upload", {
+        method: "POST",
+        body: formData
+      }).then(res => res.json()).then(res => {
+        setProfileImage(() => res.secure_url as string);
+      });
       
       setIsUploading(false);
     } catch (error) {
       setIsUploading(false);
-      alert('Failed to upload image. Please try again.');
+
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: "SERVER ERROR",
+        message: "Failed to upload image. Please try again.",
+        onClose: function (): void {
+          setToast(() => null);
+        },
+      };
+
+      setToast(() => toast);
     }
   };
 
-  // Remove profile image
   const removeProfileImage = () => {
     setProfileImage(undefined);
   };
 
-  // Cancel editing
   const cancelEdit = () => {
     reset();
     setIsEditing(false);
     setSaveStatus('idle');
   };
 
-  // Format date for display
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -249,32 +286,35 @@ export const Profile: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      {
+        toast ? <Toast { ...toast }></Toast> : <div></div>
+      }
       {/* Header */}
       <div className={styles.header}>
-        <div className={styles['header-content']}>
-          <div className={styles['profile-avatar-section']}>
-            <div className={styles['avatar-container']}>
+        <div className={styles["header-content"]}>
+          <div className={styles["profile-avatar-section"]}>
+            <div className={styles["avatar-container"]}>
               {profileImage ? (
-                <img 
-                  src={profileImage} 
-                  alt="Profile" 
+                <img
+                  src={profileImage}
+                  alt="Profile"
                   className={styles.avatar}
                 />
               ) : (
-                <div className={styles['avatar-placeholder']}>
+                <div className={styles["avatar-placeholder"]}>
                   <User size={40} />
                 </div>
               )}
-              
+
               {isUploading && (
-                <div className={styles['upload-overlay']}>
+                <div className={styles["upload-overlay"]}>
                   <div className={styles.spinner}></div>
                 </div>
               )}
-              
+
               {isEditing && (
-                <div className={styles['avatar-actions']}>
-                  <label className={styles['upload-btn']}>
+                <div className={styles["avatar-actions"]}>
+                  <label className={styles["upload-btn"]}>
                     <Camera size={14} />
                     <input
                       type="file"
@@ -284,8 +324,8 @@ export const Profile: React.FC = () => {
                     />
                   </label>
                   {profileImage && (
-                    <button 
-                      className={styles['remove-btn']}
+                    <button
+                      className={styles["remove-btn"]}
                       onClick={removeProfileImage}
                       type="button"
                     >
@@ -295,41 +335,41 @@ export const Profile: React.FC = () => {
                 </div>
               )}
             </div>
-            
-            <div className={styles['profile-info']}>
-              <h1 className={styles['profile-name']}>{user.FullName}</h1>
-              <p className={styles['profile-role']}>{user.Role}</p>
-              <p className={styles['profile-joined']}>
-                Member since {formatDate(user.CreatedAt)}
+
+            <div className={styles["profile-info"]}>
+              <h1 className={styles["profile-name"]}>{user?.FullName}</h1>
+              <p className={styles["profile-role"]}>{user?.Role}</p>
+              <p className={styles["profile-joined"]}>
+                Member since {formatDate(String(user?.CreatedAt))}
               </p>
             </div>
           </div>
-          
-          <div className={styles['header-actions']}>
+
+          <div className={styles["header-actions"]}>
             {!isEditing ? (
-              <button 
-                className={styles['edit-btn']}
+              <button
+                className={styles["edit-btn"]}
                 onClick={() => setIsEditing(true)}
               >
                 <Edit3 size={18} />
                 Edit Profile
               </button>
             ) : (
-              <div className={styles['edit-actions']}>
-                <button 
-                  className={styles['cancel-btn']}
+              <div className={styles["edit-actions"]}>
+                <button
+                  className={styles["cancel-btn"]}
                   onClick={cancelEdit}
                   type="button"
                 >
                   <X size={18} />
                   Cancel
                 </button>
-                <button 
-                  className={styles['save-btn']}
+                <button
+                  className={styles["save-btn"]}
                   onClick={handleSubmit(onSubmit)}
-                  disabled={!isDirty || !isValid || saveStatus === 'saving'}
+                  disabled={!isDirty || !isValid || saveStatus === "saving"}
                 >
-                  {saveStatus === 'saving' ? (
+                  {saveStatus === "saving" ? (
                     <>
                       <div className={styles.spinner}></div>
                       Saving...
@@ -345,17 +385,17 @@ export const Profile: React.FC = () => {
             )}
           </div>
         </div>
-        
+
         {/* Save Status */}
-        {saveStatus !== 'idle' && (
-          <div className={`${styles['status-banner']} ${styles[saveStatus]}`}>
-            {saveStatus === 'success' && (
+        {saveStatus !== "idle" && (
+          <div className={`${styles["status-banner"]} ${styles[saveStatus]}`}>
+            {saveStatus === "success" && (
               <>
                 <CheckCircle size={18} />
                 Profile updated successfully!
               </>
             )}
-            {saveStatus === 'error' && (
+            {saveStatus === "error" && (
               <>
                 <AlertCircle size={18} />
                 Failed to update profile. Please try again.
@@ -367,23 +407,29 @@ export const Profile: React.FC = () => {
 
       {/* Tabs */}
       <div className={styles.tabs}>
-        <button 
-          className={`${styles.tab} ${activeTab === 'personal' ? styles.active : ''}`}
-          onClick={() => setActiveTab('personal')}
+        <button
+          className={`${styles.tab} ${
+            activeTab === "personal" ? styles.active : ""
+          }`}
+          onClick={() => setActiveTab("personal")}
         >
           <User size={18} />
           Personal Info
         </button>
-        <button 
-          className={`${styles.tab} ${activeTab === 'security' ? styles.active : ''}`}
-          onClick={() => setActiveTab('security')}
+        <button
+          className={`${styles.tab} ${
+            activeTab === "security" ? styles.active : ""
+          }`}
+          onClick={() => setActiveTab("security")}
         >
           <Shield size={18} />
           Security
         </button>
-        <button 
-          className={`${styles.tab} ${activeTab === 'preferences' ? styles.active : ''}`}
-          onClick={() => setActiveTab('preferences')}
+        <button
+          className={`${styles.tab} ${
+            activeTab === "preferences" ? styles.active : ""
+          }`}
+          onClick={() => setActiveTab("preferences")}
         >
           <Settings size={18} />
           Preferences
@@ -393,78 +439,87 @@ export const Profile: React.FC = () => {
       {/* Form Content */}
       <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
         {/* Personal Info Tab */}
-        {activeTab === 'personal' && (
-          <div className={styles['tab-content']}>
-            <div className={styles['form-section']}>
-              <h2 className={styles['section-title']}>Basic Information</h2>
-              
-              <div className={styles['form-grid']}>
-                <div className={styles['form-group']}>
+        {activeTab === "personal" && (
+          <div className={styles["tab-content"]}>
+            <div className={styles["form-section"]}>
+              <h2 className={styles["section-title"]}>Basic Information</h2>
+
+              <div className={styles["form-grid"]}>
+                <div className={styles["form-group"]}>
                   <label className={styles.label}>
                     <User size={16} />
                     Full Name *
                   </label>
                   <input
-                    {...register('FullName', validationRules.FullName)}
-                    className={`${styles.input} ${errors.FullName ? styles.error : ''}`}
+                    {...register("FullName", validationRules.FullName)}
+                    className={`${styles.input} ${
+                      errors.FullName ? styles.error : ""
+                    }`}
                     disabled={!isEditing}
                     placeholder="Enter your full name"
+                    value={user?.FullName}
                   />
                   {errors.FullName && (
-                    <span className={styles['error-message']}>
+                    <span className={styles["error-message"]}>
                       <AlertCircle size={14} />
                       {errors.FullName.message}
                     </span>
                   )}
                 </div>
 
-                <div className={styles['form-group']}>
+                <div className={styles["form-group"]}>
                   <label className={styles.label}>
                     <Mail size={16} />
                     Email Address *
                   </label>
                   <input
-                    {...register('Email', validationRules.Email)}
+                    {...register("Email", validationRules.Email)}
                     type="email"
-                    className={`${styles.input} ${errors.Email ? styles.error : ''}`}
+                    className={`${styles.input} ${
+                      errors.Email ? styles.error : ""
+                    }`}
                     disabled={!isEditing}
                     placeholder="Enter your email"
+                    value={user?.Email}
                   />
                   {errors.Email && (
-                    <span className={styles['error-message']}>
+                    <span className={styles["error-message"]}>
                       <AlertCircle size={14} />
                       {errors.Email.message}
                     </span>
                   )}
                 </div>
 
-                <div className={styles['form-group']}>
+                <div className={styles["form-group"]}>
                   <label className={styles.label}>
                     <Phone size={16} />
                     Phone Number *
                   </label>
                   <input
-                    {...register('Phone', validationRules.Phone)}
+                    {...register("Phone", validationRules.Phone)}
                     type="tel"
-                    className={`${styles.input} ${errors.Phone ? styles.error : ''}`}
+                    className={`${styles.input} ${
+                      errors.Phone ? styles.error : ""
+                    }`}
                     disabled={!isEditing}
                     placeholder="Enter your phone number"
+                    value={user?.Phone}
                   />
                   {errors.Phone && (
-                    <span className={styles['error-message']}>
+                    <span className={styles["error-message"]}>
                       <AlertCircle size={14} />
                       {errors.Phone.message}
                     </span>
                   )}
                 </div>
 
-                <div className={styles['form-group']}>
+                <div className={styles["form-group"]}>
                   <label className={styles.label}>
                     <Calendar size={16} />
                     Date of Birth
                   </label>
                   <input
-                    {...register('DateOfBirth')}
+                    {...register("DateOfBirth")}
                     type="date"
                     className={styles.input}
                     disabled={!isEditing}
@@ -473,37 +528,37 @@ export const Profile: React.FC = () => {
               </div>
             </div>
 
-            <div className={styles['form-section']}>
-              <h2 className={styles['section-title']}>Location</h2>
-              
-              <div className={styles['form-grid']}>
-                <div className={styles['form-group-full']}>
+            <div className={styles["form-section"]}>
+              <h2 className={styles["section-title"]}>Location</h2>
+
+              <div className={styles["form-grid"]}>
+                <div className={styles["form-group-full"]}>
                   <label className={styles.label}>
                     <MapPin size={16} />
                     Address
                   </label>
                   <input
-                    {...register('Address')}
+                    {...register("Address")}
                     className={styles.input}
                     disabled={!isEditing}
                     placeholder="Enter your address"
                   />
                 </div>
 
-                <div className={styles['form-group']}>
+                <div className={styles["form-group"]}>
                   <label className={styles.label}>City</label>
                   <input
-                    {...register('City')}
+                    {...register("City")}
                     className={styles.input}
                     disabled={!isEditing}
                     placeholder="Enter your city"
                   />
                 </div>
 
-                <div className={styles['form-group']}>
+                <div className={styles["form-group"]}>
                   <label className={styles.label}>Country</label>
                   <input
-                    {...register('Country')}
+                    {...register("Country")}
                     className={styles.input}
                     disabled={!isEditing}
                     placeholder="Enter your country"
@@ -512,13 +567,13 @@ export const Profile: React.FC = () => {
               </div>
             </div>
 
-            <div className={styles['form-section']}>
-              <h2 className={styles['section-title']}>About</h2>
-              
-              <div className={styles['form-group-full']}>
+            <div className={styles["form-section"]}>
+              <h2 className={styles["section-title"]}>About</h2>
+
+              <div className={styles["form-group-full"]}>
                 <label className={styles.label}>Bio</label>
                 <textarea
-                  {...register('Bio')}
+                  {...register("Bio")}
                   className={styles.textarea}
                   disabled={!isEditing}
                   placeholder="Tell us about yourself..."
@@ -530,75 +585,91 @@ export const Profile: React.FC = () => {
         )}
 
         {/* Security Tab */}
-        {activeTab === 'security' && (
-          <div className={styles['tab-content']}>
-            <div className={styles['form-section']}>
-              <h2 className={styles['section-title']}>Change Password</h2>
-              
-              <div className={styles['form-grid']}>
-                <div className={styles['form-group']}>
+        {activeTab === "security" && (
+          <div className={styles["tab-content"]}>
+            <div className={styles["form-section"]}>
+              <h2 className={styles["section-title"]}>Change Password</h2>
+
+              <div className={styles["form-grid"]}>
+                <div className={styles["form-group"]}>
                   <label className={styles.label}>Current Password</label>
-                  <div className={styles['password-field']}>
+                  <div className={styles["password-field"]}>
                     <input
-                      {...register('CurrentPassword', validationRules.CurrentPassword)}
-                      type={showPassword ? 'text' : 'password'}
-                      className={`${styles.input} ${errors.CurrentPassword ? styles.error : ''}`}
+                      {...register(
+                        "CurrentPassword",
+                        validationRules.CurrentPassword
+                      )}
+                      type={showPassword ? "text" : "password"}
+                      className={`${styles.input} ${
+                        errors.CurrentPassword ? styles.error : ""
+                      }`}
                       disabled={!isEditing}
                       placeholder="Enter current password"
                     />
                     <button
                       type="button"
-                      className={styles['password-toggle']}
+                      className={styles["password-toggle"]}
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                   {errors.CurrentPassword && (
-                    <span className={styles['error-message']}>
+                    <span className={styles["error-message"]}>
                       <AlertCircle size={14} />
                       {errors.CurrentPassword.message}
                     </span>
                   )}
                 </div>
 
-                <div className={styles['form-group']}>
+                <div className={styles["form-group"]}>
                   <label className={styles.label}>New Password</label>
-                  <div className={styles['password-field']}>
+                  <div className={styles["password-field"]}>
                     <input
-                      {...register('NewPassword', validationRules.NewPassword)}
-                      type={showNewPassword ? 'text' : 'password'}
-                      className={`${styles.input} ${errors.NewPassword ? styles.error : ''}`}
+                      {...register("NewPassword", validationRules.NewPassword)}
+                      type={showNewPassword ? "text" : "password"}
+                      className={`${styles.input} ${
+                        errors.NewPassword ? styles.error : ""
+                      }`}
                       disabled={!isEditing}
                       placeholder="Enter new password"
                     />
                     <button
                       type="button"
-                      className={styles['password-toggle']}
+                      className={styles["password-toggle"]}
                       onClick={() => setShowNewPassword(!showNewPassword)}
                     >
-                      {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {showNewPassword ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
                     </button>
                   </div>
                   {errors.NewPassword && (
-                    <span className={styles['error-message']}>
+                    <span className={styles["error-message"]}>
                       <AlertCircle size={14} />
                       {errors.NewPassword.message}
                     </span>
                   )}
                 </div>
 
-                <div className={styles['form-group']}>
+                <div className={styles["form-group"]}>
                   <label className={styles.label}>Confirm New Password</label>
                   <input
-                    {...register('ConfirmPassword', validationRules.ConfirmPassword)}
+                    {...register(
+                      "ConfirmPassword",
+                      validationRules.ConfirmPassword
+                    )}
                     type="password"
-                    className={`${styles.input} ${errors.ConfirmPassword ? styles.error : ''}`}
+                    className={`${styles.input} ${
+                      errors.ConfirmPassword ? styles.error : ""
+                    }`}
                     disabled={!isEditing}
                     placeholder="Confirm new password"
                   />
                   {errors.ConfirmPassword && (
-                    <span className={styles['error-message']}>
+                    <span className={styles["error-message"]}>
                       <AlertCircle size={14} />
                       {errors.ConfirmPassword.message}
                     </span>
@@ -607,18 +678,18 @@ export const Profile: React.FC = () => {
               </div>
             </div>
 
-            <div className={styles['form-section']}>
-              <h2 className={styles['section-title']}>Security Settings</h2>
-              
-              <div className={styles['toggle-group']}>
-                <div className={styles['toggle-item']}>
+            <div className={styles["form-section"]}>
+              <h2 className={styles["section-title"]}>Security Settings</h2>
+
+              <div className={styles["toggle-group"]}>
+                <div className={styles["toggle-item"]}>
                   <div>
                     <h3>Two-Factor Authentication</h3>
                     <p>Add an extra layer of security to your account</p>
                   </div>
-                  <label className={styles['toggle-switch']}>
+                  <label className={styles["toggle-switch"]}>
                     <input
-                      {...register('TwoFactorEnabled')}
+                      {...register("TwoFactorEnabled")}
                       type="checkbox"
                       disabled={!isEditing}
                     />
@@ -631,20 +702,22 @@ export const Profile: React.FC = () => {
         )}
 
         {/* Preferences Tab */}
-        {activeTab === 'preferences' && (
-          <div className={styles['tab-content']}>
-            <div className={styles['form-section']}>
-              <h2 className={styles['section-title']}>Notifications</h2>
-              
-              <div className={styles['toggle-group']}>
-                <div className={styles['toggle-item']}>
+        {activeTab === "preferences" && (
+          <div className={styles["tab-content"]}>
+            <div className={styles["form-section"]}>
+              <h2 className={styles["section-title"]}>Notifications</h2>
+
+              <div className={styles["toggle-group"]}>
+                <div className={styles["toggle-item"]}>
                   <div>
                     <h3>Push Notifications</h3>
-                    <p>Receive notifications about your orders and reservations</p>
+                    <p>
+                      Receive notifications about your orders and reservations
+                    </p>
                   </div>
-                  <label className={styles['toggle-switch']}>
+                  <label className={styles["toggle-switch"]}>
                     <input
-                      {...register('NotificationsEnabled')}
+                      {...register("NotificationsEnabled")}
                       type="checkbox"
                       disabled={!isEditing}
                     />
@@ -652,14 +725,14 @@ export const Profile: React.FC = () => {
                   </label>
                 </div>
 
-                <div className={styles['toggle-item']}>
+                <div className={styles["toggle-item"]}>
                   <div>
                     <h3>Marketing Emails</h3>
                     <p>Receive updates about new dishes and special offers</p>
                   </div>
-                  <label className={styles['toggle-switch']}>
+                  <label className={styles["toggle-switch"]}>
                     <input
-                      {...register('MarketingEmails')}
+                      {...register("MarketingEmails")}
                       type="checkbox"
                       disabled={!isEditing}
                     />
@@ -669,11 +742,11 @@ export const Profile: React.FC = () => {
               </div>
             </div>
 
-            <div className={styles['form-section']}>
-              <h2 className={styles['section-title']}>Account Actions</h2>
-              
-              <div className={styles['action-buttons']}>
-                <button type="button" className={styles['danger-btn']}>
+            <div className={styles["form-section"]}>
+              <h2 className={styles["section-title"]}>Account Actions</h2>
+
+              <div className={styles["action-buttons"]}>
+                <button type="button" className={styles["danger-btn"]}>
                   <LogOut size={18} />
                   Sign Out
                 </button>

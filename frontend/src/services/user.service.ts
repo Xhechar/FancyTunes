@@ -8,7 +8,7 @@ import {
 } from "../interfaces/dtos/interfaces.dtos";
 
 export class UsersService {
-  private static ApiUrl = `${BackendRoute}users`;
+  private static ApiUrl = `${BackendRoute}user`;
 
   static async CreateUser(User: CreateUserDto): Promise<ServiceResult<User>> {
     const result = await axios.post(`${this.ApiUrl}/create-user`, User);

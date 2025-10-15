@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import {
@@ -13,6 +13,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 import styles from "../styles/VerifyMail.module.css";
+import { AuthService } from "../services/auth.service";
+import Toast, { ToastProps } from "../components/Toast";
+import { ChangePasswoerdDto } from "../interfaces/interfaces";
 
 interface EmailFormData {
   email: string;
@@ -36,20 +39,23 @@ export const VerifyMail: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
+  const [ toast, setToast ] = useState<ToastProps | null>(null);
+  const [ vCode, setVCode ] = useState<number>(0);
+  const [ PasswordMessage, setPasswordMessage ] = useState<string>("");
   const navigate = useNavigate();
 
   const emailForm = useForm<EmailFormData>({
-    mode: "onChange",
+    mode: "all",
     defaultValues: { email: "" },
   });
 
   const codeForm = useForm<CodeFormData>({
-    mode: "onChange",
+    mode: "all",
     defaultValues: { verificationCode: "" },
   });
 
   const passwordForm = useForm<PasswordFormData>({
-    mode: "onChange",
+    mode: "all",
     defaultValues: { newPassword: "", confirmPassword: "" },
   });
 
@@ -66,19 +72,53 @@ export const VerifyMail: React.FC = () => {
 
   const onEmailSubmit = async (data: EmailFormData) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setUserEmail(data.email);
-      setCurrentStep("verification");
-      setTimer(300);
+      let result = await AuthService.VerifyMail(data.email);
+
+      if(result.success) {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "info",
+          title: "SUCCESS",
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          }
+        }
+        setToast(() => toast);
+        setUserEmail(data.email);
+        setCurrentStep("verification");
+        setTimer(300);
+      } else {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "warning",
+          title: result.error as string,
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          }
+        };
+        setToast(() => toast);
+      }
     } catch (error) {
-      console.error("Error sending email:", error);
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: "SERVER ERROR",
+        message: error instanceof Error ? error.message : "An error occured on sending request.",
+        onClose: function (): void {
+          setToast(() => null);
+        },
+      };
+      setToast(() => toast);
     }
   };
 
   const onCodeSubmit = async (data: CodeFormData) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      if (data.verificationCode === "123456") {
+      const result = await AuthService.VerifyCode(userEmail, Number(data.verificationCode));
+      if (result.success) {
+        setVCode(() => Number(data.verificationCode))
         setCurrentStep("password");
       } else {
         codeForm.setError("verificationCode", {
@@ -87,19 +127,67 @@ export const VerifyMail: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error("Error verifying code:", error);
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: "SERVER ERROR",
+        message:
+          error instanceof Error
+            ? error.message
+            : "An error occured on sending request.",
+        onClose: function (): void {
+          setToast(() => null);
+        },
+      };
+      setToast(() => toast);
     }
   };
 
   const onPasswordSubmit = async (data: PasswordFormData) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setCurrentStep("success");
-      setTimeout(() => {
-        navigate("/login");
-      }, 3000);
+      const passData: ChangePasswoerdDto = {
+        Email: userEmail,
+        NewPassword: data.newPassword,
+        VerificationCode: vCode
+      };
+
+      let result = await AuthService.ChangePassword(passData);
+      
+      if(result.success) {
+        setPasswordMessage(() => result.message as string);
+        setCurrentStep("success");
+        setTimeout(() => {
+          navigate("/login");
+        }, 3000);
+      } else {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "warning",
+          title: result.error as string,
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null)
+          }
+        };
+        setToast(() => toast);
+        setTimeout(() => {
+          setCurrentStep("email");
+        }, 4000);
+      }
     } catch (error) {
-      console.error("Error updating password:", error);
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: "SERVER ERROR",
+        message:
+          error instanceof Error
+            ? error.message
+            : "An error occured on sending request.",
+        onClose: function (): void {
+          setToast(() => null);
+        },
+      };
+      setToast(() => toast);
     }
   };
 
@@ -421,8 +509,7 @@ export const VerifyMail: React.FC = () => {
         </div>
         <h2>Password Updated!</h2>
         <p>
-          Your password has been successfully updated. You will be redirected to
-          the login page shortly.
+          {PasswordMessage !== "" ? PasswordMessage : "Your password has been successfully updated. You will be redirected to the login page shortly."}
         </p>
       </div>
 
@@ -443,6 +530,9 @@ export const VerifyMail: React.FC = () => {
 
   return (
     <div className={styles["email-verification-container"]}>
+      {
+        toast ? <Toast {...toast}></Toast> : <div></div>
+      }
       <div className={styles["verification-card"]}>
         <button
           onClick={() => navigate(-1)}

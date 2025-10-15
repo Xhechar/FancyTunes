@@ -41,8 +41,8 @@ export class RoomsService {
     return result.data as ServiceResult<Room>;
   }
 
-  static async GetAllRooms(): Promise<ServiceResult<Room[]>> {
+  static async GetAllRooms(): Promise<ServiceResult<Room>> {
     const result = await axios.get(`${this.ApiUrl}/get-all-rooms`);
-    return result.data as ServiceResult<Room[]>;
+    return result.data as ServiceResult<Room>;
   }
 }

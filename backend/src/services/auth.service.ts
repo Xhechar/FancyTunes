@@ -81,7 +81,46 @@ export class AuthService implements IAuthService {
 
     return ServiceResponse.success<object>("verification code sent to your mail successfully, it expires in 15 minutes.");
   }
+
+  async verifyCode( Email: string, VerificationCode: number): Promise<ServiceResult<object>> {
+
+    let UserExists = await this.prisma.user.findUnique({
+      where: {
+        Email
+      }
+    });
+
+    if (UserExists == null) return ServiceResponse.failure<object>(ErrorCode.NOTFOUND, "email provided not found, kindly register an account.");
+
+    let RecoveryExists = await this.prisma.recovery.findFirst({
+      where: {
+        UserId: UserExists.UserId,
+        VerificationCode,
+        IsUsed: false,
+        ExpiresAt: {
+          gt: new Date()
+        }
+      }
+    });
+
+    if (RecoveryExists == null) return ServiceResponse.failure<object>(ErrorCode.NOTFOUND, "invalid or expired verification code provided.");
+
+    return ServiceResponse.success<object>("code verification successfull");
+  }
+
   async changePassword(details: ChangePasswoerdDto): Promise<ServiceResult<object>> {
+
+    if (!details.Email.trim() || "")
+      return ServiceResponse.failure<object>(
+        ErrorCode.NOTFOUND,
+        "email is invalid. Kindly retry the process."
+      );
+
+    if (!details.VerificationCode || 0)
+      return ServiceResponse.failure<object>(
+        ErrorCode.NOTFOUND,
+        "code is invalid. Kindly retry the process."
+      );
     
     let UserExists = await this.prisma.user.findUnique({
       where: {

@@ -22,299 +22,13 @@ import {
   UserCheck,
 } from "lucide-react";
 import styles from "../../../styles/user/user_routes/Bookings.module.css";
-
-// Interface definitions (using your provided interfaces)
-export interface User {
-  UserId: string;
-  FullName: string;
-  Email: string;
-  Phone: string;
-  Password: string;
-  Role: string;
-  ProfileImage?: string;
-  IsWelcome: boolean;
-  CreatedAt: string;
-  UpdatedAt: string;
-  Bookings: Booking[];
-  Accommodations: Accommodation[];
-  Orders: Order[];
-  Carts: Cart[];
-  Recoveries: Recovery[];
-  Payments: Payment[];
-  Reviews: Review[];
-  Notifications: Notification[];
-}
-
-export interface Room {
-  RoomId: string;
-  RoomNumber: string;
-  RoomType: string;
-  PricePerNight: number;
-  Description: string;
-  Capacity: number;
-  Status: string;
-  RoomImage?: string;
-  CreatedAt: string;
-  UpdatedAt: string;
-  Accommodations: Accommodation[];
-  Bookings: Booking[];
-  Reviews: Review[];
-  RoomImages: RoomImage[];
-}
-
-export interface Booking {
-  BookingId: string;
-  UserId: string;
-  RoomId: string;
-  CheckInDate: string;
-  CheckOutDate: string;
-  NumberOfGuests: number;
-  TotalAmount: number;
-  SpecialRequests?: string;
-  BookingStatus: string;
-  PaymentStatus: string;
-  CreatedAt: string;
-  UpdatedAt: string;
-  User: User;
-  Room: Room;
-}
-
-export interface Accommodation {
-  AccommodationId: string;
-  UserId: string;
-  RoomId: string;
-  CheckInDate: string;
-  CheckOutDate: string;
-  TotalAmount: number;
-  SpecialRequests?: string;
-  PaymentStatus: string;
-  IsActive: boolean;
-  CreatedAt: string;
-  UpdatedAt: string;
-  User: User;
-  Room: Room;
-}
-
-export interface Order {
-  OrderId: string;
-  UserId: string;
-  DelicacyId: string;
-  Quantity: number;
-  TotalAmount: number;
-  OrderStatus: string;
-  OrderedAt: string;
-  DeliveredAt?: string;
-  PaymentStatus: string;
-  User: User;
-  Delicacy: any;
-  OrderItems: any[];
-}
-
-export interface Cart {
-  CartId: string;
-  UserId: string;
-  DelicacyId: string;
-  Quantity: number;
-  AddedAt: string;
-  User: User;
-  Delicacy: any;
-}
-
-export interface Recovery {
-  RecoveryId: string;
-  UserId: string;
-  VerificationCode: number;
-  ExpiresAt: string;
-  IsUsed: boolean;
-  CreatedAt: string;
-  User: User;
-}
-
-export interface Payment {
-  PaymentId: string;
-  UserId: string;
-  Amount: number;
-  PaymentMethod: string;
-  PaymentReference: string;
-  TransactionId: string;
-  Status: string;
-  BookingId?: string;
-  OrderId?: string;
-  PaidAt: string;
-  CreatedAt: string;
-  User: User;
-}
-
-export interface Review {
-  ReviewId: string;
-  UserId: string;
-  RoomId?: string;
-  DelicacyId?: string;
-  Rating: number;
-  Comment: string;
-  CreatedAt: string;
-  User: User;
-  Room?: Room;
-  Delicacy?: any;
-}
-
-export interface Notification {
-  NotificationId: string;
-  UserId: string;
-  Title: string;
-  Message: string;
-  IsRead: boolean;
-  CreatedAt: string;
-  User: User;
-}
-
-export interface RoomImage {
-  RoomImageId: string;
-  RoomId: string;
-  ImageUrl: string;
-  Room: Room;
-}
-
-// Mock data for demonstration
-const mockBookings: Booking[] = [
-  {
-    BookingId: "book1",
-    UserId: "user1",
-    RoomId: "room1",
-    CheckInDate: "2024-12-10",
-    CheckOutDate: "2024-12-13",
-    NumberOfGuests: 2,
-    TotalAmount: 900,
-    SpecialRequests: "Early check-in and room service breakfast",
-    BookingStatus: "Confirmed",
-    PaymentStatus: "Completed",
-    CreatedAt: "2024-11-25",
-    UpdatedAt: "2024-11-26",
-    User: {} as User,
-    Room: {
-      RoomId: "room1",
-      RoomNumber: "301",
-      RoomType: "Executive Suite",
-      PricePerNight: 300,
-      Description:
-        "Luxurious executive suite with city view and premium amenities",
-      Capacity: 3,
-      Status: "Available",
-      RoomImage:
-        "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=500",
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
-      Accommodations: [],
-      Bookings: [],
-      Reviews: [],
-      RoomImages: [],
-    },
-  },
-  {
-    BookingId: "book2",
-    UserId: "user1",
-    RoomId: "room2",
-    CheckInDate: "2024-12-20",
-    CheckOutDate: "2024-12-22",
-    NumberOfGuests: 4,
-    TotalAmount: 800,
-    SpecialRequests:
-      "Conference setup with projector and catering for 15 people",
-    BookingStatus: "Pending",
-    PaymentStatus: "Pending",
-    CreatedAt: "2024-12-01",
-    UpdatedAt: "2024-12-01",
-    User: {} as User,
-    Room: {
-      RoomId: "room2",
-      RoomNumber: "Conference B",
-      RoomType: "Meeting Bay",
-      PricePerNight: 400,
-      Description:
-        "Modern meeting bay with advanced AV equipment and catering facilities",
-      Capacity: 20,
-      Status: "Available",
-      RoomImage:
-        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=500",
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
-      Accommodations: [],
-      Bookings: [],
-      Reviews: [],
-      RoomImages: [],
-    },
-  },
-  {
-    BookingId: "book3",
-    UserId: "user1",
-    RoomId: "room3",
-    CheckInDate: "2024-11-01",
-    CheckOutDate: "2024-11-03",
-    NumberOfGuests: 1,
-    TotalAmount: 500,
-    SpecialRequests: "Quiet room for business calls",
-    BookingStatus: "Completed",
-    PaymentStatus: "Completed",
-    CreatedAt: "2024-10-15",
-    UpdatedAt: "2024-11-03",
-    User: {} as User,
-    Room: {
-      RoomId: "room3",
-      RoomNumber: "105",
-      RoomType: "Business Room",
-      PricePerNight: 250,
-      Description:
-        "Professional business room with workspace and high-speed internet",
-      Capacity: 2,
-      Status: "Available",
-      RoomImage:
-        "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=500",
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
-      Accommodations: [],
-      Bookings: [],
-      Reviews: [],
-      RoomImages: [],
-    },
-  },
-  {
-    BookingId: "book4",
-    UserId: "user1",
-    RoomId: "room4",
-    CheckInDate: "2024-11-20",
-    CheckOutDate: "2024-11-21",
-    NumberOfGuests: 1,
-    TotalAmount: 200,
-    SpecialRequests: "Late checkout requested",
-    BookingStatus: "Cancelled",
-    PaymentStatus: "Refunded",
-    CreatedAt: "2024-11-10",
-    UpdatedAt: "2024-11-18",
-    User: {} as User,
-    Room: {
-      RoomId: "room4",
-      RoomNumber: "202",
-      RoomType: "Standard Room",
-      PricePerNight: 200,
-      Description: "Comfortable standard room with essential amenities",
-      Capacity: 2,
-      Status: "Available",
-      RoomImage:
-        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500",
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
-      Accommodations: [],
-      Bookings: [],
-      Reviews: [],
-      RoomImages: [],
-    },
-  },
-];
+import { Booking, User } from "../../../interfaces/interfaces";
+import { UsersService } from "../../../services/user.service";
 
 export const Bookings: React.FC = () => {
-  const [bookings, setBookings] = useState<Booking[]>(mockBookings);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] =
-    useState<Booking[]>(mockBookings);
+    useState<Booking[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(false);
@@ -324,6 +38,16 @@ export const Bookings: React.FC = () => {
 
   // Filter and search functionality
   useEffect(() => {
+
+    let getUser = async() => {
+      let result = await UsersService.GetUserByUserId();
+
+      if(result.success) {
+        setBookings(() => (result.data as unknown as User).Bookings)
+      }
+    };
+    getUser();
+
     let filtered = bookings;
 
     // Filter by status
@@ -345,10 +69,10 @@ export const Bookings: React.FC = () => {
     if (searchTerm) {
       filtered = filtered.filter(
         (booking) =>
-          booking.Room.RoomNumber.toLowerCase().includes(
+          String(booking.BusinessRoom?.RoomCount).toLowerCase().includes(
             searchTerm.toLowerCase()
           ) ||
-          booking.Room.RoomType.toLowerCase().includes(
+          booking.BusinessRoom.Amenities?.toLowerCase().includes(
             searchTerm.toLowerCase()
           ) ||
           booking.BookingId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -630,10 +354,10 @@ export const Bookings: React.FC = () => {
               <div className={styles["card-header"]}>
                 <img
                   src={
-                    booking.Room.RoomImage ||
+                    booking.BusinessRoom.BusinessRoomImage ||
                     "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=500"
                   }
-                  alt={booking.Room.RoomType}
+                  alt={booking.BusinessRoom.Name}
                   className={styles["room-image"]}
                 />
                 <div className={styles["status-badges"]}>
@@ -659,10 +383,10 @@ export const Bookings: React.FC = () => {
               <div className={styles["card-content"]}>
                 <div className={styles["room-info"]}>
                   <h3 className={styles["room-title"]}>
-                    {booking.Room.RoomType}
+                    {booking.BusinessRoom.Name}
                   </h3>
                   <p className={styles["room-number"]}>
-                    Room {booking.Room.RoomNumber}
+                    Room {booking.BusinessRoom.RoomCount}
                   </p>
                 </div>
 
@@ -670,8 +394,8 @@ export const Bookings: React.FC = () => {
                   <div className={styles.detail}>
                     <Calendar className={styles.icon} />
                     <span>
-                      {formatDate(booking.CheckInDate)} -{" "}
-                      {formatDate(booking.CheckOutDate)}
+                      {formatDate(booking.CheckInDate.toString())} -{" "}
+                      {formatDate(booking.CheckOutDate.toString())}
                     </span>
                   </div>
 
@@ -679,8 +403,8 @@ export const Bookings: React.FC = () => {
                     <Clock className={styles.icon} />
                     <span>
                       {calculateNights(
-                        booking.CheckInDate,
-                        booking.CheckOutDate
+                        booking.CheckInDate.toString(),
+                        booking.CheckOutDate.toString()
                       )}{" "}
                       nights
                     </span>
@@ -690,7 +414,7 @@ export const Bookings: React.FC = () => {
                     <Users className={styles.icon} />
                     <span>
                       {booking.NumberOfGuests} guests • Capacity:{" "}
-                      {booking.Room.Capacity}
+                      {booking.BusinessRoom.Capacity}
                     </span>
                   </div>
 
@@ -710,7 +434,7 @@ export const Bookings: React.FC = () => {
                 )}
 
                 <div className={styles.description}>
-                  <p>{booking.Room.Description}</p>
+                  <p>{booking.BusinessRoom.Description}</p>
                 </div>
 
                 <div className={styles["card-actions"]}>
@@ -759,7 +483,7 @@ export const Bookings: React.FC = () => {
                     Booking ID: #{booking.BookingId.slice(-6).toUpperCase()}
                   </div>
                   <div className={styles["booking-date"]}>
-                    Booked on {formatDate(booking.CreatedAt)}
+                    Booked on {formatDate(booking.CreatedAt.toString())}
                   </div>
                 </div>
               </div>

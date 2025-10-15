@@ -24,6 +24,7 @@ import {
   Notification,
 } from "../../interfaces/interfaces";
 import styles from "../../styles/user/UserDashboard.module.css";
+import { UsersService } from "../../services/user.service";
 
 interface NavItem {
   id: string;
@@ -47,6 +48,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [unreadNotifications, setUnreadNotifications] = useState<number>(0);
+  const [ currentUser, setUser ] = useState<UserInterface | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async() => {
+      let result = await UsersService.GetUserByUserId();
+
+      if(result.success) setUser(() => result.data as UserInterface)
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const unread = notifications.filter(
@@ -184,8 +195,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               )}
             </div>
             <div className={styles["user-avatar"]}>
-              {user?.ProfileImage ? (
-                <img src={user.ProfileImage} alt="Profile" />
+              {currentUser?.ProfileImage ? (
+                <img src={currentUser.ProfileImage} alt="Profile" />
               ) : (
                 <User size={20} />
               )}
@@ -222,21 +233,21 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
           <div className={styles["user-info-section"]}>
             <div className={styles["user-avatar-large"]}>
-              {user?.ProfileImage ? (
-                <img src={user.ProfileImage} alt="Profile" />
+              {currentUser?.ProfileImage ? (
+                <img src={currentUser.ProfileImage} alt="Profile" />
               ) : (
                 <User size={32} />
               )}
             </div>
             <div className={styles["user-details"]}>
               <h3 className={styles["user-name"]}>
-                {user?.FullName || "Guest User"}
+                {currentUser?.FullName || "Guest User"}
               </h3>
               <p className={styles["user-email"]}>
-                {user?.Email || "guest@fancytunes.com"}
+                {currentUser?.Email || "guest@fancytunes.com"}
               </p>
               <span className={styles["user-role"]}>
-                {user?.Role || "Customer"}
+                {currentUser?.Role === "user" ? "Customer" : "User"}
               </span>
             </div>
           </div>

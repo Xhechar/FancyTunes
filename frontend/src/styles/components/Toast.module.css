@@ -1,7 +1,6 @@
-/* Toast Container Positioning */
-.toastContainer {
+.toast {
   position: fixed;
-  z-index: 9999;
+  z-index: 99999;
   pointer-events: none;
   display: flex;
   flex-direction: column;
@@ -10,44 +9,43 @@
   width: 100%;
 }
 
-.toastContainer.top-right {
+.toast.top-right {
   top: 1rem;
   right: 1rem;
 }
 
-.toastContainer.top-left {
+.toast.top-left {
   top: 1rem;
   left: 1rem;
 }
 
-.toastContainer.bottom-right {
+.toast.bottom-right {
   bottom: 1rem;
   right: 1rem;
   flex-direction: column-reverse;
 }
 
-.toastContainer.bottom-left {
+.toast.bottom-left {
   bottom: 1rem;
   left: 1rem;
   flex-direction: column-reverse;
 }
 
-.toastContainer.top-center {
+.toast.top-center {
   top: 1rem;
   left: 50%;
   transform: translateX(-50%);
 }
 
-.toastContainer.bottom-center {
-  bottom: 1rem;
-  left: 50%;
+.toast.bottom-center {
+  bottom: .5rem;
+  left: 38%;
   transform: translateX(-50%);
   flex-direction: column-reverse;
 }
 
-/* Individual Toast Styling */
 .toast {
-  position: relative;
+  position: fixed;
   background: var(--background-light);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-heavy);
@@ -60,9 +58,9 @@
   animation-fill-mode: both;
   animation-duration: 0.3s;
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 99999;
 }
 
-/* Toast Animations */
 .animatingIn {
   animation-name: slideInRight;
 }
@@ -105,7 +103,6 @@
   animation-name: slideOutUp;
 }
 
-/* Animation Keyframes */
 @keyframes slideInRight {
   from {
     transform: translateX(100%);
@@ -347,23 +344,23 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .toastContainer {
+  .toast {
     max-width: 100%;
     padding: 0 1rem;
   }
 
-  .toastContainer.top-right,
-  .toastContainer.bottom-right {
+  .toast.top-right,
+  .toast.bottom-right {
     right: 0;
   }
 
-  .toastContainer.top-left,
-  .toastContainer.bottom-left {
+  .toast.top-left,
+  .toast.bottom-left {
     left: 0;
   }
 
-  .toastContainer.top-center,
-  .toastContainer.bottom-center {
+  .toast.top-center,
+  .toast.bottom-center {
     left: 0;
     right: 0;
     transform: none;
@@ -405,7 +402,7 @@
 }
 
 @media (max-width: 480px) {
-  .toastContainer {
+  .toast {
     padding: 0 0.5rem;
   }
 
@@ -514,7 +511,7 @@
 
 /* Print Styles */
 @media print {
-  .toastContainer,
+  .toast,
   .toast {
     display: none;
   }

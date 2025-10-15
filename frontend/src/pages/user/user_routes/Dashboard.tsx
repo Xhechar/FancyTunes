@@ -37,6 +37,9 @@ import {
   User,
   Notification,
 } from "../../../interfaces/interfaces";
+import { DelicacyService } from "../../../services/delicacy.service";
+import { RoomsService } from "../../../services/room.service";
+import { UsersService } from "../../../services/user.service";
 
 // Form interfaces
 interface BookingFormData {
@@ -70,82 +73,43 @@ export const Dashboard: React.FC = () => {
 
   const bookingForm = useForm<BookingFormData>();
   const orderForm = useForm<OrderFormData>();
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [delicacies, setDelicacies] = useState<Delicacy[]>([]);
+  const [userBookings, setUserBookings] = useState<Booking[]>([]);
+  const [userOrders, setUserOrders] = useState<Order[]>([]);
 
-  // Mock data - Replace with actual API calls
-  const [rooms] = useState<Room[]>([
-    {
-      RoomId: "1",
-      RoomCount: 10,
-      RoomType: "Deluxe Suite",
-      PricePerNight: 150,
-      Description: "Luxurious suite with ocean view and premium amenities",
-      Capacity: 4,
-      Status: "Available",
-      RoomImage:
-        "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=500",
-      CreatedAt: new Date("2024-01-01"),
-      UpdatedAt: new Date("2024-01-01"),
-      Accommodations: [],
-      Bookings: [],
-      Reviews: [],
-      RoomImages: [],
-    },
-    {
-      RoomId: "2",
-      RoomCount: 23,
-      RoomType: "Conference Hall",
-      PricePerNight: 300,
-      Description: "Modern conference facility with state-of-the-art equipment",
-      Capacity: 50,
-      Status: "Available",
-      RoomImage:
-        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=500",
-      CreatedAt: new Date("2024-01-01"),
-      UpdatedAt: new Date("2024-01-01"),
-      Accommodations: [],
-      Bookings: [],
-      Reviews: [],
-      RoomImages: [],
-    },
-  ]);
+  useEffect(() => {
+    const getDelicacies = async() => {
+      let result = await DelicacyService.GetAvailableDelicacies();
 
-  const [delicacies] = useState<Delicacy[]>([
-    {
-      DelicacyId: "1",
-      Name: "Grilled Salmon",
-      Description: "Fresh Atlantic salmon with herbs and lemon",
-      Price: 28.99,
-      DelicacyImage:
-        "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=500",
-      Category: "Main Course",
-      IsAvailable: true,
-      CreatedAt: new Date("2024-01-01"),
-      UpdatedAt: new Date("2024-01-01"),
-      Orders: [],
-      Carts: [],
-      OrderItems: [],
-      Reviews: [],
-    },
-    {
-      DelicacyId: "2",
-      Name: "Chocolate Cake",
-      Description: "Rich chocolate cake with vanilla frosting",
-      Price: 12.99,
-      DelicacyImage:
-        "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500",
-      Category: "Dessert",
-      IsAvailable: true,
-      CreatedAt: new Date("2024-01-01"),
-      UpdatedAt: new Date("2024-01-01"),
-      Orders: [],
-      Carts: [],
-      OrderItems: [],
-      Reviews: [],
-    },
-  ]);
+      if (result.success) {
+        setDelicacies(() => result.dataList as Delicacy[]);
+      }
+    };
 
-  const [userBookings] = useState<Booking[]>([]);
-  const [userOrders] = useState<Order[]>([]);
+    const getRooms = async() => {
+      let result = await RoomsService.GetAllRooms();
+
+      if (result.success) {
+        setRooms(() => result.dataList as Room[]);
+      }
+    };
+
+    const getSingleUser = async() => {
+      let result = await UsersService.GetUserByUserId();
+
+      if (result.success) {
+        setUserBookings(() => (result.data as User).Bookings);
+        setUserOrders(() => (result.data as User).Orders);
+        setNotifications(() => (result.data as User).Notifications);
+        setCartItems(() => (result.data as User).Carts);
+      }
+    };
+
+    getDelicacies();
+    getRooms();
+    getSingleUser();
+  }, []);
 
   const categories = [
     "All",
@@ -213,13 +177,13 @@ export const Dashboard: React.FC = () => {
     );
   };
 
-  const filteredRooms = rooms.filter(
+  const filteredRooms = rooms?.filter(
     (room) =>
       room.RoomType.toLowerCase().includes(searchTerm.toLowerCase()) ||
       room.Description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredDelicacies = delicacies.filter((delicacy) => {
+  const filteredDelicacies = delicacies?.filter((delicacy) => {
     const matchesSearch =
       delicacy.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       delicacy.Description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -347,10 +311,10 @@ export const Dashboard: React.FC = () => {
           <div className={styles["rooms-section"]}>
             <div className={styles["section-header"]}>
               <h2>Available Rooms</h2>
-              <span className={styles.count}>{filteredRooms.length} rooms</span>
+              <span className={styles.count}>{filteredRooms?.length} rooms</span>
             </div>
             <div className={styles["rooms-grid"]}>
-              {filteredRooms.map((room) => (
+              {filteredRooms?.map((room) => (
                 <div key={room.RoomId} className={styles["room-card"]}>
                   <div className={styles["room-image"]}>
                     <img src={room.RoomImage} alt={room.RoomType} />
@@ -420,11 +384,11 @@ export const Dashboard: React.FC = () => {
             <div className={styles["section-header"]}>
               <h2>Our Menu</h2>
               <span className={styles.count}>
-                {filteredDelicacies.length} items
+                {filteredDelicacies?.length} items
               </span>
             </div>
             <div className={styles["delicacies-grid"]}>
-              {filteredDelicacies.map((delicacy) => (
+              {filteredDelicacies?.map((delicacy) => (
                 <div
                   key={delicacy.DelicacyId}
                   className={styles["delicacy-card"]}
@@ -485,10 +449,10 @@ export const Dashboard: React.FC = () => {
             <div className={styles["section-header"]}>
               <h2>My Bookings</h2>
               <span className={styles.count}>
-                {userBookings.length} bookings
+                {userBookings?.length} bookings
               </span>
             </div>
-            {userBookings.length === 0 ? (
+            {userBookings?.length === 0 ? (
               <div className={styles["empty-state"]}>
                 <Calendar size={48} />
                 <h3>No Bookings Yet</h3>
@@ -502,7 +466,7 @@ export const Dashboard: React.FC = () => {
               </div>
             ) : (
               <div className={styles["bookings-list"]}>
-                {userBookings.map((booking) => (
+                {userBookings?.map((booking) => (
                   <div
                     key={booking.BookingId}
                     className={styles["booking-card"]}
@@ -519,9 +483,9 @@ export const Dashboard: React.FC = () => {
           <div className={styles["orders-section"]}>
             <div className={styles["section-header"]}>
               <h2>My Orders</h2>
-              <span className={styles.count}>{userOrders.length} orders</span>
+              <span className={styles.count}>{userOrders?.length} orders</span>
             </div>
-            {userOrders.length === 0 ? (
+            {userOrders?.length === 0 ? (
               <div className={styles["empty-state"]}>
                 <Clock size={48} />
                 <h3>No Orders Yet</h3>
@@ -535,7 +499,7 @@ export const Dashboard: React.FC = () => {
               </div>
             ) : (
               <div className={styles["orders-list"]}>
-                {userOrders.map((order) => (
+                {userOrders?.map((order) => (
                   <div key={order.OrderId} className={styles["order-card"]}>
                     {/* Order content */}
                   </div>

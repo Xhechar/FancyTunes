@@ -6,7 +6,9 @@ import { ChangePasswoerdDto, LoginDetails } from "../interfaces/interfaces";
 export class AuthService {
   private static ApiUrl = `${BackendRoute}auth`;
 
-  static async Login(LoginDetails: LoginDetails): Promise<ServiceResult<object>> {
+  static async Login(
+    LoginDetails: LoginDetails
+  ): Promise<ServiceResult<object>> {
     const result = await axios.post(`${this.ApiUrl}/login-user`, LoginDetails, {
       withCredentials: true,
     });
@@ -22,12 +24,21 @@ export class AuthService {
     return result.data as ServiceResult<object>;
   }
 
+  static async VerifyCode(Email: string, VerificationCode: number ): Promise<ServiceResult<object>> {
+    const result = await axios.post(
+      `${this.ApiUrl}/verify-code/${Email}`,
+      { VerificationCode },
+      { withCredentials: true }
+    );
+    return result.data as ServiceResult<object>;
+  }
+
   static async ChangePassword(
-    Passwords: ChangePasswoerdDto
+    PasswordData: ChangePasswoerdDto
   ): Promise<ServiceResult<object>> {
     const result = await axios.put(
       `${this.ApiUrl}/change-password`,
-      Passwords,
+      PasswordData,
       { withCredentials: true }
     );
     return result.data as ServiceResult<object>;

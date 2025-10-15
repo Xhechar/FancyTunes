@@ -28,7 +28,6 @@ export interface ToastProps {
     | "bottom-center";
 }
 
-// Service Response Toast Props
 export interface ServiceResponseToastProps<T> {
   isVisible: boolean;
   serviceResult: ServiceResult<T> | null;
@@ -45,15 +44,14 @@ export interface ServiceResponseToastProps<T> {
   errorTitle?: string;
 }
 
-// Individual Toast Component
 const Toast: React.FC<ToastProps> = ({
   isVisible,
   type,
   title,
   message,
-  duration = 5000,
+  duration = 3000,
   onClose,
-  position = "top-right",
+  position = "bottom-left",
 }) => {
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [progress, setProgress] = useState(100);
@@ -61,7 +59,6 @@ const Toast: React.FC<ToastProps> = ({
   useEffect(() => {
     if (!isVisible) return;
 
-    // Start progress animation
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev <= 0) {
@@ -72,7 +69,6 @@ const Toast: React.FC<ToastProps> = ({
       });
     }, 100);
 
-    // Auto close timer
     const timer = setTimeout(() => {
       handleClose();
     }, duration);
@@ -137,13 +133,12 @@ const Toast: React.FC<ToastProps> = ({
   );
 };
 
-// Service Response Toast Component
 const ServiceResponseToast: React.FC<ServiceResponseToastProps<any>> = ({
   isVisible,
   serviceResult,
-  duration = 5000,
+  duration = 3000,
   onClose,
-  position = "top-right",
+  position = "bottom-left",
   successTitle = "Success",
   errorTitle = "Error",
 }) => {
@@ -170,7 +165,6 @@ const ServiceResponseToast: React.FC<ServiceResponseToastProps<any>> = ({
   );
 };
 
-// Toast Container for managing multiple toasts
 export interface ToastItem {
   id: string;
   type: ToastType;
@@ -194,7 +188,7 @@ export interface ToastContainerProps {
 const ToastContainer: React.FC<ToastContainerProps> = ({
   toasts,
   onRemoveToast,
-  position = "top-right",
+  position = "bottom-left",
 }) => {
   return (
     <div className={`${styles.toastContainer} ${styles[position]}`}>

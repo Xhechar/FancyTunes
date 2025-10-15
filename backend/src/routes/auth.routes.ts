@@ -11,6 +11,9 @@ AuthRouter.post("/login-user", async (Req, Res) =>
 AuthRouter.post("/verify-mail/:Email", async (Req, Res) =>
   authController.verifyMail(Req, Res)
 );
+AuthRouter.post("/verify-code/:Email", async (Req, Res) =>
+  authController.verifyCode(Req, Res)
+);
 AuthRouter.put("/change-password", async (Req, Res) =>
   authController.changePassword(Req, Res)
 );

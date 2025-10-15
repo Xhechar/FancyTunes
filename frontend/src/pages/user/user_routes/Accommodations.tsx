@@ -16,261 +16,15 @@ import {
   RefreshCw,
 } from "lucide-react";
 import styles from "../../../styles/user/user_routes/Accommodations.module.css";
+import { Accommodation, User } from "../../../interfaces/interfaces";
+import { UsersService } from "../../../services/user.service";
 
-// Interface definitions (using your provided interfaces)
-export interface User {
-  UserId: string;
-  FullName: string;
-  Email: string;
-  Phone: string;
-  Password: string;
-  Role: string;
-  ProfileImage?: string;
-  IsWelcome: boolean;
-  CreatedAt: string;
-  UpdatedAt: string;
-  Bookings: Booking[];
-  Accommodations: Accommodation[];
-  Orders: Order[];
-  Carts: Cart[];
-  Recoveries: Recovery[];
-  Payments: Payment[];
-  Reviews: Review[];
-  Notifications: Notification[];
-}
-
-export interface Room {
-  RoomId: string;
-  RoomNumber: string;
-  RoomType: string;
-  PricePerNight: number;
-  Description: string;
-  Capacity: number;
-  Status: string;
-  RoomImage?: string;
-  CreatedAt: string;
-  UpdatedAt: string;
-  Accommodations: Accommodation[];
-  Bookings: Booking[];
-  Reviews: Review[];
-  RoomImages: RoomImage[];
-}
-
-export interface Accommodation {
-  AccommodationId: string;
-  UserId: string;
-  RoomId: string;
-  CheckInDate: string;
-  CheckOutDate: string;
-  TotalAmount: number;
-  SpecialRequests?: string;
-  PaymentStatus: string;
-  IsActive: boolean;
-  CreatedAt: string;
-  UpdatedAt: string;
-  User: User;
-  Room: Room;
-}
-
-export interface RoomImage {
-  RoomImageId: string;
-  RoomId: string;
-  ImageUrl: string;
-  Room: Room;
-}
-
-export interface Booking {
-  BookingId: string;
-  UserId: string;
-  RoomId: string;
-  CheckInDate: string;
-  CheckOutDate: string;
-  NumberOfGuests: number;
-  TotalAmount: number;
-  SpecialRequests?: string;
-  BookingStatus: string;
-  PaymentStatus: string;
-  CreatedAt: string;
-  UpdatedAt: string;
-  User: User;
-  Room: Room;
-}
-
-export interface Order {
-  OrderId: string;
-  UserId: string;
-  DelicacyId: string;
-  Quantity: number;
-  TotalAmount: number;
-  OrderStatus: string;
-  OrderedAt: string;
-  DeliveredAt?: string;
-  PaymentStatus: string;
-  User: User;
-  Delicacy: any;
-  OrderItems: any[];
-}
-
-export interface Cart {
-  CartId: string;
-  UserId: string;
-  DelicacyId: string;
-  Quantity: number;
-  AddedAt: string;
-  User: User;
-  Delicacy: any;
-}
-
-export interface Recovery {
-  RecoveryId: string;
-  UserId: string;
-  VerificationCode: number;
-  ExpiresAt: string;
-  IsUsed: boolean;
-  CreatedAt: string;
-  User: User;
-}
-
-export interface Payment {
-  PaymentId: string;
-  UserId: string;
-  Amount: number;
-  PaymentMethod: string;
-  PaymentReference: string;
-  TransactionId: string;
-  Status: string;
-  BookingId?: string;
-  OrderId?: string;
-  PaidAt: string;
-  CreatedAt: string;
-  User: User;
-}
-
-export interface Review {
-  ReviewId: string;
-  UserId: string;
-  RoomId?: string;
-  DelicacyId?: string;
-  Rating: number;
-  Comment: string;
-  CreatedAt: string;
-  User: User;
-  Room?: Room;
-  Delicacy?: any;
-}
-
-export interface Notification {
-  NotificationId: string;
-  UserId: string;
-  Title: string;
-  Message: string;
-  IsRead: boolean;
-  CreatedAt: string;
-  User: User;
-}
-
-// Mock data for demonstration
-const mockAccommodations: Accommodation[] = [
-  {
-    AccommodationId: "1",
-    UserId: "user1",
-    RoomId: "room1",
-    CheckInDate: "2024-12-01",
-    CheckOutDate: "2024-12-05",
-    TotalAmount: 1200,
-    SpecialRequests: "Late check-in requested, ocean view preferred",
-    PaymentStatus: "Completed",
-    IsActive: true,
-    CreatedAt: "2024-11-15",
-    UpdatedAt: "2024-11-20",
-    User: {} as User,
-    Room: {
-      RoomId: "room1",
-      RoomNumber: "101",
-      RoomType: "Deluxe Suite",
-      PricePerNight: 300,
-      Description: "Luxurious suite with ocean view and premium amenities",
-      Capacity: 2,
-      Status: "Available",
-      RoomImage:
-        "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=500",
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
-      Accommodations: [],
-      Bookings: [],
-      Reviews: [],
-      RoomImages: [],
-    },
-  },
-  {
-    AccommodationId: "2",
-    UserId: "user1",
-    RoomId: "room2",
-    CheckInDate: "2024-12-15",
-    CheckOutDate: "2024-12-18",
-    TotalAmount: 600,
-    SpecialRequests: "Conference setup needed",
-    PaymentStatus: "Pending",
-    IsActive: true,
-    CreatedAt: "2024-11-20",
-    UpdatedAt: "2024-11-20",
-    User: {} as User,
-    Room: {
-      RoomId: "room2",
-      RoomNumber: "Conference A",
-      RoomType: "Conference Hall",
-      PricePerNight: 200,
-      Description: "Modern conference hall with state-of-the-art AV equipment",
-      Capacity: 50,
-      Status: "Available",
-      RoomImage:
-        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=500",
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
-      Accommodations: [],
-      Bookings: [],
-      Reviews: [],
-      RoomImages: [],
-    },
-  },
-  {
-    AccommodationId: "3",
-    UserId: "user1",
-    RoomId: "room3",
-    CheckInDate: "2024-11-10",
-    CheckOutDate: "2024-11-12",
-    TotalAmount: 400,
-    SpecialRequests: "Extra towels and room service",
-    PaymentStatus: "Completed",
-    IsActive: false,
-    CreatedAt: "2024-11-01",
-    UpdatedAt: "2024-11-12",
-    User: {} as User,
-    Room: {
-      RoomId: "room3",
-      RoomNumber: "205",
-      RoomType: "Standard Room",
-      PricePerNight: 200,
-      Description: "Comfortable standard room with all essential amenities",
-      Capacity: 2,
-      Status: "Available",
-      RoomImage:
-        "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=500",
-      CreatedAt: "2024-01-01",
-      UpdatedAt: "2024-01-01",
-      Accommodations: [],
-      Bookings: [],
-      Reviews: [],
-      RoomImages: [],
-    },
-  },
-];
 
 export const Accommodations: React.FC = () => {
   const [accommodations, setAccommodations] =
-    useState<Accommodation[]>(mockAccommodations);
+    useState<Accommodation[]>([]);
   const [filteredAccommodations, setFilteredAccommodations] =
-    useState<Accommodation[]>(mockAccommodations);
+    useState<Accommodation[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(false);
@@ -278,11 +32,20 @@ export const Accommodations: React.FC = () => {
     null
   );
 
-  // Filter and search functionality
   useEffect(() => {
+
+    let getUserAccommodations = async() => {
+      let result = await UsersService.GetUserByUserId();
+
+      if(result.success) {
+        setAccommodations(() => (result.data as unknown as User).Accommodations);
+      }
+    };
+
+    getUserAccommodations();
+
     let filtered = accommodations;
 
-    // Filter by status
     if (filterStatus !== "All") {
       if (filterStatus === "Active") {
         filtered = filtered.filter((acc) => acc.IsActive);
@@ -293,11 +56,10 @@ export const Accommodations: React.FC = () => {
       }
     }
 
-    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (acc) =>
-          acc.Room.RoomNumber.toLowerCase().includes(
+          String(acc.Room.RoomCount).toLowerCase().includes(
             searchTerm.toLowerCase()
           ) ||
           acc.Room.RoomType.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -514,7 +276,7 @@ export const Accommodations: React.FC = () => {
                     {accommodation.Room.RoomType}
                   </h3>
                   <p className={styles["room-number"]}>
-                    Room {accommodation.Room.RoomNumber}
+                    Room {accommodation.Room.RoomCount}
                   </p>
                 </div>
 
@@ -522,8 +284,8 @@ export const Accommodations: React.FC = () => {
                   <div className={styles.detail}>
                     <Calendar className={styles.icon} />
                     <span>
-                      {formatDate(accommodation.CheckInDate)} -{" "}
-                      {formatDate(accommodation.CheckOutDate)}
+                      {formatDate(accommodation.CheckInDate.toString())} -{" "}
+                      {formatDate(accommodation.CheckOutDate.toString())}
                     </span>
                   </div>
 
@@ -531,8 +293,8 @@ export const Accommodations: React.FC = () => {
                     <Clock className={styles.icon} />
                     <span>
                       {calculateNights(
-                        accommodation.CheckInDate,
-                        accommodation.CheckOutDate
+                        accommodation.CheckInDate.toString(),
+                        accommodation.CheckOutDate.toString()
                       )}{" "}
                       nights
                     </span>

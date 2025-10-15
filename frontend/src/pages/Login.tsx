@@ -23,6 +23,7 @@ interface LoginFormData {
 export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [ toast, setToast ] = useState<ToastProps | null>(null);
   const navigate = useNavigate();
 
   const {
@@ -48,10 +49,14 @@ export const Login: React.FC = () => {
         type: "success",
         title: "SUCCESS",
         message: response.message as string,
-        onClose: () => {}
+        onClose: () => setToast(() => null)
       }
       
-      {<Toast {...toast}></Toast>}
+      setToast(() => toast);
+
+      setTimeout(() => {
+        navigate("/user");
+      }, 4500);
     } else {
       setIsSubmitting(false);
       let toast: ToastProps = {
@@ -59,12 +64,10 @@ export const Login: React.FC = () => {
         type: "error",
         title: response.error as string,
         message: response.message as string,
-        onClose: () => {}
+        onClose: () => setToast(() => null)
       }
       
-      {
-        <Toast {...toast}></Toast>;
-      }
+      setToast(() => toast);
     }
   };
 
@@ -78,6 +81,9 @@ export const Login: React.FC = () => {
 
   return (
     <div className={styles["login-page"]}>
+      {
+        toast === null ? <div></div> : <Toast {...toast} ></Toast>
+      }
       {/* Background overlay */}
       <div className={styles["login-background"]}>
         <div className={styles["login-overlay"]}></div>
@@ -103,7 +109,6 @@ export const Login: React.FC = () => {
             </p>
           </div>
 
-          {/* Login Form */}
           <div className={styles["login-form"]}>
             {/* Email Field */}
             <div className={styles["form-group"]}>
@@ -252,7 +257,6 @@ export const Login: React.FC = () => {
               </a>
             </div>
 
-            {/* Submit Button */}
             <button
               type="button"
               className={`${styles["login-btn"]} ${

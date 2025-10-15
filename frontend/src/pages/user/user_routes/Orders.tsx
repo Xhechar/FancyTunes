@@ -21,221 +21,28 @@ import {
 } from "lucide-react";
 import styles from "../../../styles/user/user_routes/Orders.module.css";
 import { User, Order, Delicacy, OrderItem } from "../../../interfaces/interfaces";
-
-// Mock data for demonstration
-const mockOrders: Order[] = [
-  {
-    OrderId: "order1",
-    UserId: "user1",
-    DelicacyId: "del1",
-    Quantity: 2,
-    TotalAmount: 45.5,
-    OrderStatus: "Delivered",
-    OrderedAt: new Date("2024-12-20T14:30:00Z"),
-    DeliveredAt: new Date("2024-12-20T15:45:00Z"),
-    PaymentStatus: "Completed",
-    User: {} as User,
-    Delicacy: {
-      DelicacyId: "del1",
-      Name: "Grilled Salmon with Herbs",
-      Description:
-        "Fresh Atlantic salmon grilled to perfection with Mediterranean herbs and lemon sauce",
-      Price: 22.75,
-      DelicacyImage:
-        "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=500",
-      Category: "Main Course",
-      IsAvailable: true,
-      CreatedAt: new Date("2024-01-01"),
-      UpdatedAt: new Date("2024-01-01"),
-      Orders: [],
-      Carts: [],
-      OrderItems: [],
-      Reviews: [],
-    },
-    OrderItems: [
-      {
-        OrderItemId: "item1",
-        OrderId: "order1",
-        DelicacyId: "del1",
-        Quantity: 2,
-        Price: 22.75,
-        Subtotal: 45.5,
-        Order: {} as Order,
-        Delicacy: {} as Delicacy,
-      },
-    ],
-  },
-  {
-    OrderId: "order2",
-    UserId: "user1",
-    DelicacyId: "del2",
-    Quantity: 1,
-    TotalAmount: 18.99,
-    OrderStatus: "Preparing",
-    OrderedAt: new Date("2024-12-21T12:15:00Z"),
-    PaymentStatus: "Completed",
-    User: {} as User,
-    Delicacy: {
-      DelicacyId: "del2",
-      Name: "Truffle Mushroom Risotto",
-      Description:
-        "Creamy arborio rice with wild mushrooms and black truffle oil",
-      Price: 18.99,
-      DelicacyImage:
-        "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=500",
-      Category: "Main Course",
-      IsAvailable: true,
-      CreatedAt: new Date("2024-01-01"),
-      UpdatedAt: new Date("2024-01-01"),
-      Orders: [],
-      Carts: [],
-      OrderItems: [],
-      Reviews: [],
-    },
-    OrderItems: [
-      {
-        OrderItemId: "item2",
-        OrderId: "order2",
-        DelicacyId: "del2",
-        Quantity: 1,
-        Price: 18.99,
-        Subtotal: 18.99,
-        Order: {} as Order,
-        Delicacy: {} as Delicacy,
-      },
-    ],
-  },
-  {
-    OrderId: "order3",
-    UserId: "user1",
-    DelicacyId: "del3",
-    Quantity: 3,
-    TotalAmount: 35.97,
-    OrderStatus: "On the way",
-    OrderedAt: new Date("2024-12-21T18:20:00Z"),
-    PaymentStatus: "Completed",
-    User: {} as User,
-    Delicacy: {
-      DelicacyId: "del3",
-      Name: "Chocolate Lava Cake",
-      Description:
-        "Warm chocolate cake with molten center, served with vanilla ice cream",
-      Price: 11.99,
-      DelicacyImage:
-        "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500",
-      Category: "Dessert",
-      IsAvailable: true,
-      CreatedAt: new Date("2024-01-01"),
-      UpdatedAt: new Date("2024-01-01"),
-      Orders: [],
-      Carts: [],
-      OrderItems: [],
-      Reviews: [],
-    },
-    OrderItems: [
-      {
-        OrderItemId: "item3",
-        OrderId: "order3",
-        DelicacyId: "del3",
-        Quantity: 3,
-        Price: 11.99,
-        Subtotal: 35.97,
-        Order: {} as Order,
-        Delicacy: {} as Delicacy,
-      },
-    ],
-  },
-  {
-    OrderId: "order4",
-    UserId: "user1",
-    DelicacyId: "del4",
-    Quantity: 2,
-    TotalAmount: 29.98,
-    OrderStatus: "Cancelled",
-    OrderedAt: new Date("2024-12-19T16:45:00Z"),
-    PaymentStatus: "Refunded",
-    User: {} as User,
-    Delicacy: {
-      DelicacyId: "del4",
-      Name: "Caesar Salad Supreme",
-      Description:
-        "Fresh romaine lettuce with parmesan cheese, croutons and our signature Caesar dressing",
-      Price: 14.99,
-      DelicacyImage:
-        "https://images.unsplash.com/photo-1551248429-40975aa4de74?w=500",
-      Category: "Salad",
-      IsAvailable: true,
-      CreatedAt: new Date("2024-01-01"),
-      UpdatedAt: new Date("2024-01-01"),
-      Orders: [],
-      Carts: [],
-      OrderItems: [],
-      Reviews: [],
-    },
-    OrderItems: [
-      {
-        OrderItemId: "item4",
-        OrderId: "order4",
-        DelicacyId: "del4",
-        Quantity: 2,
-        Price: 14.99,
-        Subtotal: 29.98,
-        Order: {} as Order,
-        Delicacy: {} as Delicacy,
-      },
-    ],
-  },
-  {
-    OrderId: "order5",
-    UserId: "user1",
-    DelicacyId: "del5",
-    Quantity: 1,
-    TotalAmount: 24.5,
-    OrderStatus: "Pending",
-    OrderedAt: new Date("2024-12-21T19:30:00Z"),
-    PaymentStatus: "Pending",
-    User: {} as User,
-    Delicacy: {
-      DelicacyId: "del5",
-      Name: "Wagyu Beef Steak",
-      Description:
-        "Premium wagyu beef cooked to your preference with roasted vegetables",
-      Price: 24.5,
-      DelicacyImage:
-        "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500",
-      Category: "Main Course",
-      IsAvailable: true,
-      CreatedAt: new Date("2024-01-01"),
-      UpdatedAt: new Date("2024-01-01"),
-      Orders: [],
-      Carts: [],
-      OrderItems: [],
-      Reviews: [],
-    },
-    OrderItems: [
-      {
-        OrderItemId: "item5",
-        OrderId: "order5",
-        DelicacyId: "del5",
-        Quantity: 1,
-        Price: 24.5,
-        Subtotal: 24.5,
-        Order: {} as Order,
-        Delicacy: {} as Delicacy,
-      },
-    ],
-  },
-];
+import { UsersService } from "../../../services/user.service";
 
 export const Orders: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>(mockOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(false);
 
   // Filter and search functionality
   useEffect(() => {
+
+    const getUser = async() => {
+      let result = await UsersService.GetUserByUserId();
+
+      if(result.success) {
+        setOrders(() => (result.data as unknown as User).Orders);
+        setFilteredOrders(() => (result.data as unknown as User).Orders);
+      }
+    };
+    getUser();
+
     let filtered = orders;
 
     // Filter by status

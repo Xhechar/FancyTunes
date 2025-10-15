@@ -1,0 +1,24 @@
+
+.entire-container {
+  z-index: 100000;
+  width: 40vw;
+  height: auto;
+  background-color: blueviolet;
+  color: burlywood;
+  padding: .2rem;
+  align-items: center;
+  justify-content: start;
+  box-sizing: border-box;
+}
+
+.entire-container .inner-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: .5rem;
+  h2 {
+    color: brown;
+    text-decoration: dotted;
+  }
+}

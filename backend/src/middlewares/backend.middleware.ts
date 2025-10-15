@@ -22,7 +22,7 @@ export const verifyToken = async (
         .json(
           ServiceResponse.failure(
             "Authentication token is missing",
-            ErrorCode.UNAUTHORISED
+            ErrorCode.UNAUTHORIZED
           )
         );
     }
@@ -38,7 +38,7 @@ export const verifyToken = async (
               .json(
                 ServiceResponse.failure(
                   "Authentication token has expired",
-                  ErrorCode.UNAUTHORISED
+                  ErrorCode.UNAUTHORIZED
                 )
               );
           } else if (err.name === "JsonWebTokenError") {
@@ -47,7 +47,7 @@ export const verifyToken = async (
               .json(
                 ServiceResponse.failure(
                   "Invalid authentication token",
-                  ErrorCode.UNAUTHORISED
+                  ErrorCode.UNAUTHORIZED
                 )
               );
           } else {
@@ -97,7 +97,7 @@ export const verifyAdmin = (
       .json(
         ServiceResponse.failure(
           "Authentication token is missing",
-          ErrorCode.UNAUTHORISED
+          ErrorCode.UNAUTHORIZED
         )
       );
 
@@ -107,7 +107,7 @@ export const verifyAdmin = (
       .json(
         ServiceResponse.failure(
           "Access denied. Admins only.",
-          ErrorCode.UNAUTHORISED
+          ErrorCode.UNAUTHORIZED
         )
       );
   }
@@ -128,7 +128,7 @@ export const verifyUser = (
       .json(
         ServiceResponse.failure(
           "Authentication token is missing",
-          ErrorCode.UNAUTHORISED
+          ErrorCode.UNAUTHORIZED
         )
       );
 
@@ -138,7 +138,7 @@ export const verifyUser = (
       .json(
         ServiceResponse.failure(
           "Access denied. Users only.",
-          ErrorCode.UNAUTHORISED
+          ErrorCode.UNAUTHORIZED
         )
       );
   }
