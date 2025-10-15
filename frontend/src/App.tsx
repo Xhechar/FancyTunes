@@ -27,6 +27,8 @@ import { SingleRoom } from './pages/SingleRoom';
 import { Dashboard } from './pages/user/user_routes/Dashboard';
 import { MyPayments } from './pages/user/user_routes/MyPayments';
 import { Notificationss } from './components/Notificationss';
+import { BusinessRooms } from './pages/admin/admin_routes/BussinessRoom';
+import { AdminDashboard } from './pages/admin/admin_routes/AdminDashboard';
 
 function App() {
   return (
@@ -61,18 +63,21 @@ function App() {
           path="/admin"
           element={<Admin />}
           children={[
+            <Route path="dashboard" element={<AdminDashboard />} />,
+            <Route path="" element={<AdminDashboard />} />,
             <Route path="delicacies" element={<Delicacies />} />,
             <Route path="payments" element={<Payments />} />,
             <Route path="recoveries" element={<UserRecoveries />} />,
-            <Route path="user?reviews" element={<UserReviews />} />,
+            <Route path="user-reviews" element={<UserReviews />} />,
             <Route path="rooms" element={<Rooms />} />,
             <Route
               path="user?accommodations"
               element={<UserAccommodations />}
             />,
-            <Route path="user?orders" element={<UserOrders />} />,
-            <Route path="user?bookings" element={<UserBookings />} />,
+            <Route path="user-orders" element={<UserOrders />} />,
+            <Route path="user-bookings" element={<UserBookings />} />,
             <Route path="users" element={<Users />} />,
+            <Route path='business-rooms' element={<BusinessRooms />}></Route>
           ]}
         ></Route>
         <Route path="*" element={<NotFound />}></Route>

@@ -41,6 +41,7 @@ export interface CreateBusinessRoomDto {
   PricePerHour: string;
   Amenities?: string;
   BusinessRoomImage?: string;
+  IsAvailable: boolean;
 }
 
 export interface UpdateBusinessRoomDto {

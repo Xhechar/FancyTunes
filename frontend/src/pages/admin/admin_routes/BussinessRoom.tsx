@@ -8,61 +8,59 @@ import {
   Search,
   Filter,
   Image as ImageIcon,
-  Bed,
+  Briefcase,
   Users,
+  Clock,
   DollarSign,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
-import { Room } from "../../../interfaces/interfaces";
-import { CreateRoomDto, UpdateRoomDto } from "../../../interfaces/dtos/interfaces.dtos";
-import styles from "../../../styles/admin/admin_routes/Rooms.module.css";
+import { BusinessRoom } from "../../../interfaces/interfaces";
+import { CreateBusinessRoomDto, UpdateBusinessRoomDto } from "../../../interfaces/dtos/interfaces.dtos";
+import styles from "../../../styles/admin/admin_routes/BussinessRoom.module.css";
 
-export const Rooms: React.FC = () => {
-  const [rooms, setRooms] = useState<Room[]>([
+export const BusinessRooms: React.FC = () => {
+  const [businessRooms, setBusinessRooms] = useState<BusinessRoom[]>([
     {
-      RoomId: "1",
-      RoomCount: 101,
-      RoomType: "Deluxe",
-      PricePerNight: 150,
+      BusinessRoomId: "1",
+      RoomCount: 1,
+      Name: "Executive Conference Room",
       Description:
-        "Spacious deluxe room with king-size bed, city view, and modern amenities including smart TV and mini-bar.",
-      Capacity: 2,
-      Status: "Available",
-      RoomImage:
-        "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=500",
-      CreatedAt: new Date("2024-01-15"),
-      UpdatedAt: new Date("2024-01-15"),
-      Accommodations: [],
-      Bookings: [],
-      Reviews: [],
-      RoomImages: [],
+        "Premium conference room with state-of-the-art AV equipment, whiteboard, and comfortable seating for up to 20 people. Perfect for board meetings and presentations.",
+      Capacity: 20,
+      PricePerHour: 75,
+      Amenities:
+        "Projector, Whiteboard, Video Conferencing, WiFi, Coffee Station",
+      BusinessRoomImage:
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=500",
+      IsAvailable: true,
+      CreatedAt: new Date("2024-01-10"),
+      UpdatedAt: new Date("2024-01-10"),
     },
     {
-      RoomId: "2",
-      RoomCount: 205,
-      RoomType: "Suite",
-      PricePerNight: 280,
+      BusinessRoomId: "2",
+      RoomCount: 2,
+      Name: "Grand Banquet Hall",
       Description:
-        "Luxury suite with separate living area, premium bathroom with jacuzzi, ocean view, and complimentary breakfast.",
-      Capacity: 4,
-      Status: "Occupied",
-      RoomImage:
-        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=500",
-      CreatedAt: new Date("2024-01-10"),
-      UpdatedAt: new Date("2024-01-20"),
-      Accommodations: [],
-      Bookings: [],
-      Reviews: [],
-      RoomImages: [],
+        "Spacious hall ideal for weddings, corporate events, and large gatherings. Features elegant décor, professional sound system, and customizable lighting.",
+      Capacity: 150,
+      PricePerHour: 250,
+      Amenities:
+        "Sound System, Stage, Dance Floor, Catering Area, Bar Counter, Parking",
+      BusinessRoomImage:
+        "https://images.unsplash.com/photo-1519167758481-83f29da8d332?w=500",
+      IsAvailable: true,
+      CreatedAt: new Date("2024-01-05"),
+      UpdatedAt: new Date("2024-01-15"),
     },
   ]);
-  const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
+  const [filteredRooms, setFilteredRooms] = useState<BusinessRoom[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
-  const [roomToDelete, setRoomToDelete] = useState<Room | null>(null);
+  const [editingRoom, setEditingRoom] = useState<BusinessRoom | null>(null);
+  const [roomToDelete, setRoomToDelete] = useState<BusinessRoom | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [roomTypeFilter, setRoomTypeFilter] = useState("all");
+  const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
@@ -71,36 +69,35 @@ export const Rooms: React.FC = () => {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<CreateRoomDto | UpdateRoomDto>({
+  } = useForm<CreateBusinessRoomDto | UpdateBusinessRoomDto>({
     mode: "all",
   });
 
   useEffect(() => {
-    // TODO: Fetch rooms from API
-    // fetchRooms();
+    // TODO: Fetch business rooms from API
+    // fetchBusinessRooms();
   }, []);
 
   useEffect(() => {
     filterRooms();
-  }, [rooms, searchTerm, statusFilter, roomTypeFilter]);
+  }, [businessRooms, searchTerm, availabilityFilter]);
 
   const filterRooms = () => {
-    let filtered = [...rooms];
+    let filtered = [...businessRooms];
 
     if (searchTerm) {
       filtered = filtered.filter(
         (room) =>
-          room.RoomType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          room.Description.toLowerCase().includes(searchTerm.toLowerCase())
+          room.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          room.Description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          room.Amenities?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((room) => room.Status === statusFilter);
-    }
-
-    if (roomTypeFilter !== "all") {
-      filtered = filtered.filter((room) => room.RoomType === roomTypeFilter);
+    if (availabilityFilter === "available") {
+      filtered = filtered.filter((room) => room.IsAvailable);
+    } else if (availabilityFilter === "unavailable") {
+      filtered = filtered.filter((room) => !room.IsAvailable);
     }
 
     setFilteredRooms(filtered);
@@ -112,28 +109,30 @@ export const Rooms: React.FC = () => {
     setImageFile(null);
     reset({
       RoomCount: 0,
-      RoomType: "",
-      PricePerNight: "",
+      Name: "",
       Description: "",
       Capacity: 1,
-      Status: "Available",
-      RoomImage: "",
+      PricePerHour: "",
+      Amenities: "",
+      BusinessRoomImage: "",
+      IsAvailable: true,
     });
     setIsModalOpen(true);
   };
 
-  const openEditModal = (room: Room) => {
+  const openEditModal = (room: BusinessRoom) => {
     setEditingRoom(room);
-    setImagePreview(room.RoomImage || null);
+    setImagePreview(room.BusinessRoomImage || null);
     setImageFile(null);
     reset({
       RoomCount: room.RoomCount,
-      RoomType: room.RoomType,
-      PricePerNight: room.PricePerNight.toString(),
+      Name: room.Name,
       Description: room.Description,
       Capacity: room.Capacity,
-      Status: room.Status,
-      RoomImage: room.RoomImage,
+      PricePerHour: room.PricePerHour.toString(),
+      Amenities: room.Amenities,
+      BusinessRoomImage: room.BusinessRoomImage,
+      IsAvailable: room.IsAvailable,
     });
     setIsModalOpen(true);
   };
@@ -146,7 +145,7 @@ export const Rooms: React.FC = () => {
     reset();
   };
 
-  const openDeleteModal = (room: Room) => {
+  const openDeleteModal = (room: BusinessRoom) => {
     setRoomToDelete(room);
     setIsDeleteModalOpen(true);
   };
@@ -156,28 +155,30 @@ export const Rooms: React.FC = () => {
     setRoomToDelete(null);
   };
 
-  const onSubmit = async (data: CreateRoomDto | UpdateRoomDto) => {
+  const onSubmit = async (
+    data: CreateBusinessRoomDto | UpdateBusinessRoomDto
+  ) => {
     try {
       // TODO: Upload image file first, then use the returned URL
       if (imageFile) {
         console.log("Image file to upload:", imageFile);
         // const uploadedImageUrl = await uploadImage(imageFile);
-        // data.RoomImage = uploadedImageUrl;
+        // data.BusinessRoomImage = uploadedImageUrl;
       }
 
       if (editingRoom) {
-        // TODO: Update room API call
-        console.log("Updating room:", data);
-        // await updateRoom(editingRoom.RoomId, data);
+        // TODO: Update business room API call
+        console.log("Updating business room:", data);
+        // await updateBusinessRoom(editingRoom.BusinessRoomId, data);
       } else {
-        // TODO: Create room API call
-        console.log("Creating room:", data);
-        // await createRoom(data);
+        // TODO: Create business room API call
+        console.log("Creating business room:", data);
+        // await createBusinessRoom(data);
       }
       closeModal();
-      // fetchRooms();
+      // fetchBusinessRooms();
     } catch (error) {
-      console.error("Error saving room:", error);
+      console.error("Error saving business room:", error);
     }
   };
 
@@ -212,31 +213,32 @@ export const Rooms: React.FC = () => {
     if (!roomToDelete) return;
 
     try {
-      // TODO: Delete room API call
-      console.log("Deleting room:", roomToDelete.RoomId);
-      // await deleteRoom(roomToDelete.RoomId);
-      setRooms(rooms.filter((r) => r.RoomId !== roomToDelete.RoomId));
+      // TODO: Delete business room API call
+      console.log("Deleting business room:", roomToDelete.BusinessRoomId);
+      // await deleteBusinessRoom(roomToDelete.BusinessRoomId);
+      setBusinessRooms(
+        businessRooms.filter(
+          (r) => r.BusinessRoomId !== roomToDelete.BusinessRoomId
+        )
+      );
       closeDeleteModal();
     } catch (error) {
-      console.error("Error deleting room:", error);
+      console.error("Error deleting business room:", error);
     }
   };
-
-  const roomTypes = ["Single", "Double", "Suite", "Deluxe", "Presidential"];
-  const statuses = ["Available", "Occupied", "Maintenance", "Reserved"];
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.titleSection}>
-          <h1 className={styles.title}>Room Management</h1>
+          <h1 className={styles.title}>Business Rooms & Event Halls</h1>
           <p className={styles.subtitle}>
-            Manage all accommodation rooms and their availability
+            Manage conference rooms, meeting spaces, and event venues
           </p>
         </div>
         <button className={styles.addButton} onClick={openCreateModal}>
           <Plus size={20} />
-          Add New Room
+          Add New Space
         </button>
       </div>
 
@@ -245,7 +247,7 @@ export const Rooms: React.FC = () => {
           <Search size={20} className={styles.searchIcon} />
           <input
             type="text"
-            placeholder="Search by room type or description..."
+            placeholder="Search by name, description, or amenities..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
@@ -256,32 +258,13 @@ export const Rooms: React.FC = () => {
           <div className={styles.filterGroup}>
             <Filter size={18} />
             <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              value={availabilityFilter}
+              onChange={(e) => setAvailabilityFilter(e.target.value)}
               className={styles.filterSelect}
             >
-              <option value="all">All Statuses</option>
-              {statuses.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.filterGroup}>
-            <Bed size={18} />
-            <select
-              value={roomTypeFilter}
-              onChange={(e) => setRoomTypeFilter(e.target.value)}
-              className={styles.filterSelect}
-            >
-              <option value="all">All Room Types</option>
-              {roomTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
+              <option value="all">All Rooms</option>
+              <option value="available">Available</option>
+              <option value="unavailable">Unavailable</option>
             </select>
           </div>
         </div>
@@ -289,59 +272,76 @@ export const Rooms: React.FC = () => {
 
       <div className={styles.statsBar}>
         <div className={styles.stat}>
-          <span className={styles.statLabel}>Total Rooms:</span>
-          <span className={styles.statValue}>{rooms.length}</span>
+          <span className={styles.statLabel}>Total Spaces:</span>
+          <span className={styles.statValue}>{businessRooms.length}</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statLabel}>Available:</span>
           <span className={styles.statValue}>
-            {rooms.filter((r) => r.Status === "Available").length}
+            {businessRooms.filter((r) => r.IsAvailable).length}
           </span>
         </div>
         <div className={styles.stat}>
-          <span className={styles.statLabel}>Occupied:</span>
+          <span className={styles.statLabel}>Booked:</span>
           <span className={styles.statValue}>
-            {rooms.filter((r) => r.Status === "Occupied").length}
+            {businessRooms.filter((r) => !r.IsAvailable).length}
           </span>
         </div>
       </div>
 
       <div className={styles.roomsGrid}>
         {filteredRooms.map((room) => (
-          <div key={room.RoomId} className={styles.roomCard}>
+          <div key={room.BusinessRoomId} className={styles.roomCard}>
             <div className={styles.roomImage}>
-              {room.RoomImage ? (
-                <img src={room.RoomImage} alt={room.RoomType} />
+              {room.BusinessRoomImage ? (
+                <img src={room.BusinessRoomImage} alt={room.Name} />
               ) : (
                 <div className={styles.imagePlaceholder}>
                   <ImageIcon size={40} />
                 </div>
               )}
               <span
-                className={`${styles.statusBadge} ${
-                  styles[room.Status.toLowerCase()]
+                className={`${styles.availabilityBadge} ${
+                  room.IsAvailable ? styles.available : styles.unavailable
                 }`}
               >
-                {room.Status}
+                {room.IsAvailable ? (
+                  <>
+                    <CheckCircle size={14} /> Available
+                  </>
+                ) : (
+                  <>
+                    <XCircle size={14} /> Booked
+                  </>
+                )}
               </span>
             </div>
 
             <div className={styles.roomContent}>
               <div className={styles.roomHeader}>
-                <h3 className={styles.roomType}>{room.RoomType}</h3>
-                <span className={styles.roomNumber}>#{room.RoomCount}</span>
+                <h3 className={styles.roomName}>{room.Name}</h3>
+                {room.RoomCount && (
+                  <span className={styles.roomNumber}>#{room.RoomCount}</span>
+                )}
               </div>
 
               <p className={styles.roomDescription}>{room.Description}</p>
 
+              {room.Amenities && (
+                <div className={styles.amenitiesSection}>
+                  <strong>Amenities:</strong>
+                  <p className={styles.amenities}>{room.Amenities}</p>
+                </div>
+              )}
+
               <div className={styles.roomDetails}>
                 <div className={styles.detail}>
                   <Users size={16} />
-                  <span>{room.Capacity} Guests</span>
+                  <span>{room.Capacity} People</span>
                 </div>
                 <div className={styles.detail}>
-                  <DollarSign size={16} />
-                  <span>${room.PricePerNight}/night</span>
+                  <Clock size={16} />
+                  <span>${room.PricePerHour}/hour</span>
                 </div>
               </div>
 
@@ -368,9 +368,9 @@ export const Rooms: React.FC = () => {
 
       {filteredRooms.length === 0 && (
         <div className={styles.emptyState}>
-          <Bed size={64} className={styles.emptyIcon} />
-          <h3>No rooms found</h3>
-          <p>Try adjusting your filters or add a new room to get started.</p>
+          <Briefcase size={64} className={styles.emptyIcon} />
+          <h3>No business rooms found</h3>
+          <p>Try adjusting your filters or add a new space to get started.</p>
         </div>
       )}
 
@@ -378,7 +378,9 @@ export const Rooms: React.FC = () => {
         <div className={styles.modalOverlay} onClick={closeModal}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>{editingRoom ? "Edit Room" : "Add New Room"}</h2>
+              <h2>
+                {editingRoom ? "Edit Business Room" : "Add New Business Room"}
+              </h2>
               <button className={styles.closeButton} onClick={closeModal}>
                 <X size={24} />
               </button>
@@ -405,24 +407,22 @@ export const Rooms: React.FC = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="RoomType">Room Type</label>
-                  <select
-                    id="RoomType"
-                    {...register("RoomType", {
-                      required: "Room type is required",
+                  <label htmlFor="Name">Room Name</label>
+                  <input
+                    type="text"
+                    id="Name"
+                    {...register("Name", {
+                      required: "Room name is required",
+                      minLength: {
+                        value: 3,
+                        message: "Must be at least 3 characters",
+                      },
                     })}
-                    className={errors.RoomType ? styles.inputError : ""}
-                  >
-                    <option value="">Select type</option>
-                    {roomTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.RoomType && (
+                    className={errors.Name ? styles.inputError : ""}
+                  />
+                  {errors.Name && (
                     <span className={styles.errorMessage}>
-                      {errors.RoomType.message}
+                      {errors.Name.message}
                     </span>
                   )}
                 </div>
@@ -430,14 +430,14 @@ export const Rooms: React.FC = () => {
 
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
-                  <label htmlFor="Capacity">Capacity</label>
+                  <label htmlFor="Capacity">Capacity (People)</label>
                   <input
                     type="number"
                     id="Capacity"
                     {...register("Capacity", {
                       required: "Capacity is required",
                       min: { value: 1, message: "Must be at least 1" },
-                      max: { value: 10, message: "Cannot exceed 10" },
+                      max: { value: 500, message: "Cannot exceed 500" },
                     })}
                     className={errors.Capacity ? styles.inputError : ""}
                   />
@@ -449,43 +449,23 @@ export const Rooms: React.FC = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="PricePerNight">Price Per Night ($)</label>
+                  <label htmlFor="PricePerHour">Price Per Hour ($)</label>
                   <input
                     type="number"
                     step="0.01"
-                    id="PricePerNight"
-                    {...register("PricePerNight", {
+                    id="PricePerHour"
+                    {...register("PricePerHour", {
                       required: "Price is required",
                       min: { value: 0, message: "Must be positive" },
                     })}
-                    className={errors.PricePerNight ? styles.inputError : ""}
+                    className={errors.PricePerHour ? styles.inputError : ""}
                   />
-                  {errors.PricePerNight && (
+                  {errors.PricePerHour && (
                     <span className={styles.errorMessage}>
-                      {errors.PricePerNight.message}
+                      {errors.PricePerHour.message}
                     </span>
                   )}
                 </div>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label htmlFor="Status">Status</label>
-                <select
-                  id="Status"
-                  {...register("Status", { required: "Status is required" })}
-                  className={errors.Status ? styles.inputError : ""}
-                >
-                  {statuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-                {errors.Status && (
-                  <span className={styles.errorMessage}>
-                    {errors.Status.message}
-                  </span>
-                )}
               </div>
 
               <div className={styles.formGroup}>
@@ -510,7 +490,28 @@ export const Rooms: React.FC = () => {
               </div>
 
               <div className={styles.formGroup}>
-                <label htmlFor="RoomImage">Room Image</label>
+                <label htmlFor="Amenities">Amenities (comma-separated)</label>
+                <textarea
+                  id="Amenities"
+                  rows={2}
+                  placeholder="e.g., Projector, WiFi, Whiteboard, Coffee Station"
+                  {...register("Amenities")}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    {...register("IsAvailable")}
+                    className={styles.checkbox}
+                  />
+                  <span>Available for booking</span>
+                </label>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="BusinessRoomImage">Room Image</label>
                 <div className={styles.imageUploadWrapper}>
                   {imagePreview && (
                     <div className={styles.imagePreviewSmall}>
@@ -526,7 +527,7 @@ export const Rooms: React.FC = () => {
                   )}
                   <input
                     type="file"
-                    id="RoomImage"
+                    id="BusinessRoomImage"
                     accept="image/*"
                     onChange={handleImageChange}
                     className={styles.fileInputField}
@@ -560,11 +561,11 @@ export const Rooms: React.FC = () => {
             <div className={styles.deleteIcon}>
               <Trash2 size={48} />
             </div>
-            <h2>Delete Room</h2>
+            <h2>Delete Business Room</h2>
             <p>
               Are you sure you want to delete{" "}
-              <strong>{roomToDelete.RoomType}</strong> (Room #
-              {roomToDelete.RoomCount})? This action cannot be undone.
+              <strong>{roomToDelete.Name}</strong>? This action cannot be undone
+              and will affect all related bookings.
             </p>
             <div className={styles.deleteActions}>
               <button
