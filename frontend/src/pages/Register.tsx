@@ -639,7 +639,6 @@ export const Register: React.FC = () => {
               <span>or sign up with</span>
             </div>
 
-            {/* Social Registration */}
             <div className={styles["social-login"]}>
               <button
                 type="button"

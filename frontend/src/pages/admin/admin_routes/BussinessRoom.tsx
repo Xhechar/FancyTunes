@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import {
   Plus,
@@ -18,42 +18,12 @@ import {
 import { BusinessRoom } from "../../../interfaces/interfaces";
 import { CreateBusinessRoomDto, UpdateBusinessRoomDto } from "../../../interfaces/dtos/interfaces.dtos";
 import styles from "../../../styles/admin/admin_routes/BussinessRoom.module.css";
+import Toast, { ToastProps } from "../../../components/Toast";
+import { socket } from "../../../socket.io";
+import { BusinessRoomService } from "../../../services/business.room.service";
 
 export const BusinessRooms: React.FC = () => {
-  const [businessRooms, setBusinessRooms] = useState<BusinessRoom[]>([
-    {
-      BusinessRoomId: "1",
-      RoomCount: 1,
-      Name: "Executive Conference Room",
-      Description:
-        "Premium conference room with state-of-the-art AV equipment, whiteboard, and comfortable seating for up to 20 people. Perfect for board meetings and presentations.",
-      Capacity: 20,
-      PricePerHour: 75,
-      Amenities:
-        "Projector, Whiteboard, Video Conferencing, WiFi, Coffee Station",
-      BusinessRoomImage:
-        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=500",
-      IsAvailable: true,
-      CreatedAt: new Date("2024-01-10"),
-      UpdatedAt: new Date("2024-01-10"),
-    },
-    {
-      BusinessRoomId: "2",
-      RoomCount: 2,
-      Name: "Grand Banquet Hall",
-      Description:
-        "Spacious hall ideal for weddings, corporate events, and large gatherings. Features elegant décor, professional sound system, and customizable lighting.",
-      Capacity: 150,
-      PricePerHour: 250,
-      Amenities:
-        "Sound System, Stage, Dance Floor, Catering Area, Bar Counter, Parking",
-      BusinessRoomImage:
-        "https://images.unsplash.com/photo-1519167758481-83f29da8d332?w=500",
-      IsAvailable: true,
-      CreatedAt: new Date("2024-01-05"),
-      UpdatedAt: new Date("2024-01-15"),
-    },
-  ]);
+  const [businessRooms, setBusinessRooms] = useState<BusinessRoom[]>([]);
   const [filteredRooms, setFilteredRooms] = useState<BusinessRoom[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -62,7 +32,8 @@ export const BusinessRooms: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const imageUrlRef= useRef<string | null>(null);
+  const [ toast, setToast ] = useState<ToastProps | null>(null);
 
   const {
     register,
@@ -74,13 +45,91 @@ export const BusinessRooms: React.FC = () => {
   });
 
   useEffect(() => {
-    // TODO: Fetch business rooms from API
-    // fetchBusinessRooms();
+    
+    socket.connect();
+
+    socket.on("business-room-created", (newRoom: BusinessRoom) => {
+      setBusinessRooms((prevRooms) => [...prevRooms, newRoom]);
+    });
+
+    socket.on("business-room-updated", (updatedRoom: BusinessRoom) => {
+      setBusinessRooms((prevRooms) =>
+        prevRooms.map((room) =>
+          room.BusinessRoomId === updatedRoom.BusinessRoomId ? updatedRoom : room
+        )
+      );
+
+      socket.on("business-room-deleted", (deletedRoomId: string) => {
+        setBusinessRooms((prevRooms) =>
+          prevRooms.filter((room) => room.BusinessRoomId !== deletedRoomId)
+        );
+      });
+    });
+
+    return () => {
+      socket.off("business-room-created");
+      socket.off("business-room-updated");
+      socket.off("business-room-deleted");
+      socket.disconnect();
+    };  
+  }, []);
+
+  useEffect(() => {
+
+    const getBusinessRooms = async () => {
+      try {
+        
+        let result = await BusinessRoomService.GetAllBusinessRooms();
+
+        if (result.success && result.dataList) {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "success",
+            title: "SUCCESS",
+            message: result.message as string,
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(toast);
+          setBusinessRooms(result.dataList);
+          setFilteredRooms(result.dataList);
+          return;
+        } else {
+          const toast: ToastProps = {
+            isVisible: false,
+            type: "error",
+            title: result.error as string,
+            message: result.message as string,
+            onClose: function (): void {
+              setToast(() => null);
+            }
+          };
+
+          setToast(toast);
+        }
+
+      } catch (error: any) {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "error",
+          title: error.response?.data?.error || "ERROR",
+          message: error.response?.data?.message || "An error occurred while fetching business rooms.",
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+
+        setToast(toast);
+      }
+    };
+    getBusinessRooms();
   }, []);
 
   useEffect(() => {
     filterRooms();
-  }, [businessRooms, searchTerm, availabilityFilter]);
+  }, [searchTerm, availabilityFilter, businessRooms]);
 
   const filterRooms = () => {
     let filtered = [...businessRooms];
@@ -106,7 +155,7 @@ export const BusinessRooms: React.FC = () => {
   const openCreateModal = () => {
     setEditingRoom(null);
     setImagePreview(null);
-    setImageFile(null);
+    imageUrlRef.current = null;
     reset({
       RoomCount: 0,
       Name: "",
@@ -123,7 +172,7 @@ export const BusinessRooms: React.FC = () => {
   const openEditModal = (room: BusinessRoom) => {
     setEditingRoom(room);
     setImagePreview(room.BusinessRoomImage || null);
-    setImageFile(null);
+    imageUrlRef.current = room.BusinessRoomImage || null;
     reset({
       RoomCount: room.RoomCount,
       Name: room.Name,
@@ -141,7 +190,7 @@ export const BusinessRooms: React.FC = () => {
     setIsModalOpen(false);
     setEditingRoom(null);
     setImagePreview(null);
-    setImageFile(null);
+    imageUrlRef.current = null;
     reset();
   };
 
@@ -159,53 +208,142 @@ export const BusinessRooms: React.FC = () => {
     data: CreateBusinessRoomDto | UpdateBusinessRoomDto
   ) => {
     try {
-      // TODO: Upload image file first, then use the returned URL
-      if (imageFile) {
-        console.log("Image file to upload:", imageFile);
-        // const uploadedImageUrl = await uploadImage(imageFile);
-        // data.BusinessRoomImage = uploadedImageUrl;
-      }
 
       if (editingRoom) {
-        // TODO: Update business room API call
-        console.log("Updating business room:", data);
-        // await updateBusinessRoom(editingRoom.BusinessRoomId, data);
+        let updateData: UpdateBusinessRoomDto = {
+          BusinessRoomImage: imageUrlRef.current ? imageUrlRef.current : editingRoom.BusinessRoomImage,
+          RoomCount: data.RoomCount,
+          Name: data.Name,
+          Description: data.Description,
+          Capacity: data.Capacity,
+          PricePerHour: data.PricePerHour,
+          Amenities: data.Amenities,
+          IsAvailable: data.IsAvailable
+        };
+        
+        const result = await BusinessRoomService.UpdateBusinessRoom(editingRoom.BusinessRoomId, updateData);
+
+        if (result.success) {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "success",
+            title: "SUCCESS",
+            message: result.message as string,
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(toast);
+        }
       } else {
-        // TODO: Create business room API call
-        console.log("Creating business room:", data);
-        // await createBusinessRoom(data);
+
+        let createData: CreateBusinessRoomDto = {
+          RoomCount: data.RoomCount,
+          Name: data.Name,
+          Description: data.Description,
+          Capacity: data.Capacity,
+          PricePerHour: data.PricePerHour,
+          Amenities: data.Amenities,
+          BusinessRoomImage: imageUrlRef.current ? imageUrlRef.current : "",
+          IsAvailable: data.IsAvailable
+        } as CreateBusinessRoomDto;
+
+        
+        const result = await BusinessRoomService.CreateBusinessRoom(createData);
+
+        if (result.success) {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "success",
+            title: "SUCCESS",
+            message: result.message as string,
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(toast);
+        } else {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "error",
+            title: result.error as string,
+            message: result.message as string,
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(toast);
+        }
       }
       closeModal();
-      // fetchBusinessRooms();
-    } catch (error) {
-      console.error("Error saving business room:", error);
+    } catch (error: any) {
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error.response?.data?.error || "ERROR",
+        message: error.response?.data?.message || "An error occurred while creating the room.",
+        onClose: function (): void {
+          setToast(() => null);
+        },
+      };
+
+      setToast(toast);
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Image size should be less than 5MB");
-        return;
-      }
-
       if (!file.type.startsWith("image/")) {
-        alert("Please select a valid image file");
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "error",
+          title: "INVALID FILE TYPE",
+          message: "Please select a valid image file.",
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+        setToast(toast);
         return;
       }
 
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      const formData: FormData = new FormData();
+
+      formData.append("file", file);
+      formData.append("upload_preset", "allapps");
+      formData.append("cloud_name", "dakyiye2e");
+
+      await fetch("https://api.cloudinary.com/v1_1/dakyiye2e/image/upload", {
+        method: "POST",
+        body: formData,
+      })
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.secure_url) imageUrlRef.current = (res.secure_url);
+          setImagePreview(res.secure_url);
+        })
+        .catch((err) => {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "error",
+            title: "IMAGE UPLOAD ERROR",
+            message: err.message || "An error occurred while uploading image.",
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(toast);
+        });
     }
   };
 
   const removeImage = () => {
-    setImageFile(null);
+    imageUrlRef.current = null;
     setImagePreview(null);
   };
 
@@ -213,22 +351,59 @@ export const BusinessRooms: React.FC = () => {
     if (!roomToDelete) return;
 
     try {
-      // TODO: Delete business room API call
-      console.log("Deleting business room:", roomToDelete.BusinessRoomId);
-      // await deleteBusinessRoom(roomToDelete.BusinessRoomId);
+
+      const result = await BusinessRoomService.DeleteBusinessRoom(roomToDelete.BusinessRoomId);
+
+      if (result.success) {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+
+        setToast(toast);
+      } else {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "error",
+          title: "ERROR",
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+
+        setToast(toast);
+      }
+      
       setBusinessRooms(
         businessRooms.filter(
           (r) => r.BusinessRoomId !== roomToDelete.BusinessRoomId
         )
       );
       closeDeleteModal();
-    } catch (error) {
-      console.error("Error deleting business room:", error);
+    } catch (error: any) {
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error.response?.data?.error || "ERROR",
+        message: error.response?.data?.message || "An error occurred while creating the room.",
+        onClose: function (): void {
+          setToast(() => null);
+        },
+      };
+
+      setToast(toast);
     }
   };
 
   return (
     <div className={styles.container}>
+      {toast && toast.isVisible ? <Toast {...toast} /> : null}
       <div className={styles.header}>
         <div className={styles.titleSection}>
           <h1 className={styles.title}>Business Rooms & Event Halls</h1>

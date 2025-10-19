@@ -22,11 +22,12 @@ export class ServiceResponse<T> {
     };
   }
 
-  static auth<T>(token: string): ServiceResult<T> {
+  static auth<T>(token: string, role: string): ServiceResult<T> {
     return {
       success: true,
       message: "login successfull.",
-      token
+      token,
+      role
     };
   }
 }

@@ -40,7 +40,7 @@ export class AuthService implements IAuthService {
 
     let token: string = jwt.sign(tokenDetails, process.env.SECRET_KEY as string, { expiresIn: '45m' });
 
-    return ServiceResponse.auth<object>(token);
+    return ServiceResponse.auth<object>(token, UserExists.Role);
   }
   async verifyMail(Email: string): Promise<ServiceResult<object>> {
     

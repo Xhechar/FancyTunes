@@ -39,7 +39,7 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use("/accommodation", AccommodationRouter);
 app.use("/auth", AuthRouter);
 app.use("/booking", BookingRouter);
-app.use("/budiness-room", BusinessRoomRouter);
+app.use("/business-room", BusinessRoomRouter);
 app.use("/cart", CartRouter);
 app.use("/delicacy", DelicacyRouter);
 app.use("/notification", NotificationRouter);
@@ -68,11 +68,12 @@ const server = http.createServer(app);
 export const io: Server = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
+    credentials: true
   },
 });
 
 setUpSocket(io);
 
-app.listen(3001, () => {
-  winston.info("Server is running on port 3001.")
+server.listen(3001, () => {
+  winston.info("Server and Socket.IO are running on port 3001.");
 });

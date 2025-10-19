@@ -7,4 +7,5 @@ export interface ServiceResult<T> {
   data?: T;
   dataList?: T[];
   token?: string;
+  role?: string;
 }

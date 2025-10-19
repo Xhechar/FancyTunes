@@ -349,11 +349,6 @@ export const UpdateRoomImageSchema = Joi.object({
 });
 
 export const createBusinessRoomSchema = Joi.object({
-  RoomNumber: Joi.string()
-    .optional()
-    .messages({
-      "string.base": "RoomNumber must be a text value.",
-    }),
   Name: Joi.string()
     .required()
     .messages({
@@ -404,6 +399,7 @@ export const createBusinessRoomSchema = Joi.object({
       "any.required": "IsAvailable is required.",
       "boolean.base": "IsAvailable must be true or false.",
     }),
+    RoomCount: Joi.number().min
 });
 
 export const updateBusinessRoomSchema = Joi.object({

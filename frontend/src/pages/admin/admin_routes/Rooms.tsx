@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import {
   Plus,
   Edit,
@@ -15,46 +15,12 @@ import {
 import { Room } from "../../../interfaces/interfaces";
 import { CreateRoomDto, UpdateRoomDto } from "../../../interfaces/dtos/interfaces.dtos";
 import styles from "../../../styles/admin/admin_routes/Rooms.module.css";
+import { socket } from "../../../socket.io";
+import { RoomsService } from "../../../services/room.service";
+import Toast, { ToastProps } from "../../../components/Toast";
 
 export const Rooms: React.FC = () => {
-  const [rooms, setRooms] = useState<Room[]>([
-    {
-      RoomId: "1",
-      RoomCount: 101,
-      RoomType: "Deluxe",
-      PricePerNight: 150,
-      Description:
-        "Spacious deluxe room with king-size bed, city view, and modern amenities including smart TV and mini-bar.",
-      Capacity: 2,
-      Status: "Available",
-      RoomImage:
-        "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=500",
-      CreatedAt: new Date("2024-01-15"),
-      UpdatedAt: new Date("2024-01-15"),
-      Accommodations: [],
-      Bookings: [],
-      Reviews: [],
-      RoomImages: [],
-    },
-    {
-      RoomId: "2",
-      RoomCount: 205,
-      RoomType: "Suite",
-      PricePerNight: 280,
-      Description:
-        "Luxury suite with separate living area, premium bathroom with jacuzzi, ocean view, and complimentary breakfast.",
-      Capacity: 4,
-      Status: "Occupied",
-      RoomImage:
-        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=500",
-      CreatedAt: new Date("2024-01-10"),
-      UpdatedAt: new Date("2024-01-20"),
-      Accommodations: [],
-      Bookings: [],
-      Reviews: [],
-      RoomImages: [],
-    },
-  ]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -65,6 +31,8 @@ export const Rooms: React.FC = () => {
   const [roomTypeFilter, setRoomTypeFilter] = useState("all");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [toast, setToast] = useState<ToastProps | null>(null);
+
 
   const {
     register,
@@ -76,13 +44,88 @@ export const Rooms: React.FC = () => {
   });
 
   useEffect(() => {
-    // TODO: Fetch rooms from API
-    // fetchRooms();
+    
+    socket.connect();
+
+    socket.on("room-created", (newRoom: Room) => {
+      setRooms((prevRooms) => [...prevRooms, newRoom]);
+    });
+
+    socket.on("room-updated", (updatedRoom: Room) => {
+      setRooms((prevRooms) =>
+        prevRooms.map((room) =>
+          room.RoomId === updatedRoom.RoomId ? updatedRoom : room
+        )
+      );
+    });
+
+    socket.on("room-deleted", (deletedRoomId: string) => {
+      setRooms((prevRooms) =>
+        prevRooms.filter((room) => room.RoomId !== deletedRoomId)
+      );
+    });
+
+    return () => {
+      socket.off("room-created");
+      socket.off("room-updated");
+      socket.off("room-deleted");
+      socket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+
+    try {
+      
+      let getRooms = async () => {
+        const result = await RoomsService.GetAllRooms();
+
+        if (result.success) {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "success",
+            title: "SUCCESS",
+            message: result.message as string,
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setRooms(() => result.dataList as Room[]);
+          setToast(() => toast);
+        } else {
+          const toast: ToastProps = {
+            isVisible: false,
+            type: "success",
+            title: result.error as string,
+            message: result.message as string,
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(() => toast);
+        }
+      };
+      getRooms();
+
+    } catch (error) {
+      const toast: ToastProps = {
+        isVisible: false,
+        type: "error",
+        title: "ERROR",
+        message: error instanceof Error ? error.message : "An error occurred while fetching rooms.",
+        onClose: function (): void {
+          setToast(() => null);
+        },
+      };
+      setToast(() => toast);
+    }
   }, []);
 
   useEffect(() => {
     filterRooms();
-  }, [rooms, searchTerm, statusFilter, roomTypeFilter]);
+  }, [searchTerm, statusFilter, roomTypeFilter, rooms]);
 
   const filterRooms = () => {
     let filtered = [...rooms];
@@ -158,48 +201,171 @@ export const Rooms: React.FC = () => {
 
   const onSubmit = async (data: CreateRoomDto | UpdateRoomDto) => {
     try {
-      // TODO: Upload image file first, then use the returned URL
       if (imageFile) {
-        console.log("Image file to upload:", imageFile);
-        // const uploadedImageUrl = await uploadImage(imageFile);
-        // data.RoomImage = uploadedImageUrl;
+        const formData: FormData = new FormData();
+
+        formData.append("file", imageFile);
+        formData.append("upload_preset", "allapps");
+        formData.append("cloud_name", "dakyiye2e");
+
+        await fetch("https://api.cloudinary.com/v1_1/dakyiye2e/image/upload", {
+          method: "POST",
+          body: formData,
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            data.secure_url
+              ? (data.RoomImage = data.secure_url)
+              : (data.RoomImage = null);
+          }).catch((err) => {
+            const toast: ToastProps = {
+              isVisible: true,
+              type: "error",
+              title: "IMAGE UPLOAD FAILED",
+              message: err.message || "An error occurred while uploading the image.",
+              onClose: function (): void {
+                setToast(() => null);
+              },
+            };
+
+            setToast(() => toast);
+            return;
+          });
       }
 
       if (editingRoom) {
-        // TODO: Update room API call
-        console.log("Updating room:", data);
-        // await updateRoom(editingRoom.RoomId, data);
+        try {
+          let result = await RoomsService.UpdateRoom(editingRoom.RoomId, {
+            ...data,
+            RoomImage: imageFile ? data.RoomImage : editingRoom.RoomImage,
+          } as UpdateRoomDto);
+
+          if (result.success) {
+            const toast: ToastProps = {
+              isVisible: true,
+              type: "success",
+              title: "SUCCESS",
+              message: result.message as string,
+              onClose: function (): void {
+                setToast(() => null);
+              },
+            };
+
+            setToast(() => toast);
+          } else {
+            const toast: ToastProps = {
+              isVisible: true,
+              type: "error",
+              title: result.error as string,
+              message: result.message as string,
+              onClose: function (): void {
+                setToast(() => null);
+              },
+            };
+
+            setToast(() => toast);
+          }
+        } catch (error: any) {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "error",
+            title: error.response?.data?.error || "ERROR",
+            message:
+              error.response?.data?.message ||
+              "An error occurred while creating the room.",
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(() => toast);
+          return;
+        }
       } else {
-        // TODO: Create room API call
-        console.log("Creating room:", data);
-        // await createRoom(data);
+        try {
+          let result = await RoomsService.CreateRoom({
+            ...data,
+            RoomImage: imageFile ? data.RoomImage : null,
+          } as CreateRoomDto);
+
+          if (result.success) {
+            const toast: ToastProps = {
+              isVisible: true,
+              type: "success",
+              title: "SUCCESS",
+              message: result.message as string,
+              onClose: function (): void {
+                setToast(() => null);
+              },
+            };
+
+            setToast(() => toast);
+          } else {
+            const toast: ToastProps = {
+              isVisible: true,
+              type: "error",
+              title: result.error as string,
+              message: result.message as string,
+              onClose: function (): void {
+                setToast(() => null);
+              },
+            };
+
+            setToast(() => toast);
+          }
+        } catch (error: any) {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "error",
+            title: error.response?.data?.error || "ERROR",
+            message:
+              error.response?.data?.message ||
+              "An error occurred while creating the room.",
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+          setToast(() => toast);
+          return;
+        }
       }
       closeModal();
-      // fetchRooms();
-    } catch (error) {
-      console.error("Error saving room:", error);
+    } catch (error: any) {
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error.response?.data?.error || "ERROR",
+        message:
+          error.response?.data?.message ||
+          "An error occurred while creating the room.",
+        onClose: function (): void {
+          setToast(() => null);
+        },
+      };
+
+      setToast(() => toast);
     }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Image size should be less than 5MB");
-        return;
-      }
-
       if (!file.type.startsWith("image/")) {
-        alert("Please select a valid image file");
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "warning",
+          title: "INVALID FILE",
+          message: "Please select a valid image file.",
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+
+        setToast(() => toast);
         return;
       }
 
       setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
     }
   };
 
@@ -212,13 +378,50 @@ export const Rooms: React.FC = () => {
     if (!roomToDelete) return;
 
     try {
-      // TODO: Delete room API call
-      console.log("Deleting room:", roomToDelete.RoomId);
-      // await deleteRoom(roomToDelete.RoomId);
-      setRooms(rooms.filter((r) => r.RoomId !== roomToDelete.RoomId));
+      let result = await RoomsService.DeleteRoom(roomToDelete.RoomId);
+
+      if (result.success) {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+
+        setToast(() => toast);
+      } else {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "error",
+          title: result.error as string,
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+
+        setToast(() => toast);
+      }
+
       closeDeleteModal();
-    } catch (error) {
-      console.error("Error deleting room:", error);
+    } catch (error: any) {
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error.response?.data?.error || "ERROR",
+        message:
+          error.response?.data?.message ||
+          "An error occurred while creating the room.",
+        onClose: function (): void {
+          setToast(() => null);
+        },
+      };
+
+      setToast(() => toast);
+      return;
     }
   };
 
@@ -227,6 +430,7 @@ export const Rooms: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      {toast && toast.isVisible ? <Toast {...toast} /> : null}
       <div className={styles.header}>
         <div className={styles.titleSection}>
           <h1 className={styles.title}>Room Management</h1>

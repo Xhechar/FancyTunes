@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import {
   Plus,
   Edit,
@@ -17,61 +17,13 @@ import {
 import { Delicacy } from "../../../interfaces/interfaces";
 import { CreateDelicacyDto, UpdateDelicacyDto } from "../../../interfaces/dtos/interfaces.dtos";
 import styles from "../../../styles/admin/admin_routes/Delicacies.module.css";
+import { socket } from "../../../socket.io";
+import { ToastProps } from "../../../components/Toast";
+import Toast from "../../../components/Toast";
+import { DelicacyService } from "../../../services/delicacy.service";
 
 export const Delicacies: React.FC = () => {
-  const [delicacies, setDelicacies] = useState<Delicacy[]>([
-    {
-      DelicacyId: "1",
-      Name: "Grilled Salmon Steak",
-      Description:
-        "Fresh Atlantic salmon grilled to perfection, served with lemon butter sauce, roasted vegetables, and herb-infused rice.",
-      Price: 28.99,
-      DelicacyImage:
-        "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=500",
-      Category: "Main Course",
-      IsAvailable: true,
-      CreatedAt: new Date("2024-01-15"),
-      UpdatedAt: new Date("2024-01-15"),
-      Orders: [],
-      Carts: [],
-      OrderItems: [],
-      Reviews: [],
-    },
-    {
-      DelicacyId: "2",
-      Name: "Chocolate Lava Cake",
-      Description:
-        "Decadent dark chocolate cake with a molten center, topped with vanilla ice cream and fresh berries.",
-      Price: 12.99,
-      DelicacyImage:
-        "https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=500",
-      Category: "Dessert",
-      IsAvailable: true,
-      CreatedAt: new Date("2024-01-10"),
-      UpdatedAt: new Date("2024-01-20"),
-      Orders: [],
-      Carts: [],
-      OrderItems: [],
-      Reviews: [],
-    },
-    {
-      DelicacyId: "3",
-      Name: "Caesar Salad",
-      Description:
-        "Crisp romaine lettuce, parmesan cheese, croutons, and our signature Caesar dressing.",
-      Price: 9.99,
-      DelicacyImage:
-        "https://images.unsplash.com/photo-1546793665-c74683f339c1?w=500",
-      Category: "Appetizer",
-      IsAvailable: false,
-      CreatedAt: new Date("2024-01-05"),
-      UpdatedAt: new Date("2024-01-18"),
-      Orders: [],
-      Carts: [],
-      OrderItems: [],
-      Reviews: [],
-    },
-  ]);
+  const [delicacies, setDelicacies] = useState<Delicacy[]>([]);
   const [filteredDelicacies, setFilteredDelicacies] = useState<Delicacy[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -84,6 +36,7 @@ export const Delicacies: React.FC = () => {
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [toast, setToast] = useState<ToastProps | null>(null);
 
   const {
     register,
@@ -95,13 +48,78 @@ export const Delicacies: React.FC = () => {
   });
 
   useEffect(() => {
-    // TODO: Fetch delicacies from API
-    // fetchDelicacies();
+    
+    socket.connect();
+
+    socket.on("delicacy-created", (newDelicacy: Delicacy) => {
+      setDelicacies((prev) => [...prev, newDelicacy]);
+      console.log("New delicacy created:", newDelicacy);
+    });
+
+    socket.on("delicacy-updated", (updatedDelicacy: Delicacy) => {
+      setDelicacies((prev) =>
+        prev.map((delicacy) =>
+          delicacy.DelicacyId === updatedDelicacy.DelicacyId
+            ? updatedDelicacy
+            : delicacy
+        )
+      );
+    });
+
+    socket.on("delicacy-deleted", (deletedDelicacyId: string) => {
+      setDelicacies((prev) =>
+        prev.filter((delicacy) => delicacy.DelicacyId !== deletedDelicacyId)
+      );
+    });
+
+    return () => {
+      socket.off("delicacy-created");
+      socket.off("delicacy-updated");
+      socket.off("delicacy-deleted");
+      socket.disconnect();
+    }
+
+  }, []);
+
+  useEffect(() => {
+
+    const getDelicacies = async () => {
+
+      const result = await DelicacyService.GetAllDelicacies();
+
+      if (result.success) {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          }
+        };
+        setToast(toast);
+        setDelicacies(result.dataList as Delicacy[]);
+        setFilteredDelicacies(result.dataList as Delicacy[]);
+      } else {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "error",
+          title: "ERROR",
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          }
+        };
+
+        setToast(toast);
+      };
+    };
+    getDelicacies();
   }, []);
 
   useEffect(() => {
     filterDelicacies();
-  }, [delicacies, searchTerm, categoryFilter, availabilityFilter]);
+  }, [searchTerm, categoryFilter, availabilityFilter, delicacies]);
 
   const filterDelicacies = () => {
     let filtered = [...delicacies];
@@ -182,26 +200,114 @@ export const Delicacies: React.FC = () => {
 
   const onSubmit = async (data: CreateDelicacyDto | UpdateDelicacyDto) => {
     try {
-      // TODO: Upload image file first, then use the returned URL
       if (imageFile) {
-        console.log("Image file to upload:", imageFile);
-        // const uploadedImageUrl = await uploadImage(imageFile);
-        // data.DelicacyImage = uploadedImageUrl;
+        
+        const formData: FormData = new FormData();
+
+        formData.append("file", imageFile);
+        formData.append("upload_preset", "allapps");
+        formData.append("cloud_name", "dakyiye2e");
+
+        await fetch(
+          "https://api.cloudinary.com/v1_1/dakyiye2e/image/upload",
+          {
+            method: "POST",
+            body: formData,
+          }
+        ).then((res) => res.json()).then((res) => {
+          res.secure_url && setImagePreview(res.secure_url);
+          data.DelicacyImage = res.secure_url;
+        }).catch((err) => {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "error",
+            title: "IMAGE UPLOAD ERROR",
+            message: err.message || "An error occurred while uploading image.",
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(toast);
+        });
+
       }
 
       if (editingDelicacy) {
-        // TODO: Update delicacy API call
-        console.log("Updating delicacy:", data);
-        // await updateDelicacy(editingDelicacy.DelicacyId, data);
+        
+        const result = await DelicacyService.UpdateDelicacy(editingDelicacy.DelicacyId, {
+          ...data, DelicacyImage: imageFile ? data.DelicacyImage : editingDelicacy.DelicacyImage
+        } as UpdateDelicacyDto);
+
+        if(result.success) {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "success",
+            title: "SUCCESS",
+            message: result.message as string,
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(toast);
+        } else {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "error",
+            title: "ERROR",
+            message: result.message as string,
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(toast);
+        }
+
       } else {
-        // TODO: Create delicacy API call
-        console.log("Creating delicacy:", data);
-        // await createDelicacy(data);
+        
+        const result = await DelicacyService.CreateDelicacy({...data, DelicacyImage: imageFile ? data.DelicacyImage : ""} as CreateDelicacyDto);
+
+        if (result.success) {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "success",
+            title: "SUCCESS",
+            message: result.message as string,
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(toast);
+        } else {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "error",
+            title: "ERROR",
+            message: result.message as string,
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(toast);
+        }
       }
       closeModal();
-      // fetchDelicacies();
-    } catch (error) {
-      console.error("Error saving delicacy:", error);
+    } catch (error: any) {
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error.response?.data?.error || "ERROR",
+        message: error.response?.data?.message || "An error occurred while creating the room.",
+        onClose: function (): void {
+          setToast(() => null);
+        },
+      };
+
+      setToast(toast);
     }
   };
 
@@ -219,11 +325,6 @@ export const Delicacies: React.FC = () => {
       }
 
       setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
     }
   };
 
@@ -236,15 +337,51 @@ export const Delicacies: React.FC = () => {
     if (!delicacyToDelete) return;
 
     try {
-      // TODO: Delete delicacy API call
-      console.log("Deleting delicacy:", delicacyToDelete.DelicacyId);
-      // await deleteDelicacy(delicacyToDelete.DelicacyId);
+      
+      const result = await DelicacyService.DeleteDelicacy(delicacyToDelete.DelicacyId);
+
+      if (result.success) {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+
+        setToast(toast);
+      } else {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "error",
+          title: "ERROR",
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+
+        setToast(toast);
+      }
+
       setDelicacies(
         delicacies.filter((d) => d.DelicacyId !== delicacyToDelete.DelicacyId)
       );
       closeDeleteModal();
-    } catch (error) {
-      console.error("Error deleting delicacy:", error);
+    } catch (error: any) {
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error.response?.data?.error || "ERROR",
+        message: error.response?.data?.message || "An error occurred while creating the room.",
+        onClose: function (): void {
+          setToast(() => null);
+        },
+      };
+
+      setToast(toast);
     }
   };
 
@@ -259,6 +396,7 @@ export const Delicacies: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      {toast && <Toast {...toast} />}
       <div className={styles.header}>
         <div className={styles.titleSection}>
           <h1 className={styles.title}>Delicacies Menu</h1>
@@ -336,7 +474,7 @@ export const Delicacies: React.FC = () => {
       </div>
 
       <div className={styles.delicaciesGrid}>
-        {filteredDelicacies.map((delicacy) => (
+        {filteredDelicacies.map((delicacy: Delicacy) => (
           <div key={delicacy.DelicacyId} className={styles.delicacyCard}>
             <div className={styles.delicacyImage}>
               {delicacy.DelicacyImage ? (
@@ -374,7 +512,7 @@ export const Delicacies: React.FC = () => {
               <div className={styles.priceSection}>
                 <DollarSign size={20} className={styles.dollarIcon} />
                 <span className={styles.price}>
-                  ${delicacy.Price.toFixed(2)}
+                  ${Number(delicacy?.Price ?? 0).toFixed(2)}
                 </span>
               </div>
 
