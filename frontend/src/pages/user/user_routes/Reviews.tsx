@@ -17,6 +17,8 @@ import {
 import styles from "../../../styles/user/user_routes/Reviews.module.css";
 import { Review, Payment, Booking, Order, User } from "../../../interfaces/interfaces";
 import { UsersService } from "../../../services/user.service";
+import { socket } from "../../../socket.io";
+import Toast, { ToastProps } from "../../../components/Toast";
 
 interface ReviewWithPayment extends Review {
   relatedPayment?: Payment;
@@ -40,22 +42,74 @@ export const Reviews: React.FC = () => {
   const [editComment, setEditComment] = useState("");
   const [editRating, setEditRating] = useState(5);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<ToastProps | null>(null);
 
   useEffect(() => {
+    socket.connect();
 
-    const getUser = async() => {
-      let result = await UsersService.GetUserByUserId();
+    socket.on("review-updated", (updatedReview: ReviewWithPayment) => {
+      setReviews((prevReviews) =>
+        prevReviews.map((review) =>
+          review.ReviewId === updatedReview.ReviewId
+            ? { ...review, ...updatedReview }
+            : review
+        )
+      );
+    });
 
-      if(result.success) {
-        setReviews((result.data as unknown as User).Reviews);
-        setFilteredReviews((result.data as unknown as User).Reviews);
-        setLoading(false);
-      }
-    };
-    getUser();
+    socket.on("review-created", (newReview: ReviewWithPayment) => {
+      setReviews((prevReviews) => [newReview, ...prevReviews]);
+    });
+
+    socket.on("review-deleted", (deletedReviewId: string) => {
+      setReviews((prevReviews) =>
+        prevReviews.filter(
+          (review) => review.ReviewId !== deletedReviewId
+        )
+      );
+    });
+
+    return () => {
+      socket.off("review-updated");
+      socket.off("review-created");
+      socket.off("review-deleted");
+      socket.disconnect();
+    }
   }, []);
 
-  // Filter and search functionality
+  useEffect(() => {
+    try {
+      const getUser = async () => {
+        let result = await UsersService.GetUserByUserId();
+
+        if (result.success) {
+          setReviews((result.data as unknown as User).Reviews);
+          setFilteredReviews((result.data as unknown as User).Reviews);
+          setLoading(false);
+        } else {
+          setLoading(false);
+          setToast({
+            isVisible: true,
+            type: "warning",
+            title: result.error as string,
+            message: result.message as string,
+            onClose: () => setToast(null),
+          });
+        }
+      };
+      getUser();
+    } catch (error: any) {
+      setLoading(false);
+      setToast({
+        isVisible: true,
+        type: "error",
+        title: error?.response?.data?.error as string || "Error",
+        message: error?.response?.data?.message as string || "An unexpected error occurred.",
+        onClose: () => setToast(null),
+      });
+    }
+  }, []);
+
   useEffect(() => {
     let filtered = reviews.filter((review) => {
       const matchesSearch =
@@ -77,7 +131,6 @@ export const Reviews: React.FC = () => {
       return matchesSearch && matchesFilter;
     });
 
-    // Sort reviews
     filtered.sort((a, b) => {
       if (sortBy === "newest") {
         return (
@@ -170,6 +223,7 @@ export const Reviews: React.FC = () => {
 
   return (
     <div className={styles.dashboardContainer}>
+      {toast && <Toast {...toast} />}
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.headerLeft}>

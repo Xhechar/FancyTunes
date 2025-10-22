@@ -15,28 +15,84 @@ import {
 import styles from "../../../styles/user/user_routes/Cart.module.css";
 import { User, Cart as UserCart } from "../../../interfaces/interfaces";
 import { UsersService } from "../../../services/user.service";
+import Toast, { ToastProps } from "../../../components/Toast";
+import { socket } from "../../../socket.io";
 
 export const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<UserCart[]>([]);
   const [filteredItems, setFilteredItems] = useState<UserCart[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<ToastProps | null>(null);
 
-  // Mock cart data
   useEffect(() => {
-    const getUser = async() => {
-      let result = await UsersService.GetUserByUserId();
 
-      if (result.success) {
-        setCartItems(() => (result.data as unknown as User).Carts);
-        setFilteredItems(() => (result.data as unknown as User).Carts);
-        setLoading(false);
-      }
+    socket.connect();
+
+    socket.on("cart-created", (newCart: UserCart) => {
+      setCartItems((prev) => [newCart, ...prev]);
+    });
+
+    socket.on("cart-updated", (updatedCart: UserCart) => {
+      setCartItems((prev) => {
+        const index = prev.findIndex(item => item.CartId === updatedCart.CartId);
+        if (index !== -1) {
+          const newCart = [...prev];
+          newCart[index] = updatedCart;
+          return newCart;
+        } else {
+          return [updatedCart, ...prev];
+        }
+      });
+    });
+
+    socket.on("cart-deleted", (deletedCart: UserCart) => {
+      setCartItems((prev) => prev.filter(item => item.CartId !== deletedCart.CartId));
+    });
+
+    return () => {
+      socket.off("cart-created");
+      socket.off("cart-updated");
+      socket.off("cart-deleted");
+      socket.disconnect();
     };
-    getUser();
   }, []);
 
-  // Filter functionality
+  useEffect(() => {
+    try {
+      const getUser = async () => {
+        let result = await UsersService.GetUserByUserId();
+
+        if (result.success) {
+          setCartItems(() => (result.data as unknown as User).Carts);
+          setFilteredItems(() => (result.data as unknown as User).Carts);
+          setLoading(false);
+        } else {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "warning",
+            title: result.error as string || "Warning",
+            message: result.message as string || "Unable to fetch cart items.",
+            onClose: () => setToast(null),
+          };
+          setToast(toast);
+          setLoading(false);
+        }
+      };
+      getUser();
+    } catch (error: any) {
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error?.response?.data?.error as string || "Error",
+        message: error?.response?.data?.message as string || "An error occurred while fetching cart items.",
+        onClose: () => setToast(null),
+      };
+      setToast(toast);
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     const filtered = cartItems.filter(
       (item) =>
@@ -93,6 +149,7 @@ export const Cart: React.FC = () => {
 
   return (
     <div className={styles.dashboardContainer}>
+      {toast && <Toast {...toast} />}
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.headerLeft}>

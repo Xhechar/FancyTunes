@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { set, useForm } from "react-hook-form";
 import {
   Plus,
@@ -35,7 +35,7 @@ export const Delicacies: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const imageUrlRef= useRef<string | null>(null);
   const [toast, setToast] = useState<ToastProps | null>(null);
 
   const {
@@ -53,7 +53,6 @@ export const Delicacies: React.FC = () => {
 
     socket.on("delicacy-created", (newDelicacy: Delicacy) => {
       setDelicacies((prev) => [...prev, newDelicacy]);
-      console.log("New delicacy created:", newDelicacy);
     });
 
     socket.on("delicacy-updated", (updatedDelicacy: Delicacy) => {
@@ -153,7 +152,7 @@ export const Delicacies: React.FC = () => {
   const openCreateModal = () => {
     setEditingDelicacy(null);
     setImagePreview(null);
-    setImageFile(null);
+    imageUrlRef.current = null;
     reset({
       Name: "",
       Description: "",
@@ -168,7 +167,7 @@ export const Delicacies: React.FC = () => {
   const openEditModal = (delicacy: Delicacy) => {
     setEditingDelicacy(delicacy);
     setImagePreview(delicacy.DelicacyImage || null);
-    setImageFile(null);
+    imageUrlRef.current = null;
     reset({
       Name: delicacy.Name,
       Description: delicacy.Description,
@@ -184,7 +183,7 @@ export const Delicacies: React.FC = () => {
     setIsModalOpen(false);
     setEditingDelicacy(null);
     setImagePreview(null);
-    setImageFile(null);
+    imageUrlRef.current = null;
     reset();
   };
 
@@ -200,43 +199,27 @@ export const Delicacies: React.FC = () => {
 
   const onSubmit = async (data: CreateDelicacyDto | UpdateDelicacyDto) => {
     try {
-      if (imageFile) {
-        
-        const formData: FormData = new FormData();
-
-        formData.append("file", imageFile);
-        formData.append("upload_preset", "allapps");
-        formData.append("cloud_name", "dakyiye2e");
-
-        await fetch(
-          "https://api.cloudinary.com/v1_1/dakyiye2e/image/upload",
-          {
-            method: "POST",
-            body: formData,
+      if (!imageUrlRef.current) {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "warning",
+          title: "IMAGE ERROR",
+          message: "kindly upload image first to proceed.",
+          onClose: function (): void {
+            setToast(() => null);
           }
-        ).then((res) => res.json()).then((res) => {
-          res.secure_url && setImagePreview(res.secure_url);
-          data.DelicacyImage = res.secure_url;
-        }).catch((err) => {
-          const toast: ToastProps = {
-            isVisible: true,
-            type: "error",
-            title: "IMAGE UPLOAD ERROR",
-            message: err.message || "An error occurred while uploading image.",
-            onClose: function (): void {
-              setToast(() => null);
-            },
-          };
+        };
 
-          setToast(toast);
-        });
-
+        setToast(toast);
+        return;
       }
+
+      data.DelicacyImage = imageUrlRef.current;
 
       if (editingDelicacy) {
         
         const result = await DelicacyService.UpdateDelicacy(editingDelicacy.DelicacyId, {
-          ...data, DelicacyImage: imageFile ? data.DelicacyImage : editingDelicacy.DelicacyImage
+          ...data, DelicacyImage: data.DelicacyImage ? data.DelicacyImage : editingDelicacy.DelicacyImage
         } as UpdateDelicacyDto);
 
         if(result.success) {
@@ -267,7 +250,7 @@ export const Delicacies: React.FC = () => {
 
       } else {
         
-        const result = await DelicacyService.CreateDelicacy({...data, DelicacyImage: imageFile ? data.DelicacyImage : ""} as CreateDelicacyDto);
+        const result = await DelicacyService.CreateDelicacy({...data, DelicacyImage: data.DelicacyImage ? data.DelicacyImage : null} as CreateDelicacyDto);
 
         if (result.success) {
           const toast: ToastProps = {
@@ -311,25 +294,57 @@ export const Delicacies: React.FC = () => {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Image size should be less than 5MB");
-        return;
-      }
 
       if (!file.type.startsWith("image/")) {
-        alert("Please select a valid image file");
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "warning",
+          title: "IMAGE ERROR",
+          message: "only upload image files.",
+          onClose: function (): void {
+            setToast(() => null);
+          }
+        };
+        setToast(toast);
         return;
       }
 
-      setImageFile(file);
+      const formData: FormData = new FormData();
+      
+      formData.append("file", file);
+      formData.append("upload_preset", "allapps");
+      formData.append("cloud_name", "dakyiye2e");
+
+      await fetch("https://api.cloudinary.com/v1_1/dakyiye2e/image/upload", {
+        method: "POST",
+        body: formData,
+      })
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.secure_url) imageUrlRef.current = (res.secure_url);
+          setImagePreview(res.secure_url);
+        })
+        .catch((err) => {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "error",
+            title: "IMAGE UPLOAD ERROR",
+            message: err.message || "An error occurred while uploading image.",
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(toast);
+        });
     }
   };
 
   const removeImage = () => {
-    setImageFile(null);
+    imageUrlRef.current = null;
     setImagePreview(null);
   };
 

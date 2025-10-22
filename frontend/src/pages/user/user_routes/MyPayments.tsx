@@ -21,6 +21,8 @@ import {
 import styles from "../../../styles/user/user_routes/MyPayments.module.css";
 import { Payment, Booking, Order, Room, Delicacy, User } from "../../../interfaces/interfaces";
 import { UsersService } from "../../../services/user.service";
+import Toast, { ToastProps } from "../../../components/Toast";
+import { socket } from "../../../socket.io";
 
 interface PaymentWithDetails extends Payment {
   relatedBooking?: Booking;
@@ -45,21 +47,70 @@ export const MyPayments: React.FC = () => {
     "newest" | "oldest" | "amount-high" | "amount-low"
   >("newest");
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<ToastProps | null>(null);
 
   useEffect(() => {
-    let getUser = async() => {
-      let result = await UsersService.GetUserByUserId();
+    socket.connect();
 
-      if(result.success) {
-        setPayments(() => (result.data as unknown as User).Payments);
-        setFilteredPayments(() => (result.data as unknown as User).Payments);
-        setLoading(false);
-      }
+    socket.on("payment-created", (newPayment: PaymentWithDetails) => {
+      setPayments((prevPayments) => [newPayment, ...prevPayments]);
+    });
+
+    socket.on("payment-updated", (updatedPayment: PaymentWithDetails) => {
+      setPayments((prevPayments) =>
+        prevPayments.map((payment) =>
+          payment.PaymentId === updatedPayment.PaymentId
+            ? updatedPayment
+            : payment
+        )
+      );
+    });
+
+    socket.on("payment-deleted", (deletedPayment: PaymentWithDetails) => {
+      setPayments((prevPayments) =>
+        prevPayments.filter(
+          (payment) => payment.PaymentId !== deletedPayment.PaymentId
+        )
+      );
+    });
+
+    return () => {
+      socket.off("payment-created");
+      socket.off("payment-updated");
+      socket.off("payment-deleted");
+      socket.disconnect();
     };
-    getUser();
   }, []);
 
-  // Filter and search functionality
+  useEffect(() => {
+    try {
+      let getUser = async () => {
+        let result = await UsersService.GetUserByUserId();
+
+        if (result.success) {
+          setPayments(() => (result.data as unknown as User).Payments);
+          setFilteredPayments(() => (result.data as unknown as User).Payments);
+          setLoading(false);
+        } else {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "warning",
+            title: result.error as string,
+            message: result.message as string,
+            onClose: function (): void {
+              setToast(null);
+            }
+          };
+          setToast(() => toast);
+          setLoading(false);
+        }
+      };
+      getUser();
+    } catch (error: any) {
+      
+    }
+  }, []);
+
   useEffect(() => {
     let filtered = payments.filter((payment) => {
       const matchesSearch =
@@ -162,6 +213,7 @@ export const MyPayments: React.FC = () => {
 
   return (
     <div className={styles.dashboardContainer}>
+      {toast && <Toast {...toast} />}
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.headerLeft}>

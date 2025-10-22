@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { set, useForm } from "react-hook-form";
 import {
   Plus,
@@ -30,7 +30,7 @@ export const Rooms: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [roomTypeFilter, setRoomTypeFilter] = useState("all");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const imageUrlRef = useRef<string | null>(null);
   const [toast, setToast] = useState<ToastProps | null>(null);
 
 
@@ -152,7 +152,7 @@ export const Rooms: React.FC = () => {
   const openCreateModal = () => {
     setEditingRoom(null);
     setImagePreview(null);
-    setImageFile(null);
+    imageUrlRef.current = null;
     reset({
       RoomCount: 0,
       RoomType: "",
@@ -168,7 +168,7 @@ export const Rooms: React.FC = () => {
   const openEditModal = (room: Room) => {
     setEditingRoom(room);
     setImagePreview(room.RoomImage || null);
-    setImageFile(null);
+    imageUrlRef.current = null;
     reset({
       RoomCount: room.RoomCount,
       RoomType: room.RoomType,
@@ -185,7 +185,7 @@ export const Rooms: React.FC = () => {
     setIsModalOpen(false);
     setEditingRoom(null);
     setImagePreview(null);
-    setImageFile(null);
+    imageUrlRef.current = null;
     reset();
   };
 
@@ -201,43 +201,29 @@ export const Rooms: React.FC = () => {
 
   const onSubmit = async (data: CreateRoomDto | UpdateRoomDto) => {
     try {
-      if (imageFile) {
-        const formData: FormData = new FormData();
+      if (!imageUrlRef.current) {
 
-        formData.append("file", imageFile);
-        formData.append("upload_preset", "allapps");
-        formData.append("cloud_name", "dakyiye2e");
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "warning",
+          title: "IMAGE ERROR",
+          message: "kindly upload image first to proceed.",
+          onClose: function (): void {
+            setToast(() => null);
+          }
+        };
 
-        await fetch("https://api.cloudinary.com/v1_1/dakyiye2e/image/upload", {
-          method: "POST",
-          body: formData,
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            data.secure_url
-              ? (data.RoomImage = data.secure_url)
-              : (data.RoomImage = null);
-          }).catch((err) => {
-            const toast: ToastProps = {
-              isVisible: true,
-              type: "error",
-              title: "IMAGE UPLOAD FAILED",
-              message: err.message || "An error occurred while uploading the image.",
-              onClose: function (): void {
-                setToast(() => null);
-              },
-            };
-
-            setToast(() => toast);
-            return;
-          });
+        setToast(toast);
+        return;
       }
+      
+      data.RoomImage = imageUrlRef.current;
 
       if (editingRoom) {
         try {
           let result = await RoomsService.UpdateRoom(editingRoom.RoomId, {
             ...data,
-            RoomImage: imageFile ? data.RoomImage : editingRoom.RoomImage,
+            RoomImage: data.RoomCount ? data.RoomImage : editingRoom.RoomImage,
           } as UpdateRoomDto);
 
           if (result.success) {
@@ -285,7 +271,7 @@ export const Rooms: React.FC = () => {
         try {
           let result = await RoomsService.CreateRoom({
             ...data,
-            RoomImage: imageFile ? data.RoomImage : null,
+            RoomImage: data.RoomImage ? data.RoomImage : null,
           } as CreateRoomDto);
 
           if (result.success) {
@@ -347,7 +333,7 @@ export const Rooms: React.FC = () => {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
@@ -365,12 +351,39 @@ export const Rooms: React.FC = () => {
         return;
       }
 
-      setImageFile(file);
+      const formData: FormData = new FormData();
+      
+      formData.append("file", file);
+      formData.append("upload_preset", "allapps");
+      formData.append("cloud_name", "dakyiye2e");
+
+      await fetch("https://api.cloudinary.com/v1_1/dakyiye2e/image/upload", {
+        method: "POST",
+        body: formData,
+      })
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.secure_url) imageUrlRef.current = (res.secure_url);
+          setImagePreview(res.secure_url);
+        })
+        .catch((err) => {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "error",
+            title: "IMAGE UPLOAD ERROR",
+            message: err.message || "An error occurred while uploading image.",
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          };
+
+          setToast(toast);
+        });
     }
   };
 
   const removeImage = () => {
-    setImageFile(null);
+    imageUrlRef.current = null;
     setImagePreview(null);
   };
 

@@ -171,6 +171,8 @@ export class BookingService implements IBookingService {
 
     if (DeleteBooking == null) return ServiceResponse.failure<Booking>(ErrorCode.SERVER, "unable to delete booking at the moment, kindly try again later.");
 
+    io.emit("booking-deleted", DeleteBooking);
+
     return ServiceResponse.success<Booking>("booking deleted successfully.");
   }
   async GetAllBookings(): Promise<ServiceResult<Booking>> {

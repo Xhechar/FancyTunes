@@ -83,6 +83,8 @@ export class OrderService implements IOrderService {
 
     if (!UpdateOrder) return ServiceResponse.failure<Order>(ErrorCode.SERVER, "unable to update order at the moment");
 
+    EmitToSingleUser(io, OrderExists.UserId, "order-updated", UpdateOrder);
+
     return ServiceResponse.success<Order>("order updated successfully");
   }
   async DeleteOrder(OrderId: string): Promise<ServiceResult<Order>> {
@@ -102,6 +104,8 @@ export class OrderService implements IOrderService {
     });
 
     if (!DeleteOrder) return ServiceResponse.failure<Order>(ErrorCode.SERVER, "unable to delete order at the moment");
+
+    io.emit("order-deleted", DeleteOrder);
 
     return ServiceResponse.success<Order>("order deleted successfully");
   }

@@ -44,7 +44,7 @@ export class CartService implements ICartService {
 
     if (!AddToCart) return ServiceResponse.failure<Cart>(ErrorCode.SERVER, "unable to add item to cart at the moment, try again later");
 
-    io.emit("cart-created", AddToCart);
+    EmitToSingleUser(io, UserId, "cart-created", AddToCart);
 
     return ServiceResponse.success<Cart>("item added to cart successfully");
   }
@@ -152,7 +152,7 @@ export class CartService implements ICartService {
 
     if (!DeleteCart) return ServiceResponse.failure<Cart>(ErrorCode.SERVER, "unable to delete cart item at the moment");
 
-    EmitToSingleUser(io, CartExists.UserId, "cart-deleted", DeleteCart);
+    io.emit("cart-deleted", DeleteCart);
 
     return ServiceResponse.success<Cart>("cart item deleted successfully");
   }

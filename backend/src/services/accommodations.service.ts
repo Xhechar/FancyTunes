@@ -7,6 +7,7 @@ import { ErrorCode } from "../interfaces/enum/response.enum";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { v4 } from "uuid";
 import { io } from "../server";
+import { EmitToSingleUser } from "../sockets/socket.io";
 
 export class AccommodationsService implements IAccommodationService {
 
@@ -59,6 +60,8 @@ export class AccommodationsService implements IAccommodationService {
 
     io.emit("room-updated", UpdateRoom);
 
+    EmitToSingleUser(io, UserExists.UserId, "accommodation-created", CreateAccommodation);
+
     return ServiceResponse.success<Accommodation>("accommodation created successfully");
   }
   async UpdateAccommodation(UserId: string, AccommodationId: string, Accommodation: UpdateAccommodationDto): Promise<ServiceResult<Accommodation>> {
@@ -91,6 +94,8 @@ export class AccommodationsService implements IAccommodationService {
 
     if (!UpdateAccommodation) return ServiceResponse.failure<Accommodation>(ErrorCode.SERVER, "unable to update accommodation");
 
+    EmitToSingleUser(io, UserExists.UserId, "accommodation-updated", UpdateAccommodation);
+
     return ServiceResponse.success<Accommodation>("accommodation updated successfully");
   }
   async DeleteAccommodation(AccommodationId: string): Promise<ServiceResult<Accommodation>> {
@@ -110,6 +115,8 @@ export class AccommodationsService implements IAccommodationService {
     });
 
     if (!DeleteAccommodation) return ServiceResponse.failure<Accommodation>(ErrorCode.SERVER, "unable to delete accommodation");
+
+    io.emit("accommodation-deleted", DeleteAccommodation);
 
     return ServiceResponse.success<Accommodation>("accommodation deleted successfully");
   }

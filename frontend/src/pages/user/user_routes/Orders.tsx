@@ -22,6 +22,8 @@ import {
 import styles from "../../../styles/user/user_routes/Orders.module.css";
 import { User, Order, Delicacy, OrderItem } from "../../../interfaces/interfaces";
 import { UsersService } from "../../../services/user.service";
+import { socket } from "../../../socket.io";
+import Toast, { ToastProps } from "../../../components/Toast";
 
 export const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -29,23 +31,51 @@ export const Orders: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast] = useState<ToastProps | null>(null);
 
-  // Filter and search functionality
   useEffect(() => {
+    try {
+      let fetchOrders = async () => {
+        let result = await UsersService.GetUserByUserId();
+        if (result.success) {
+          const user = result.data as unknown as User;
+          setOrders(user.Orders);
+          setFilteredOrders(user.Orders);
+        } else {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "warning",
+            title: result.error as string || "Warning",
+            message: result.message as string || "Unable to fetch orders at the moment.",
+            onClose: function (): void {
+              setToast(null);
+            }
+          };
 
-    const getUser = async() => {
-      let result = await UsersService.GetUserByUserId();
+          setToast(() => toast);
+        }
+      };
+      fetchOrders();
+    } catch (error: any) {
 
-      if(result.success) {
-        setOrders(() => (result.data as unknown as User).Orders);
-        setFilteredOrders(() => (result.data as unknown as User).Orders);
-      }
-    };
-    getUser();
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error?.response?.data?.error as string || "Error",
+        message: error?.response?.data?.message as string || "An unexpected error occurred while fetching orders.",
+        onClose: function (): void {
+          setToast(null);
+        }
+      };
+      setToast(() => toast);
+      
+    }
+  }, []);
+
+  useEffect(() => {
 
     let filtered = orders;
 
-    // Filter by status
     if (filterStatus !== "All") {
       if (filterStatus === "Active") {
         filtered = filtered.filter(
@@ -61,7 +91,6 @@ export const Orders: React.FC = () => {
       }
     }
 
-    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (order) =>
@@ -176,6 +205,7 @@ export const Orders: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      {toast && <Toast {...toast} />}
       {/* Header */}
       <div className={styles.header}>
         <div className={styles["header-content"]}>

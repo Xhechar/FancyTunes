@@ -24,6 +24,8 @@ import {
 import styles from "../../../styles/user/user_routes/Bookings.module.css";
 import { Booking, User } from "../../../interfaces/interfaces";
 import { UsersService } from "../../../services/user.service";
+import { socket } from "../../../socket.io";
+import Toast, { ToastProps } from "../../../components/Toast";
 
 export const Bookings: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -35,22 +37,80 @@ export const Bookings: React.FC = () => {
   const [processingPayment, setProcessingPayment] = useState<string | null>(
     null
   );
+  const [ toast, setToast ] = useState<ToastProps | null>(null);
 
-  // Filter and search functionality
   useEffect(() => {
 
-    let getUser = async() => {
-      let result = await UsersService.GetUserByUserId();
+    socket.connect();
 
-      if(result.success) {
-        setBookings(() => (result.data as unknown as User).Bookings)
-      }
+    socket.on("booking-created", (newBooking: Booking) => {
+      setBookings((prev) => [...prev, newBooking]);
+    });
+
+    socket.on("booking-updated", (updatedBooking: Booking) => {
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking.BookingId === updatedBooking.BookingId
+            ? updatedBooking
+            : booking
+        )
+      );
+    });
+
+    socket.on("booking-deleted", (deletedBooking: Booking) => {
+      setBookings((prev) =>
+        prev.filter(
+          (booking) => booking.BookingId !== deletedBooking.BookingId
+        )
+      );
+    });
+
+    return () => {
+      socket.off("booking-created");
+      socket.off("booking-updated");
+      socket.off("booking-deleted");
+      socket.disconnect();
     };
-    getUser();
+
+  }, []);
+
+  useEffect(() => {
+
+    try {
+      let getUser = async () => {
+        let result = await UsersService.GetUserByUserId();
+
+        if (result.success) {
+          setBookings(() => (result.data as unknown as User).Bookings);
+        } else {
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "warning",
+            title: result.error as string,
+            message: result.message as string,
+            onClose: () => setToast(null),
+          };
+          setToast(toast);
+        }
+      };
+      getUser();
+    } catch (error: any) {
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error?.response?.data?.error as string || "An error occurred",
+        message: error?.response?.data?.message as string || "Unable to fetch bookings at the moment, please try again later.",
+        onClose: () => setToast(null),
+      };
+      setToast(toast);
+    }
+  
+  }, []);
+
+  useEffect(() => {
 
     let filtered = bookings;
 
-    // Filter by status
     if (filterStatus !== "All") {
       if (filterStatus === "Active") {
         filtered = filtered.filter(
@@ -65,7 +125,6 @@ export const Bookings: React.FC = () => {
       }
     }
 
-    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (booking) =>
@@ -86,7 +145,6 @@ export const Bookings: React.FC = () => {
   const handleCompletePayment = async (bookingId: string) => {
     setProcessingPayment(bookingId);
 
-    // Simulate payment processing
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     setBookings((prev) =>
@@ -219,6 +277,7 @@ export const Bookings: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      {toast && <Toast {...toast} />}
       <div className={styles.header}>
         <div className={styles["header-content"]}>
           <div className={styles["header-text"]}>

@@ -36,12 +36,16 @@ import {
   Cart,
   User,
   Notification,
+  BusinessRoom,
 } from "../../../interfaces/interfaces";
 import { DelicacyService } from "../../../services/delicacy.service";
 import { RoomsService } from "../../../services/room.service";
 import { UsersService } from "../../../services/user.service";
+import { socket } from "../../../socket.io";
+import { CreateCartDto } from "../../../interfaces/dtos/interfaces.dtos";
+import { CartService } from "../../../services/cart.service";
+import Toast, { ToastProps } from "../../../components/Toast";
 
-// Form interfaces
 interface BookingFormData {
   RoomId: string;
   CheckInDate: string;
@@ -74,9 +78,11 @@ export const Dashboard: React.FC = () => {
   const bookingForm = useForm<BookingFormData>();
   const orderForm = useForm<OrderFormData>();
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [ businessRooms, setBusinessRooms ] = useState<BusinessRoom[]>([]);
   const [delicacies, setDelicacies] = useState<Delicacy[]>([]);
   const [userBookings, setUserBookings] = useState<Booking[]>([]);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
+  const [ toast, setToast ] = useState<ToastProps | null>(null);
 
   useEffect(() => {
     const getDelicacies = async() => {
@@ -109,6 +115,81 @@ export const Dashboard: React.FC = () => {
     getDelicacies();
     getRooms();
     getSingleUser();
+  }, []);
+
+  useEffect(() => {
+    socket.connect();
+
+    socket.on("room-created", (newRoom: Room) => {
+      setRooms((prev) => [...prev, newRoom]);
+    });
+
+    socket.on("room-updated", (updateRoom: Room) => {
+      setRooms((prev) => prev.map((room) => 
+      room.RoomId === updateRoom.RoomId ? updateRoom : room
+      ));
+    });
+
+    socket.on("room-deleted", (deletedRoom: Room) => {
+      setRooms((prev) => prev.filter((room) => room.RoomId !== deletedRoom.RoomId))
+    })
+
+    socket.on("business-room-created", (newBusinessRoom: BusinessRoom) => {
+      setBusinessRooms((prev) => [...prev, newBusinessRoom]);
+    });
+
+    socket.on("business-room-updated", ((updateBusinessRoom: BusinessRoom) => {
+      setBusinessRooms((prev) => prev.map((businessRoom) => 
+        businessRoom.BusinessRoomId == updateBusinessRoom.BusinessRoomId ? 
+        updateBusinessRoom : businessRoom
+      ));
+    }));
+
+    socket.on("business-room-deleted", (deletedRoom: BusinessRoom) => {
+      setBusinessRooms((prev) =>
+        prev.filter((room) => room.BusinessRoomId !== deletedRoom.BusinessRoomId)
+      );
+    });
+
+    socket.on("delicacy-created", (newDelicacy: Delicacy) => {
+      setDelicacies((prev) => [...prev, newDelicacy]);
+    });
+
+    socket.on("delicacy-updated", (updatedDelicacy: Delicacy) => {
+      setDelicacies((prev) => prev.map((delicacy) => 
+      delicacy.DelicacyId == updatedDelicacy.DelicacyId ? updatedDelicacy : delicacy));
+    });
+
+    socket.on("delicacy-deleted", (deletedDelicacy: Delicacy) => {
+      setDelicacies((prev) =>
+        prev.filter((delicacy) => delicacy.DelicacyId !== deletedDelicacy.DelicacyId)
+      );
+    });
+
+    socket.on("cart-created", (createdCart: Cart) => {
+      setCartItems((prev) => [...prev, createdCart]);
+    });
+
+    socket.on("cart-updated", (updatedCart: Cart) => {
+      setCartItems((prev) => prev.map((cart) => cart.CartId == updatedCart.CartId ? updatedCart : cart));
+    });
+
+    socket.on("cart-deleted", (deletedCart: Cart) => {
+      setCartItems((prev) => prev.filter((cart) => cart.CartId !== deletedCart.CartId));
+    });
+
+    return () => {
+      socket.off("delicacy-created");
+      socket.off("delicacy-updated");
+      socket.off("delicacy-deleted");
+      socket.off("business-room-created");
+      socket.off("business-room-updated");
+      socket.off("business-room-deleted");
+      socket.off("room-created");
+      socket.off("room-updated");
+      socket.off("room-deleted");
+      socket.disconnect();
+    }
   }, []);
 
   const categories = [
@@ -148,33 +229,195 @@ export const Dashboard: React.FC = () => {
     orderForm.reset();
   };
 
-  const addToCart = (delicacy: Delicacy) => {
-    const newCartItem: Cart = {
-      CartId: Date.now().toString(),
-      UserId: "current-user-id",
-      DelicacyId: delicacy.DelicacyId,
-      Quantity: 1,
-      AddedAt: new Date(),
-      User: {} as User,
-      Delicacy: delicacy,
-    };
-    setCartItems([...cartItems, newCartItem]);
+  const addToCart = async (delicacy: Delicacy) => {
+    try {
+      const newCartItem: CreateCartDto = {
+        Quantity: 1,
+      };
+
+      let result = await CartService.CreateCart(
+        delicacy.DelicacyId,
+        newCartItem
+      );
+
+      if (result.success) {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+
+        setToast(() => toast);
+      } else {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "error",
+          title: result.error as string,
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+
+        setToast(() => toast);
+      }
+    } catch (error: any) {
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error?.response?.data?.error as string,
+        message: error?.response?.data?.message as string,
+        onClose: function (): void {
+          setToast(() => null);
+        }
+      };
+
+      setToast(() => toast);
+    }
   };
 
-  const removeFromCart = (cartId: string) => {
-    setCartItems(cartItems.filter((item) => item.CartId !== cartId));
-  };
+  const removeFromCart = async (CartId: string) => {
+    try {
+      let result = await CartService.DeleteCart(CartId);
 
-  const updateCartQuantity = (cartId: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeFromCart(cartId);
+      if (result.success) {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => toast);
+          },
+        };
+
+        setToast(() => toast);
+      } else {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "warning",
+          title: result.error as string,
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+
+        setToast(() => toast);
+      }
+    } catch (error: any) {
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error?.response?.data?.error as string,
+        message: error?.response?.data?.message as string,
+        onClose: function (): void {
+          setToast(() => null);
+        },
+      };
+
+      setToast(() => toast);
       return;
     }
-    setCartItems(
-      cartItems.map((item) =>
-        item.CartId === cartId ? { ...item, Quantity: newQuantity } : item
-      )
-    );
+  };
+
+  const IncrementCart = async (CartId: string) => {
+
+    try {
+
+      let result = await CartService.IncrementCartItem(CartId);
+
+      if (result.success) {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => toast);
+          },
+        };
+
+        setToast(() => toast);
+      } else {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "warning",
+          title: result.error as string,
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          }
+        };
+
+        setToast(() => toast);
+      }
+    } catch (error: any) {
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error?.response?.data?.error as string,
+        message: error?.response?.data?.message as string,
+        onClose: function (): void {
+          setToast(() => null);
+        }
+      };
+
+      setToast(() => toast);
+      return;
+    }
+
+  };
+
+  const DecrementCart = async (CartId: string) => {
+
+    try {
+      let result = await CartService.DecrementCartItem(CartId);
+
+      if (result.success) {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => toast);
+          },
+        };
+
+        setToast(() => toast);
+      } else {
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "warning",
+          title: result.error as string,
+          message: result.message as string,
+          onClose: function (): void {
+            setToast(() => null);
+          },
+        };
+
+        setToast(() => toast);
+      }
+    } catch (error: any) {
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error?.response?.data?.error as string,
+        message: error?.response?.data?.message as string,
+        onClose: function (): void {
+          setToast(() => null);
+        },
+      };
+
+      setToast(() => toast);
+      return;
+    }
+
   };
 
   const filteredRooms = rooms?.filter(
@@ -204,6 +447,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className={styles["dashboard-container"]}>
+      { toast && <Toast {...toast}></Toast>}
       <div className={styles["dashboard-header"]}>
         <div className={styles["header-top"]}>
           <button onClick={handleBack} className={styles["back-button"]}>
@@ -545,7 +789,7 @@ export const Dashboard: React.FC = () => {
                       <div className={styles["quantity-controls"]}>
                         <button
                           onClick={() =>
-                            updateCartQuantity(item.CartId, item.Quantity - 1)
+                            DecrementCart(item.CartId)
                           }
                         >
                           <Minus size={16} />
@@ -553,7 +797,7 @@ export const Dashboard: React.FC = () => {
                         <span>{item.Quantity}</span>
                         <button
                           onClick={() =>
-                            updateCartQuantity(item.CartId, item.Quantity + 1)
+                            IncrementCart(item.CartId)
                           }
                         >
                           <Plus size={16} />

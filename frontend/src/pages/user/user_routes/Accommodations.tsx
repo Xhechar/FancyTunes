@@ -18,6 +18,8 @@ import {
 import styles from "../../../styles/user/user_routes/Accommodations.module.css";
 import { Accommodation, User } from "../../../interfaces/interfaces";
 import { UsersService } from "../../../services/user.service";
+import { socket } from "../../../socket.io";
+import Toast, {ToastProps} from "../../../components/Toast";
 
 
 export const Accommodations: React.FC = () => {
@@ -31,18 +33,76 @@ export const Accommodations: React.FC = () => {
   const [processingPayment, setProcessingPayment] = useState<string | null>(
     null
   );
+  const [ toast, setToast ] = useState<ToastProps | null>(null);
+
+  useEffect(() => {
+    socket.connect();
+
+    socket.on("accommodation-created", (newAccommodation: Accommodation) => {
+      setAccommodations((prev) => [...prev, newAccommodation]);
+    });
+
+    socket.on("accommodation-updated", (updatedAccommodation: Accommodation) => {
+      setAccommodations((prev) =>
+        prev.map((acc) =>
+          acc.AccommodationId === updatedAccommodation.AccommodationId
+            ? updatedAccommodation
+            : acc
+        )
+      );
+    });
+
+    socket.on("accommodation-deleted", (deletedAccommodation: Accommodation) => {
+      setAccommodations((prev) =>
+        prev.filter(
+          (acc) => acc.AccommodationId !== deletedAccommodation.AccommodationId
+        )
+      );
+    });
+
+    return () => {
+      socket.off("accommodation-created");
+      socket.off("accommodation-updated");
+      socket.off("accommodation-deleted");
+      socket.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
 
-    let getUserAccommodations = async() => {
-      let result = await UsersService.GetUserByUserId();
+    try {
 
-      if(result.success) {
-        setAccommodations(() => (result.data as unknown as User).Accommodations);
-      }
-    };
+      let getUserAccommodations = async () => {
+        let result = await UsersService.GetUserByUserId();
 
-    getUserAccommodations();
+        if (result.success) {
+          setAccommodations(
+            () => (result.data as unknown as User).Accommodations
+          );
+        }
+      };
+
+      getUserAccommodations();
+      
+    } catch (error: any) {
+
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: error?.response?.data?.error as string || "Error",
+        message: error?.response?.data?.message as string || "An unexpected error occurred.",
+        onClose: function (): void {
+          setToast(null);
+        }
+      };
+
+      setToast(() => toast)
+      
+    }
+
+  }, []);
+
+  useEffect(() => {
 
     let filtered = accommodations;
 
@@ -132,6 +192,7 @@ export const Accommodations: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      {toast && <Toast {...toast} />}
       <div className={styles.header}>
         <div className={styles["header-content"]}>
           <div className={styles["header-text"]}>
