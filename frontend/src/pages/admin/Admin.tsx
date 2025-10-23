@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, Outlet } from "react-router-dom";
+import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   Menu,
   X,
@@ -19,12 +19,16 @@ import {
   Package,
 } from "lucide-react";
 import styles from "../../styles/admin/admin.module.css";
+import Toast, { ToastProps } from "../../components/Toast";
+import { AuthService } from "../../services/auth.service";
 
 export const Admin: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
+  const [toast, setToast] = useState<ToastProps | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -93,12 +97,40 @@ export const Admin: React.FC = () => {
     return location.pathname === path;
   };
 
+  const LogoutUser = async () => {
+    try {
+      let result = await AuthService.Logout();
+
+      if (result.success) {
+        setToast({
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message: result.message as string,
+          onClose: () => setToast(null),
+        });
+        setTimeout(() => {
+          navigate("/login");
+        }, 5000);
+      }
+    } catch (error: any) {
+      setToast({
+        isVisible: true,
+        type: "error",
+        title: error?.response?.data?.error as string || "ERROR",
+        message:
+          error?.response?.data?.message || "An error occurred during logout.",
+        onClose: () => setToast(null),
+      });
+    }
+  }
+
   return (
     <>
+      {toast && <Toast {...toast} />}
       <nav className={`${styles.navbar} ${isScrolled ? styles.scrolled : ""}`}>
         <div className={styles.navContainer}>
           <Link to="/admin" className={styles.logo}>
-            {/* <div className={styles.logoIcon}>FT</div> */}
             <div className={styles.logoText}>
               <span className={styles.logoMain}>Fancy Tunes</span>
               <span className={styles.logoSub}>Admin Portal</span>
@@ -169,7 +201,8 @@ export const Admin: React.FC = () => {
             <button className={styles.actionButton}>
               <User size={20} />
             </button>
-            <button className={styles.actionButton}>
+            <button className={styles.actionButton}
+            onClick={() => LogoutUser()}>
               <LogOut size={20} />
             </button>
           </div>

@@ -6,13 +6,15 @@ export class ServiceResponse<T> {
   static success<T>(
     message: string,
     data?: T,
-    dataList?: T[]
+    dataList?: T[],
+    role?: string
   ): ServiceResult<T> {
     return {
       success: true,
       message: message,
       data: data,
       dataList: dataList,
+      role: role
     };
   }
 

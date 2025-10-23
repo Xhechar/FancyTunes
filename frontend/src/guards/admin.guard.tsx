@@ -1,8 +1,27 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { AuthService } from "../services/auth.service";
 
 export const AdminGuard = ({ children }: { children: ReactNode }) => {
-  const isAdmin = true; // Replace with actual admin role check logic
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
-  return isAdmin ? <>{children}</> : <Navigate to="/not-authorized" replace />;
+  useEffect(() => {
+    console.log("AdminGuard mounted");
+    let mounted = true;
+    AuthService.AuthenticateAdmin()
+      .then((result) => {
+        if (!mounted) return;
+        setIsAdmin(!!(result?.success && result?.role === "admin"));
+      })
+      .catch(() => {
+        if (mounted) setIsAdmin(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (isAdmin === null) return null;
+
+  return isAdmin ? <>{children}</> : <Navigate to="/login" replace />;
 };

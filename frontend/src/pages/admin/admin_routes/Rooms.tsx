@@ -59,9 +59,9 @@ export const Rooms: React.FC = () => {
       );
     });
 
-    socket.on("room-deleted", (deletedRoomId: string) => {
+    socket.on("room-deleted", (deletedRoom: Room) => {
       setRooms((prevRooms) =>
-        prevRooms.filter((room) => room.RoomId !== deletedRoomId)
+        prevRooms.filter((room) => room.RoomId !== deletedRoom.RoomId)
       );
     });
 
@@ -168,7 +168,7 @@ export const Rooms: React.FC = () => {
   const openEditModal = (room: Room) => {
     setEditingRoom(room);
     setImagePreview(room.RoomImage || null);
-    imageUrlRef.current = null;
+    imageUrlRef.current = room.RoomImage || null;
     reset({
       RoomCount: room.RoomCount,
       RoomType: room.RoomType,
@@ -223,6 +223,8 @@ export const Rooms: React.FC = () => {
         try {
           let result = await RoomsService.UpdateRoom(editingRoom.RoomId, {
             ...data,
+            RoomCount: Number(data.RoomCount),
+            Capacity: Number(data.Capacity),
             RoomImage: data.RoomCount ? data.RoomImage : editingRoom.RoomImage,
           } as UpdateRoomDto);
 
@@ -271,6 +273,8 @@ export const Rooms: React.FC = () => {
         try {
           let result = await RoomsService.CreateRoom({
             ...data,
+            RoomCount: Number(data.RoomCount),
+            Capacity: Number(data.Capacity),
             RoomImage: data.RoomImage ? data.RoomImage : null,
           } as CreateRoomDto);
 
@@ -364,6 +368,15 @@ export const Rooms: React.FC = () => {
         .then((res) => res.json())
         .then((res) => {
           if (res.secure_url) imageUrlRef.current = (res.secure_url);
+          setToast({
+            isVisible: true,
+            type: "success",
+            title: "IMAGE UPLOAD SUCCESS",
+            message: "image uploaded successfully.",
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          });
           setImagePreview(res.secure_url);
         })
         .catch((err) => {
@@ -604,12 +617,12 @@ export const Rooms: React.FC = () => {
             <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
-                  <label htmlFor="RoomCount">Room Number</label>
+                  <label htmlFor="RoomCount">Room Count</label>
                   <input
                     type="number"
                     id="RoomCount"
                     {...register("RoomCount", {
-                      required: "Room number is required",
+                      required: "Room count is required",
                       min: { value: 1, message: "Must be at least 1" },
                     })}
                     className={errors.RoomCount ? styles.inputError : ""}

@@ -325,6 +325,15 @@ export const Delicacies: React.FC = () => {
         .then((res) => res.json())
         .then((res) => {
           if (res.secure_url) imageUrlRef.current = (res.secure_url);
+          setToast({
+            isVisible: true,
+            type: "success",
+            title: "IMAGE UPLOAD SUCCESS",
+            message: "image uploaded successfully.",
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          });
           setImagePreview(res.secure_url);
         })
         .catch((err) => {

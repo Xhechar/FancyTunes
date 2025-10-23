@@ -11,6 +11,8 @@ export class RoomsService {
   private static ApiUrl = `${BackendRoute}room`;
 
   static async CreateRoom(Room: CreateRoomDto): Promise<ServiceResult<Room>> {
+    console.log(Room);
+    
     const result = await axios.post(`${this.ApiUrl}/create-room`, Room, {
       withCredentials: true,
     });

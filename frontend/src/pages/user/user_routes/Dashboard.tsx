@@ -26,6 +26,8 @@ import {
   Coffee,
   Tv,
   Bath,
+  Briefcase,
+  Loader2,
 } from "lucide-react";
 import styles from "../../../styles/user/user_routes/Dashboard.module.css";
 import {
@@ -59,33 +61,48 @@ interface OrderFormData {
   Quantity: number;
 }
 
+type PaymentMethod = "mpesa" | "stripe";
+
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<
-    "rooms" | "delicacies" | "bookings" | "orders" | "cart"
+    "rooms" | "business-rooms" | "delicacies" | "bookings" | "orders" | "cart"
   >("rooms");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [selectedBusinessRoom, setSelectedBusinessRoom] =
+    useState<BusinessRoom | null>(null);
   const [selectedDelicacy, setSelectedDelicacy] = useState<Delicacy | null>(
     null
   );
   const [cartItems, setCartItems] = useState<Cart[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mpesa");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<{
+    title: string;
+    message: string;
+    type: "processing" | "success" | "error";
+  } | null>(null);
+  const [currentPaymentType, setCurrentPaymentType] = useState<
+    "cart" | "room" | "business-room"
+  >("cart");
 
   const bookingForm = useForm<BookingFormData>();
   const orderForm = useForm<OrderFormData>();
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [ businessRooms, setBusinessRooms ] = useState<BusinessRoom[]>([]);
+  const [businessRooms, setBusinessRooms] = useState<BusinessRoom[]>([]);
   const [delicacies, setDelicacies] = useState<Delicacy[]>([]);
   const [userBookings, setUserBookings] = useState<Booking[]>([]);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
-  const [ toast, setToast ] = useState<ToastProps | null>(null);
+  const [toast, setToast] = useState<ToastProps | null>(null);
 
   useEffect(() => {
-    const getDelicacies = async() => {
+    const getDelicacies = async () => {
       let result = await DelicacyService.GetAvailableDelicacies();
 
       if (result.success) {
@@ -93,7 +110,7 @@ export const Dashboard: React.FC = () => {
       }
     };
 
-    const getRooms = async() => {
+    const getRooms = async () => {
       let result = await RoomsService.GetAllRooms();
 
       if (result.success) {
@@ -101,7 +118,7 @@ export const Dashboard: React.FC = () => {
       }
     };
 
-    const getSingleUser = async() => {
+    const getSingleUser = async () => {
       let result = await UsersService.GetUserByUserId();
 
       if (result.success) {
@@ -112,9 +129,19 @@ export const Dashboard: React.FC = () => {
       }
     };
 
+    // Simulated API call for business rooms
+    const getBusinessRooms = async () => {
+      // Simulate API call
+      // let result = await BusinessRoomService.GetAllBusinessRooms();
+      // if (result.success) {
+      //   setBusinessRooms(() => result.dataList as BusinessRoom[]);
+      // }
+    };
+
     getDelicacies();
     getRooms();
     getSingleUser();
+    getBusinessRooms();
   }, []);
 
   useEffect(() => {
@@ -125,29 +152,38 @@ export const Dashboard: React.FC = () => {
     });
 
     socket.on("room-updated", (updateRoom: Room) => {
-      setRooms((prev) => prev.map((room) => 
-      room.RoomId === updateRoom.RoomId ? updateRoom : room
-      ));
+      setRooms((prev) =>
+        prev.map((room) =>
+          room.RoomId === updateRoom.RoomId ? updateRoom : room
+        )
+      );
     });
 
     socket.on("room-deleted", (deletedRoom: Room) => {
-      setRooms((prev) => prev.filter((room) => room.RoomId !== deletedRoom.RoomId))
-    })
+      setRooms((prev) =>
+        prev.filter((room) => room.RoomId !== deletedRoom.RoomId)
+      );
+    });
 
     socket.on("business-room-created", (newBusinessRoom: BusinessRoom) => {
       setBusinessRooms((prev) => [...prev, newBusinessRoom]);
     });
 
-    socket.on("business-room-updated", ((updateBusinessRoom: BusinessRoom) => {
-      setBusinessRooms((prev) => prev.map((businessRoom) => 
-        businessRoom.BusinessRoomId == updateBusinessRoom.BusinessRoomId ? 
-        updateBusinessRoom : businessRoom
-      ));
-    }));
+    socket.on("business-room-updated", (updateBusinessRoom: BusinessRoom) => {
+      setBusinessRooms((prev) =>
+        prev.map((businessRoom) =>
+          businessRoom.BusinessRoomId == updateBusinessRoom.BusinessRoomId
+            ? updateBusinessRoom
+            : businessRoom
+        )
+      );
+    });
 
     socket.on("business-room-deleted", (deletedRoom: BusinessRoom) => {
       setBusinessRooms((prev) =>
-        prev.filter((room) => room.BusinessRoomId !== deletedRoom.BusinessRoomId)
+        prev.filter(
+          (room) => room.BusinessRoomId !== deletedRoom.BusinessRoomId
+        )
       );
     });
 
@@ -156,13 +192,20 @@ export const Dashboard: React.FC = () => {
     });
 
     socket.on("delicacy-updated", (updatedDelicacy: Delicacy) => {
-      setDelicacies((prev) => prev.map((delicacy) => 
-      delicacy.DelicacyId == updatedDelicacy.DelicacyId ? updatedDelicacy : delicacy));
+      setDelicacies((prev) =>
+        prev.map((delicacy) =>
+          delicacy.DelicacyId == updatedDelicacy.DelicacyId
+            ? updatedDelicacy
+            : delicacy
+        )
+      );
     });
 
     socket.on("delicacy-deleted", (deletedDelicacy: Delicacy) => {
       setDelicacies((prev) =>
-        prev.filter((delicacy) => delicacy.DelicacyId !== deletedDelicacy.DelicacyId)
+        prev.filter(
+          (delicacy) => delicacy.DelicacyId !== deletedDelicacy.DelicacyId
+        )
       );
     });
 
@@ -171,11 +214,17 @@ export const Dashboard: React.FC = () => {
     });
 
     socket.on("cart-updated", (updatedCart: Cart) => {
-      setCartItems((prev) => prev.map((cart) => cart.CartId == updatedCart.CartId ? updatedCart : cart));
+      setCartItems((prev) =>
+        prev.map((cart) =>
+          cart.CartId == updatedCart.CartId ? updatedCart : cart
+        )
+      );
     });
 
     socket.on("cart-deleted", (deletedCart: Cart) => {
-      setCartItems((prev) => prev.filter((cart) => cart.CartId !== deletedCart.CartId));
+      setCartItems((prev) =>
+        prev.filter((cart) => cart.CartId !== deletedCart.CartId)
+      );
     });
 
     return () => {
@@ -189,7 +238,7 @@ export const Dashboard: React.FC = () => {
       socket.off("room-updated");
       socket.off("room-deleted");
       socket.disconnect();
-    }
+    };
   }, []);
 
   const categories = [
@@ -206,6 +255,15 @@ export const Dashboard: React.FC = () => {
 
   const handleBookRoom = (room: Room) => {
     setSelectedRoom(room);
+    setSelectedBusinessRoom(null);
+    setCurrentPaymentType("room");
+    setShowBookingModal(true);
+  };
+
+  const handleBookBusinessRoom = (room: BusinessRoom) => {
+    setSelectedBusinessRoom(room);
+    setSelectedRoom(null);
+    setCurrentPaymentType("business-room");
     setShowBookingModal(true);
   };
 
@@ -214,9 +272,26 @@ export const Dashboard: React.FC = () => {
     setShowOrderModal(true);
   };
 
-  const onBookingSubmit = (data: BookingFormData) => {
-    console.log("Booking data:", { ...data, RoomId: selectedRoom?.RoomId });
+  const onBookingSubmit = async (data: BookingFormData) => {
     setShowBookingModal(false);
+    setShowPaymentModal(true);
+
+    const room = selectedRoom || selectedBusinessRoom;
+    const price = selectedRoom
+      ? selectedRoom.PricePerNight
+      : selectedBusinessRoom?.PricePerHour || 0;
+
+    setPaymentStatus({
+      title: "Processing Booking",
+      message: "Please wait while we prepare your booking...",
+      type: "processing",
+    });
+
+    // Simulated booking API call
+    setTimeout(() => {
+      processPayment(price);
+    }, 1500);
+
     bookingForm.reset();
   };
 
@@ -227,6 +302,91 @@ export const Dashboard: React.FC = () => {
     });
     setShowOrderModal(false);
     orderForm.reset();
+  };
+
+  const processPayment = async (amount: number) => {
+    setIsProcessingPayment(true);
+
+    if (paymentMethod === "mpesa") {
+      setPaymentStatus({
+        title: "STK Push Sent",
+        message:
+          "Please check your phone and enter your M-PESA PIN to complete the payment.",
+        type: "processing",
+      });
+
+      // Simulated M-PESA STK Push
+      setTimeout(() => {
+        // Simulated success
+        setPaymentStatus({
+          title: "Payment Successful!",
+          message:
+            "Your payment has been processed successfully. You will receive a confirmation shortly.",
+          type: "success",
+        });
+        setIsProcessingPayment(false);
+
+        setTimeout(() => {
+          setShowPaymentModal(false);
+          setPaymentStatus(null);
+
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "success",
+            title: "SUCCESS",
+            message: `${
+              currentPaymentType === "cart" ? "Order" : "Booking"
+            } completed successfully!`,
+            onClose: () => setToast(null),
+          };
+          setToast(toast);
+        }, 2000);
+      }, 5000);
+    } else {
+      // Stripe payment
+      setPaymentStatus({
+        title: "Processing Stripe Payment",
+        message: "Please wait while we redirect you to Stripe...",
+        type: "processing",
+      });
+
+      setTimeout(() => {
+        setPaymentStatus({
+          title: "Payment Successful!",
+          message: "Your payment has been processed successfully via Stripe.",
+          type: "success",
+        });
+        setIsProcessingPayment(false);
+
+        setTimeout(() => {
+          setShowPaymentModal(false);
+          setPaymentStatus(null);
+
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "success",
+            title: "SUCCESS",
+            message: `${
+              currentPaymentType === "cart" ? "Order" : "Booking"
+            } completed successfully!`,
+            onClose: () => setToast(null),
+          };
+          setToast(toast);
+        }, 2000);
+      }, 3000);
+    }
+  };
+
+  const handleCheckout = () => {
+    setCurrentPaymentType("cart");
+    setShowPaymentModal(true);
+
+    const totalAmount = cartItems.reduce(
+      (sum, item) => sum + item.Delicacy.Price * item.Quantity,
+      0
+    );
+
+    processPayment(totalAmount);
   };
 
   const addToCart = async (delicacy: Delicacy) => {
@@ -273,7 +433,7 @@ export const Dashboard: React.FC = () => {
         message: error?.response?.data?.message as string,
         onClose: function (): void {
           setToast(() => null);
-        }
+        },
       };
 
       setToast(() => toast);
@@ -326,9 +486,7 @@ export const Dashboard: React.FC = () => {
   };
 
   const IncrementCart = async (CartId: string) => {
-
     try {
-
       let result = await CartService.IncrementCartItem(CartId);
 
       if (result.success) {
@@ -351,7 +509,7 @@ export const Dashboard: React.FC = () => {
           message: result.message as string,
           onClose: function (): void {
             setToast(() => null);
-          }
+          },
         };
 
         setToast(() => toast);
@@ -364,17 +522,15 @@ export const Dashboard: React.FC = () => {
         message: error?.response?.data?.message as string,
         onClose: function (): void {
           setToast(() => null);
-        }
+        },
       };
 
       setToast(() => toast);
       return;
     }
-
   };
 
   const DecrementCart = async (CartId: string) => {
-
     try {
       let result = await CartService.DecrementCartItem(CartId);
 
@@ -417,12 +573,17 @@ export const Dashboard: React.FC = () => {
       setToast(() => toast);
       return;
     }
-
   };
 
   const filteredRooms = rooms?.filter(
     (room) =>
       room.RoomType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      room.Description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredBusinessRooms = businessRooms?.filter(
+    (room) =>
+      room.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       room.Description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -447,7 +608,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className={styles["dashboard-container"]}>
-      { toast && <Toast {...toast}></Toast>}
+      {toast && <Toast {...toast}></Toast>}
       <div className={styles["dashboard-header"]}>
         <div className={styles["header-top"]}>
           <button onClick={handleBack} className={styles["back-button"]}>
@@ -511,6 +672,15 @@ export const Dashboard: React.FC = () => {
         </button>
         <button
           className={`${styles["tab-button"]} ${
+            activeTab === "business-rooms" ? styles.active : ""
+          }`}
+          onClick={() => setActiveTab("business-rooms")}
+        >
+          <Briefcase size={20} />
+          <span>Business Rooms</span>
+        </button>
+        <button
+          className={`${styles["tab-button"]} ${
             activeTab === "delicacies" ? styles.active : ""
           }`}
           onClick={() => setActiveTab("delicacies")}
@@ -555,71 +725,174 @@ export const Dashboard: React.FC = () => {
           <div className={styles["rooms-section"]}>
             <div className={styles["section-header"]}>
               <h2>Available Rooms</h2>
-              <span className={styles.count}>{filteredRooms?.length} rooms</span>
+              <span className={styles.count}>
+                {filteredRooms?.length} rooms
+              </span>
             </div>
-            <div className={styles["rooms-grid"]}>
-              {filteredRooms?.map((room) => (
-                <div key={room.RoomId} className={styles["room-card"]}>
-                  <div className={styles["room-image"]}>
-                    <img src={room.RoomImage} alt={room.RoomType} />
-                    <div className={styles["room-status"]}>
-                      <span
-                        className={`${styles.status} ${
-                          styles[room.Status.toLowerCase()]
-                        }`}
-                      >
-                        {room.Status}
-                      </span>
-                    </div>
-                  </div>
-                  <div className={styles["room-content"]}>
-                    <div className={styles["room-header"]}>
-                      <h3>{room.RoomType}</h3>
-                      <span className={styles["room-number"]}>
-                        #{room.RoomCount}
-                      </span>
-                    </div>
-                    <p className={styles["room-description"]}>
-                      {room.Description}
-                    </p>
-                    <div className={styles["room-details"]}>
-                      <div className={styles.detail}>
-                        <Users size={16} />
-                        <span>{room.Capacity} guests</span>
-                      </div>
-                      <div className={styles.detail}>
-                        <MapPin size={16} />
-                        <span>Premium Location</span>
-                      </div>
-                    </div>
-                    <div className={styles["room-amenities"]}>
-                      <Wifi size={16} />
-                      <Tv size={16} />
-                      <Coffee size={16} />
-                      <Bath size={16} />
-                      <Car size={16} />
-                    </div>
-                    <div className={styles["room-footer"]}>
-                      <div className={styles.price}>
-                        <span className={styles.amount}>
-                          ${room.PricePerNight}
+            {filteredRooms?.length === 0 ? (
+              <div className={styles["empty-state"]}>
+                <Bed size={48} />
+                <h3>No Rooms Available</h3>
+                <p>
+                  There are currently no rooms available. Please check back
+                  later!
+                </p>
+              </div>
+            ) : (
+              <div className={styles["rooms-grid"]}>
+                {filteredRooms?.map((room) => (
+                  <div key={room.RoomId} className={styles["room-card"]}>
+                    <div className={styles["room-image"]}>
+                      <img src={room.RoomImage} alt={room.RoomType} />
+                      <div className={styles["room-status"]}>
+                        <span
+                          className={`${styles.status} ${
+                            styles[room.Status.toLowerCase()]
+                          }`}
+                        >
+                          {room.Status}
                         </span>
-                        <span className={styles.period}>/night</span>
                       </div>
-                      <button
-                        className={styles["book-button"]}
-                        onClick={() => handleBookRoom(room)}
-                        disabled={room.Status !== "Available"}
-                      >
-                        {room.Status === "Available"
-                          ? "Book Now"
-                          : "Unavailable"}
-                      </button>
+                    </div>
+                    <div className={styles["room-content"]}>
+                      <div className={styles["room-header"]}>
+                        <h3>{room.RoomType}</h3>
+                        <span className={styles["room-number"]}>
+                          #{room.RoomCount}
+                        </span>
+                      </div>
+                      <p className={styles["room-description"]}>
+                        {room.Description}
+                      </p>
+                      <div className={styles["room-details"]}>
+                        <div className={styles.detail}>
+                          <Users size={16} />
+                          <span>{room.Capacity} guests</span>
+                        </div>
+                        <div className={styles.detail}>
+                          <MapPin size={16} />
+                          <span>Premium Location</span>
+                        </div>
+                      </div>
+                      <div className={styles["room-amenities"]}>
+                        <Wifi size={16} />
+                        <Tv size={16} />
+                        <Coffee size={16} />
+                        <Bath size={16} />
+                        <Car size={16} />
+                      </div>
+                      <div className={styles["room-footer"]}>
+                        <div className={styles.price}>
+                          <span className={styles.amount}>
+                            ${room.PricePerNight}
+                          </span>
+                          <span className={styles.period}>/night</span>
+                        </div>
+                        <button
+                          className={styles["book-button"]}
+                          onClick={() => handleBookRoom(room)}
+                          disabled={room.Status !== "Available"}
+                        >
+                          {room.Status === "Available"
+                            ? "Book Now"
+                            : "Unavailable"}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "business-rooms" && (
+          <div className={styles["rooms-section"]}>
+            <div className={styles["section-header"]}>
+              <h2>Business & Conference Rooms</h2>
+              <span className={styles.count}>
+                {filteredBusinessRooms?.length} rooms
+              </span>
             </div>
+            {filteredBusinessRooms?.length === 0 ? (
+              <div className={styles["empty-state"]}>
+                <Briefcase size={48} />
+                <h3>No Business Rooms Available</h3>
+                <p>
+                  There are currently no business rooms available. Please check
+                  back later!
+                </p>
+              </div>
+            ) : (
+              <div className={styles["rooms-grid"]}>
+                {filteredBusinessRooms?.map((room) => (
+                  <div
+                    key={room.BusinessRoomId}
+                    className={styles["room-card"]}
+                  >
+                    <div className={styles["room-image"]}>
+                      <img src={room.BusinessRoomImage} alt={room.Name} />
+                      <div className={styles["room-status"]}>
+                        <span
+                          className={`${styles.status} ${
+                            room.IsAvailable
+                              ? styles.available
+                              : styles.occupied
+                          }`}
+                        >
+                          {room.IsAvailable ? "Available" : "Occupied"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className={styles["room-content"]}>
+                      <div className={styles["room-header"]}>
+                        <h3>{room.Name}</h3>
+                        {room.RoomCount && (
+                          <span className={styles["room-number"]}>
+                            #{room.RoomCount}
+                          </span>
+                        )}
+                      </div>
+                      <p className={styles["room-description"]}>
+                        {room.Description}
+                      </p>
+                      <div className={styles["room-details"]}>
+                        <div className={styles.detail}>
+                          <Users size={16} />
+                          <span>{room.Capacity} people</span>
+                        </div>
+                        <div className={styles.detail}>
+                          <Briefcase size={16} />
+                          <span>Professional Setup</span>
+                        </div>
+                      </div>
+                      {room.Amenities && (
+                        <div className={styles["room-amenities"]}>
+                          <Wifi size={16} />
+                          <Tv size={16} />
+                          <Coffee size={16} />
+                        </div>
+                      )}
+                      <div className={styles["room-footer"]}>
+                        <div className={styles.price}>
+                          <span className={styles.amount}>
+                            ${room.PricePerHour}
+                          </span>
+                          <span className={styles.period}>/hour</span>
+                        </div>
+                        <button
+                          className={styles["book-button"]}
+                          onClick={() => handleBookBusinessRoom(room)}
+                          disabled={!room.IsAvailable}
+                        >
+                          {room.IsAvailable ? "Book Now" : "Unavailable"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -631,60 +904,70 @@ export const Dashboard: React.FC = () => {
                 {filteredDelicacies?.length} items
               </span>
             </div>
-            <div className={styles["delicacies-grid"]}>
-              {filteredDelicacies?.map((delicacy) => (
-                <div
-                  key={delicacy.DelicacyId}
-                  className={styles["delicacy-card"]}
-                >
-                  <div className={styles["delicacy-image"]}>
-                    <img src={delicacy.DelicacyImage} alt={delicacy.Name} />
-                    <button
-                      className={styles["favorite-button"]}
-                      onClick={() => {
-                        /* Handle favorite */
-                      }}
-                    >
-                      <Heart size={18} />
-                    </button>
-                  </div>
-                  <div className={styles["delicacy-content"]}>
-                    <div className={styles["delicacy-header"]}>
-                      <h3>{delicacy.Name}</h3>
-                      <span className={styles["category-badge"]}>
-                        {delicacy.Category}
-                      </span>
+            {filteredDelicacies?.length === 0 ? (
+              <div className={styles["empty-state"]}>
+                <ChefHat size={48} />
+                <h3>No Menu Items Available</h3>
+                <p>
+                  There are currently no menu items available. Please check back
+                  later!
+                </p>
+              </div>
+            ) : (
+              <div className={styles["delicacies-grid"]}>
+                {filteredDelicacies?.map((delicacy) => (
+                  <div
+                    key={delicacy.DelicacyId}
+                    className={styles["delicacy-card"]}
+                  >
+                    <div className={styles["delicacy-image"]}>
+                      <img src={delicacy.DelicacyImage} alt={delicacy.Name} />
+                      <button
+                        className={styles["favorite-button"]}
+                        onClick={() => {
+                          /* Handle favorite */
+                        }}
+                      >
+                        <Heart size={18} />
+                      </button>
                     </div>
-                    <p className={styles["delicacy-description"]}>
-                      {delicacy.Description}
-                    </p>
-                    <div className={styles["delicacy-rating"]}>
-                      {renderStars(4)}
-                      <span className={styles["rating-text"]}>(4.0)</span>
-                    </div>
-                    <div className={styles["delicacy-footer"]}>
-                      <div className={styles.price}>
-                        <span className={styles.amount}>${delicacy.Price}</span>
+                    <div className={styles["delicacy-content"]}>
+                      <div className={styles["delicacy-header"]}>
+                        <h3>{delicacy.Name}</h3>
+                        <span className={styles["category-badge"]}>
+                          {delicacy.Category}
+                        </span>
                       </div>
-                      <div className={styles["action-buttons"]}>
-                        <button
-                          className={styles["cart-button"]}
-                          onClick={() => addToCart(delicacy)}
-                        >
-                          <Plus size={16} />
-                        </button>
-                        <button
-                          className={styles["order-button"]}
-                          onClick={() => handleOrderDelicacy(delicacy)}
-                        >
-                          Order Now
-                        </button>
+                      <p className={styles["delicacy-description"]}>
+                        {delicacy.Description}
+                      </p>
+                      <div className={styles["delicacy-rating"]}>
+                        {renderStars(4)}
+                        <span className={styles["rating-text"]}>(4.0)</span>
+                      </div>
+                      <div className={styles["delicacy-footer"]}>
+                        <div className={styles.price}>
+                          <span className={styles.amount}>
+                            ${delicacy.Price}
+                          </span>
+                        </div>
+                        <div className={styles["action-buttons"]}>
+                          <button
+                            className={styles["cart-button"]}
+                            onClick={() => addToCart(delicacy)}
+                          >
+                            <ShoppingCart size={16} />
+                            <span className={styles["button-text"]}>
+                              Add to Cart
+                            </span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -787,19 +1070,11 @@ export const Dashboard: React.FC = () => {
                         <p>${item.Delicacy.Price}</p>
                       </div>
                       <div className={styles["quantity-controls"]}>
-                        <button
-                          onClick={() =>
-                            DecrementCart(item.CartId)
-                          }
-                        >
+                        <button onClick={() => DecrementCart(item.CartId)}>
                           <Minus size={16} />
                         </button>
                         <span>{item.Quantity}</span>
-                        <button
-                          onClick={() =>
-                            IncrementCart(item.CartId)
-                          }
-                        >
+                        <button onClick={() => IncrementCart(item.CartId)}>
                           <Plus size={16} />
                         </button>
                       </div>
@@ -828,7 +1103,10 @@ export const Dashboard: React.FC = () => {
                         .toFixed(2)}
                     </strong>
                   </div>
-                  <button className={styles["checkout-button"]}>
+                  <button
+                    className={styles["checkout-button"]}
+                    onClick={handleCheckout}
+                  >
                     <CreditCard size={20} />
                     Proceed to Checkout
                   </button>
@@ -840,7 +1118,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Booking Modal */}
-      {showBookingModal && selectedRoom && (
+      {showBookingModal && (selectedRoom || selectedBusinessRoom) && (
         <div
           className={styles["modal-overlay"]}
           onClick={() => setShowBookingModal(false)}
@@ -850,7 +1128,12 @@ export const Dashboard: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className={styles["modal-header"]}>
-              <h3>Book {selectedRoom.RoomType}</h3>
+              <h3>
+                Book{" "}
+                {selectedRoom
+                  ? selectedRoom.RoomType
+                  : selectedBusinessRoom?.Name}
+              </h3>
               <button onClick={() => setShowBookingModal(false)}>
                 <X size={24} />
               </button>
@@ -859,6 +1142,46 @@ export const Dashboard: React.FC = () => {
               onSubmit={bookingForm.handleSubmit(onBookingSubmit)}
               className={styles["booking-form"]}
             >
+              <div className={styles["booking-preview"]}>
+                <div className={styles["preview-image"]}>
+                  <img
+                    src={
+                      selectedRoom
+                        ? selectedRoom.RoomImage
+                        : selectedBusinessRoom?.BusinessRoomImage
+                    }
+                    alt={
+                      selectedRoom
+                        ? selectedRoom.RoomType
+                        : selectedBusinessRoom?.Name
+                    }
+                  />
+                </div>
+                <div className={styles["preview-info"]}>
+                  <h4>
+                    {selectedRoom
+                      ? selectedRoom.RoomType
+                      : selectedBusinessRoom?.Name}
+                  </h4>
+                  <p className={styles["preview-price"]}>
+                    $
+                    {selectedRoom
+                      ? selectedRoom.PricePerNight
+                      : selectedBusinessRoom?.PricePerHour}
+                    <span>{selectedRoom ? "/night" : "/hour"}</span>
+                  </p>
+                  <div className={styles["preview-details"]}>
+                    <span>
+                      <Users size={14} />{" "}
+                      {selectedRoom
+                        ? selectedRoom.Capacity
+                        : selectedBusinessRoom?.Capacity}{" "}
+                      {selectedRoom ? "guests" : "people"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <div className={styles["form-group"]}>
                 <label>Check-in Date</label>
                 <input
@@ -898,17 +1221,27 @@ export const Dashboard: React.FC = () => {
                 )}
               </div>
               <div className={styles["form-group"]}>
-                <label>Number of Guests</label>
+                <label>Number of {selectedRoom ? "Guests" : "People"}</label>
                 <input
                   type="number"
                   min="1"
-                  max={selectedRoom.Capacity}
+                  max={
+                    selectedRoom
+                      ? selectedRoom.Capacity
+                      : selectedBusinessRoom?.Capacity
+                  }
                   {...bookingForm.register("NumberOfGuests", {
                     required: "Number of guests is required",
                     min: { value: 1, message: "At least 1 guest is required" },
                     max: {
-                      value: selectedRoom.Capacity,
-                      message: `Maximum ${selectedRoom.Capacity} guests allowed`,
+                      value: selectedRoom
+                        ? selectedRoom.Capacity
+                        : selectedBusinessRoom?.Capacity || 1,
+                      message: `Maximum ${
+                        selectedRoom
+                          ? selectedRoom.Capacity
+                          : selectedBusinessRoom?.Capacity
+                      } guests allowed`,
                     },
                   })}
                 />
@@ -925,6 +1258,41 @@ export const Dashboard: React.FC = () => {
                   placeholder="Any special requirements..."
                 />
               </div>
+
+              <div className={styles["payment-method-selector"]}>
+                <h4>Select Payment Method</h4>
+                <div className={styles["payment-options"]}>
+                  <label className={styles["payment-option"]}>
+                    <input
+                      type="radio"
+                      value="mpesa"
+                      checked={paymentMethod === "mpesa"}
+                      onChange={(e) =>
+                        setPaymentMethod(e.target.value as PaymentMethod)
+                      }
+                    />
+                    <div className={styles["payment-option-content"]}>
+                      <span className={styles["payment-icon"]}>📱</span>
+                      <span>M-PESA</span>
+                    </div>
+                  </label>
+                  <label className={styles["payment-option"]}>
+                    <input
+                      type="radio"
+                      value="stripe"
+                      checked={paymentMethod === "stripe"}
+                      onChange={(e) =>
+                        setPaymentMethod(e.target.value as PaymentMethod)
+                      }
+                    />
+                    <div className={styles["payment-option-content"]}>
+                      <span className={styles["payment-icon"]}>💳</span>
+                      <span>Stripe</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
               <div className={styles["modal-actions"]}>
                 <button
                   type="button"
@@ -934,7 +1302,7 @@ export const Dashboard: React.FC = () => {
                   Cancel
                 </button>
                 <button type="submit" className={styles["submit-button"]}>
-                  Book Room
+                  Proceed to Payment
                 </button>
               </div>
             </form>
@@ -942,71 +1310,102 @@ export const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Order Modal */}
-      {showOrderModal && selectedDelicacy && (
-        <div
-          className={styles["modal-overlay"]}
-          onClick={() => setShowOrderModal(false)}
-        >
+      {/* Payment Processing Modal */}
+      {showPaymentModal && paymentStatus && (
+        <div className={styles["modal-overlay"]}>
           <div
             className={styles["modal-content"]}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={styles["modal-header"]}>
-              <h3>Order {selectedDelicacy.Name}</h3>
-              <button onClick={() => setShowOrderModal(false)}>
-                <X size={24} />
-              </button>
-            </div>
-            <form
-              onSubmit={orderForm.handleSubmit(onOrderSubmit)}
-              className={styles["order-form"]}
-            >
-              <div className={styles["delicacy-preview"]}>
-                <img
-                  src={selectedDelicacy.DelicacyImage}
-                  alt={selectedDelicacy.Name}
-                />
-                <div className={styles["preview-details"]}>
-                  <h4>{selectedDelicacy.Name}</h4>
-                  <p>{selectedDelicacy.Description}</p>
-                  <span className={styles.price}>
-                    ${selectedDelicacy.Price}
-                  </span>
-                </div>
-              </div>
-              <div className={styles["form-group"]}>
-                <label>Quantity</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  defaultValue="1"
-                  {...orderForm.register("Quantity", {
-                    required: "Quantity is required",
-                    min: { value: 1, message: "Minimum quantity is 1" },
-                    max: { value: 10, message: "Maximum quantity is 10" },
-                  })}
-                />
-                {orderForm.formState.errors.Quantity && (
-                  <span className={styles.error}>
-                    {orderForm.formState.errors.Quantity.message}
-                  </span>
+            <div className={styles["payment-modal"]}>
+              <div className={styles["payment-icon-container"]}>
+                {paymentStatus.type === "processing" && (
+                  <Loader2 className={styles["spinner"]} size={64} />
+                )}
+                {paymentStatus.type === "success" && (
+                  <div className={styles["success-icon"]}>
+                    <Check size={64} />
+                  </div>
+                )}
+                {paymentStatus.type === "error" && (
+                  <div className={styles["error-icon"]}>
+                    <X size={64} />
+                  </div>
                 )}
               </div>
-              <div className={styles["modal-actions"]}>
-                <button
-                  type="button"
-                  onClick={() => setShowOrderModal(false)}
-                  className={styles["cancel-button"]}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className={styles["submit-button"]}>
-                  Place Order
-                </button>
-              </div>
-            </form>
+              <h3 className={styles["payment-title"]}>{paymentStatus.title}</h3>
+              <p className={styles["payment-message"]}>
+                {paymentStatus.message}
+              </p>
+
+              {paymentStatus.type === "processing" &&
+                paymentMethod === "mpesa" && (
+                  <div className={styles["payment-info"]}>
+                    <div className={styles["info-card"]}>
+                      <span className={styles["info-label"]}>
+                        Payment Method:
+                      </span>
+                      <span className={styles["info-value"]}>M-PESA</span>
+                    </div>
+                    <div className={styles["info-card"]}>
+                      <span className={styles["info-label"]}>Amount:</span>
+                      <span className={styles["info-value"]}>
+                        $
+                        {currentPaymentType === "cart"
+                          ? cartItems
+                              .reduce(
+                                (sum, item) =>
+                                  sum + item.Delicacy.Price * item.Quantity,
+                                0
+                              )
+                              .toFixed(2)
+                          : selectedRoom
+                          ? selectedRoom.PricePerNight
+                          : selectedBusinessRoom?.PricePerHour}
+                      </span>
+                    </div>
+                    {currentPaymentType !== "cart" && (
+                      <div className={styles["info-card"]}>
+                        <span className={styles["info-label"]}>Booking:</span>
+                        <span className={styles["info-value"]}>
+                          {selectedRoom
+                            ? selectedRoom.RoomType
+                            : selectedBusinessRoom?.Name}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              {paymentStatus.type === "processing" &&
+                paymentMethod === "stripe" && (
+                  <div className={styles["payment-info"]}>
+                    <div className={styles["info-card"]}>
+                      <span className={styles["info-label"]}>
+                        Payment Method:
+                      </span>
+                      <span className={styles["info-value"]}>Stripe</span>
+                    </div>
+                    <div className={styles["info-card"]}>
+                      <span className={styles["info-label"]}>Amount:</span>
+                      <span className={styles["info-value"]}>
+                        $
+                        {currentPaymentType === "cart"
+                          ? cartItems
+                              .reduce(
+                                (sum, item) =>
+                                  sum + item.Delicacy.Price * item.Quantity,
+                                0
+                              )
+                              .toFixed(2)
+                          : selectedRoom
+                          ? selectedRoom.PricePerNight
+                          : selectedBusinessRoom?.PricePerHour}
+                      </span>
+                    </div>
+                  </div>
+                )}
+            </div>
           </div>
         </div>
       )}

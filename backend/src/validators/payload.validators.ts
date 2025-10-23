@@ -50,18 +50,25 @@ export const UpdateUserSchema = Joi.object({
 
 // room validation schema
 export const CreateRoomSchema = Joi.object({
-  RoomNumber: Joi.string()
-    .required()
-    .messages({ "string.empty": "Room Number is required" }),
-  RoomType: Joi.string()
-    .required()
-    .messages({ "string.empty": "Room Type is required" }),
-  PricePerNight: Joi.number()
-    .precision(2)
+  RoomCount: Joi.number()
+    .integer()
+    .min(1)
     .required()
     .messages({
-      "number.base": "Price per night must be a valid number",
-      "any.required": "Price per night is required",
+      "number.base": "RoomCount must be a number",
+      "number.integer": "RoomCount must be an integer",
+      "number.min": "RoomCount must be at least 1",
+      "any.required": "RoomCount is required",
+    }),
+  RoomType: Joi.string()
+    .required()
+    .messages({ "string.empty": "RoomType is required" }),
+  PricePerNight: Joi.string()
+    .pattern(/^\d+(\.\d{1,2})?$/)
+    .required()
+    .messages({
+      "string.empty": "PricePerNight is required",
+      "string.pattern.base": "PricePerNight must be a valid amount (e.g. 100 or 99.99)",
     }),
   Description: Joi.string()
     .required()
@@ -72,13 +79,15 @@ export const CreateRoomSchema = Joi.object({
     .required()
     .messages({
       "number.base": "Capacity must be a number",
+      "number.integer": "Capacity must be an integer",
       "number.min": "Capacity must be at least 1",
+      "any.required": "Capacity is required",
     }),
   Status: Joi.string()
-    .valid("available", "occupied", "maintenance")
-    .default("available")
+    .valid("Available", "Occupied", "Maintenance", "Reserved")
+    .default("Available")
     .messages({
-      "any.only": "Status must be one of available, occupied, or maintenance",
+      "any.only": "Status must be one of available, reserved, occupied, or maintenance",
     }),
   RoomImage: Joi.string()
     .uri()
@@ -87,12 +96,30 @@ export const CreateRoomSchema = Joi.object({
 });
 
 export const UpdateRoomSchema = Joi.object({
-  RoomNumber: Joi.string(),
+  RoomCount: Joi.number()
+    .integer()
+    .min(1)
+    .messages({
+      "number.base": "RoomCount must be a number",
+      "number.integer": "RoomCount must be an integer",
+      "number.min": "RoomCount must be at least 1",
+    }),
   RoomType: Joi.string(),
-  PricePerNight: Joi.number().precision(2),
+  PricePerNight: Joi.string()
+    .pattern(/^\d+(\.\d{1,2})?$/)
+    .messages({
+      "string.pattern.base": "PricePerNight must be a valid amount (e.g. 100 or 99.99)",
+    }),
   Description: Joi.string(),
-  Capacity: Joi.number().integer().min(1),
-  Status: Joi.string().valid("available", "occupied", "maintenance"),
+  Capacity: Joi.number()
+    .integer()
+    .min(1)
+    .messages({
+      "number.base": "Capacity must be a number",
+      "number.integer": "Capacity must be an integer",
+      "number.min": "Capacity must be at least 1",
+    }),
+  Status: Joi.string().valid("Available", "Occupied", "Maintenance", "Reserved"),
   RoomImage: Joi.string().uri(),
 });
 
@@ -349,6 +376,16 @@ export const UpdateRoomImageSchema = Joi.object({
 });
 
 export const createBusinessRoomSchema = Joi.object({
+  RoomCount: Joi.number()
+    .integer()
+    .min(1)
+    .required()
+    .messages({
+      "any.required": "RoomCount is required.",
+      "number.base": "RoomCount must be a number.",
+      "number.integer": "RoomCount must be an integer.",
+      "number.min": "RoomCount must be at least 1.",
+    }),
   Name: Joi.string()
     .required()
     .messages({
@@ -373,13 +410,12 @@ export const createBusinessRoomSchema = Joi.object({
       "number.integer": "Capacity must be an integer.",
       "number.min": "Capacity must be at least 1.",
     }),
-  PricePerHour: Joi.number()
-    .positive()
+  PricePerHour: Joi.string()
+    .pattern(/^\d+(\.\d{1,2})?$/)
     .required()
     .messages({
-      "any.required": "PricePerHour is required.",
-      "number.base": "PricePerHour must be a number.",
-      "number.positive": "PricePerHour must be greater than 0.",
+      "string.empty": "PricePerHour is required.",
+      "string.pattern.base": "PricePerHour must be a valid amount (e.g. 100 or 99.99).",
     }),
   Amenities: Joi.string()
     .optional()
@@ -399,14 +435,17 @@ export const createBusinessRoomSchema = Joi.object({
       "any.required": "IsAvailable is required.",
       "boolean.base": "IsAvailable must be true or false.",
     }),
-    RoomCount: Joi.number().min
 });
 
 export const updateBusinessRoomSchema = Joi.object({
-  RoomNumber: Joi.string()
+  RoomCount: Joi.number()
+    .integer()
+    .min(1)
     .optional()
     .messages({
-      "string.base": "RoomNumber must be a text value.",
+      "number.base": "RoomCount must be a number.",
+      "number.integer": "RoomCount must be an integer.",
+      "number.min": "RoomCount must be at least 1.",
     }),
   Name: Joi.string()
     .optional()
@@ -429,12 +468,12 @@ export const updateBusinessRoomSchema = Joi.object({
       "number.integer": "Capacity must be an integer.",
       "number.min": "Capacity must be at least 1.",
     }),
-  PricePerHour: Joi.number()
-    .positive()
+  PricePerHour: Joi.string()
+    .pattern(/^\d+(\.\d{1,2})?$/)
     .optional()
     .messages({
-      "number.base": "PricePerHour must be a number.",
-      "number.positive": "PricePerHour must be greater than 0.",
+      "string.pattern.base": "PricePerHour must be a valid amount (e.g. 100 or 99.99).",
+      "string.base": "PricePerHour must be a text value.",
     }),
   Amenities: Joi.string()
     .optional()

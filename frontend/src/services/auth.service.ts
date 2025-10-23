@@ -52,4 +52,22 @@ export class AuthService {
     );
     return result.data as ServiceResult<object>;
   }
+
+  static async AuthenticateUser(): Promise<ServiceResult<object>> {
+    const result = await axios.post(
+      `${this.ApiUrl}/authenticate-user`,
+      {},
+      { withCredentials: true }
+    );
+    return result.data as ServiceResult<object>;
+  }
+
+  static async AuthenticateAdmin(): Promise<ServiceResult<object>> {
+    const result = await axios.post(
+      `${this.ApiUrl}/authenticate-admin`,
+      {},
+      { withCredentials: true }
+    );
+    return result.data as ServiceResult<object>;
+  }
 }

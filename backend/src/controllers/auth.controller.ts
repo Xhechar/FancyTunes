@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { AuthService } from "../services/auth.service";
+import { getUserIdFromToken } from "../middlewares/backend.middleware";
 
 export class AuthController {
   private userService: AuthService = new AuthService();
@@ -98,6 +99,36 @@ export class AuthController {
           error instanceof Error
             ? error.message
             : "an internal server error occured."
+        )
+      );
+    }
+  }
+
+  async AuthenticateUser(Req: Request, Res: Response) {
+    if (getUserIdFromToken(Req)) {
+      return Res.status(200).json(
+        ServiceResponse.success<object>("user authenticated successfully", undefined, undefined, "user")
+      );
+    } else {
+      return Res.status(200).json(
+        ServiceResponse.failure<object>(
+          ErrorCode.UNAUTHORIZED,
+          "user not authenticated"
+        )
+      );
+    }
+  }
+
+  async AuthenticateAdmin(Req: Request, Res: Response) {
+    if (getUserIdFromToken(Req)) {
+      return Res.status(200).json(
+        ServiceResponse.success<object>("admin authenticated successfully", undefined, undefined, "admin")
+      );
+    } else {
+      return Res.status(200).json(
+        ServiceResponse.failure<object>(
+          ErrorCode.UNAUTHORIZED,
+          "admin not authenticated"
         )
       );
     }

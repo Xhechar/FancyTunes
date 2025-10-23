@@ -16,10 +16,7 @@ import {
   Calendar,
   Shield,
   Settings,
-  Bell,
-  CreditCard,
   LogOut,
-  Upload,
   Trash2
 } from 'lucide-react';
 import styles from "../../../styles/user/user_routes/Profile.module.css";
@@ -51,34 +48,10 @@ export const Profile: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<'personal' | 'security' | 'preferences'>('personal');
-  const [profileImage, setProfileImage] = useState(user?.ProfileImage);
+  const [profileImage, setProfileImage] = useState<string | undefined>(undefined);
   const [isUploading, setIsUploading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [ toast, setToast ] = useState<ToastProps | null>(null);
-
-  useEffect(() => {
-    const getUser = async() => {
-      let result = await UsersService.GetUserByUserId();
-
-      if (result.success) {
-        let toast: ToastProps = {
-          isVisible: true,
-          type: 'success',
-          title: 'SUCCESS',
-          message: result.message as string,
-          onClose: function (): void {
-            setToast(() => null)
-          }
-        };
-        
-        setToast(() => toast);
-        setUser(() => result.data as UserInterface);
-        setProfileImage(() => (result.data as UserInterface).ProfileImage ? result.data?.ProfileImage : undefined);
-      }
-    };
-
-    getUser();
-  }, []);
 
   const {
     register,
@@ -89,20 +62,85 @@ export const Profile: React.FC = () => {
     setValue
   } = useForm<ProfileFormData>({
     defaultValues: {
-      FullName: user?.FullName,
-      Email: user?.Email,
-      Phone: user?.Phone,
-      DateOfBirth: '1990-05-15',
-      Address: '123 Main Street',
-      City: 'New York',
-      Country: 'United States',
-      Bio: 'Food enthusiast and regular customer at FancyTunes. Love trying new cuisines!',
+      FullName: '',
+      Email: '',
+      Phone: '',
+      DateOfBirth: '',
+      Address: '',
+      City: '',
+      Country: '',
+      Bio: '',
       NotificationsEnabled: true,
       TwoFactorEnabled: false,
       MarketingEmails: true
     },
     mode: 'onChange'
   });
+
+  useEffect(() => {
+    const getUser = async() => {
+      try {
+        const result = await UsersService.GetUserByUserId();
+
+        if (result.success) {
+          setUser(result.data as UserInterface);
+
+          const fetched = result.data as any;
+
+          reset({
+            FullName: fetched?.FullName ?? '',
+            Email: fetched?.Email ?? '',
+            Phone: fetched?.Phone ?? '',
+            DateOfBirth: fetched?.DateOfBirth ? String(fetched.DateOfBirth).split('T')[0] : '',
+            Address: fetched?.Address ?? '',
+            City: fetched?.City ?? '',
+            Country: fetched?.Country ?? '',
+            Bio: fetched?.Bio ?? '',
+            NotificationsEnabled: fetched?.NotificationsEnabled ?? true,
+            TwoFactorEnabled: fetched?.TwoFactorEnabled ?? false,
+            MarketingEmails: fetched?.MarketingEmails ?? true
+          });
+
+          if (fetched?.ProfileImage) {
+            setProfileImage(fetched.ProfileImage);
+          }
+
+          setToast({
+            isVisible: true,
+            type: 'success',
+            title: 'SUCCESS',
+            message: result.message as string,
+            onClose() {
+              setToast(null);
+            }
+          });
+        } else {
+          setToast({
+            isVisible: true,
+            type: 'warning',
+            title: 'NOTICE',
+            message: result.message as string,
+            onClose() {
+              setToast(null);
+            }
+          });
+        }
+      } catch (err: any) {
+        setToast({
+          isVisible: true,
+          type: 'error',
+          title: 'ERROR',
+          message: err?.message ?? 'Failed to fetch user',
+          onClose() {
+            setToast(null);
+          }
+        });
+      }
+    };
+
+    getUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const newPassword = watch('NewPassword');
 
@@ -173,7 +211,7 @@ export const Profile: React.FC = () => {
   const onSubmit: SubmitHandler<ProfileFormData> = async (data) => {
     setSaveStatus('saving');
 
-    let userData: UpdateUserDto = {
+    const userData: UpdateUserDto = {
       FullName: data.FullName,
       Email: data.Email,
       Phone: data.Phone,
@@ -181,34 +219,38 @@ export const Profile: React.FC = () => {
     };
     
     try {
-
-      let result = await UsersService.UpdateUser(userData);
+      const result = await UsersService.UpdateUser(userData);
       
       if (result.success) {
         setSaveStatus("success");
         setIsEditing(false);
-        const toast: ToastProps = {
+        setToast({
           isVisible: true,
           type: "success",
           title: "SUCCESS",
           message: result.message as string,
-          onClose: function (): void {
-            setToast(() => null);
+          onClose() {
+            setToast(null);
           },
-        };
-
-        setToast(() => toast);
+        });
 
         setTimeout(() => setSaveStatus("idle"), 3000);
       } else {
-        setSaveStatus(() => "error");
-
+        setSaveStatus("error");
         setTimeout(() => setSaveStatus("idle"), 3000);
       }
-      
     } catch (error) {
       setSaveStatus('error');
       setTimeout(() => setSaveStatus('idle'), 3000);
+      setToast({
+        isVisible: true,
+        type: 'error',
+        title: 'ERROR',
+        message: 'An error occurred while updating profile.',
+        onClose() {
+          setToast(null);
+        },
+      });
     }
   };
 
@@ -217,52 +259,92 @@ export const Profile: React.FC = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      const toast: ToastProps = {
+      setToast({
         isVisible: true,
         type: 'warning',
-        title: 'SUCCESS',
-        message: 'upload only image files.',
-        onClose: function (): void {
-          setToast(() => null);
+        title: 'INVALID FILE',
+        message: 'Upload only image files.',
+        onClose() {
+          setToast(null);
         }
-      };
-
-      setToast(() => toast);
+      });
       return;
     }
 
     setIsUploading(true);
     
     try {
-      
-      let formData: FormData = new FormData();
-
+      const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", "some preset name");
+      formData.append("upload_preset", "allapps");
       formData.append("cloud_name", "dakyiye2e");
 
-      fetch("https://api.cloudinary.com/v1_1/dakyiye2e/image/upload", {
+      const res = await fetch("https://api.cloudinary.com/v1_1/dakyiye2e/image/upload", {
         method: "POST",
-        body: formData
-      }).then(res => res.json()).then(res => {
-        setProfileImage(() => res.secure_url as string);
-      });
+        body: formData,
+      }).then(r => r.json());
+
+      if (res.secure_url) {
+        setToast({
+          isVisible: true,
+          type: "success",
+          title: "UPLOAD SUCCESSFUL",
+          message: "Profile image uploaded successfully.",
+          onClose() {
+            setToast(null);
+          },
+        });
+
+        try {
+          const result = await UsersService.UpdateUserProfileImage(res.secure_url);
+          if (result.success) {
+            setToast({
+              isVisible: true,
+              type: "success",
+              title: "SUCCESS",
+              message: result.message as string,
+              onClose() {
+                setToast(null);
+              },
+            });
+          } else {
+            setToast({
+              isVisible: true,
+              type: "warning",
+              title: result.error as string,
+              message: result.message as string,
+              onClose() {
+                setToast(null);
+              },
+            });
+          }
+        } catch (error: any) {
+          setToast({
+            isVisible: true,
+            type: "error",
+            title: error?.response?.data?.error as string || "ERROR",
+            message: error?.response?.data?.message || "An error occurred while updating profile image.",
+            onClose() {
+              setToast(null);
+            },
+          });
+        }
+
+        setProfileImage(res.secure_url as string);
+      }
       
       setIsUploading(false);
     } catch (error) {
       setIsUploading(false);
-
-      const toast: ToastProps = {
+      setToast({
         isVisible: true,
         type: "error",
         title: "SERVER ERROR",
         message: "Failed to upload image. Please try again.",
-        onClose: function (): void {
-          setToast(() => null);
+        onClose() {
+          setToast(null);
         },
-      };
-
-      setToast(() => toast);
+      });
     }
   };
 
@@ -276,8 +358,11 @@ export const Profile: React.FC = () => {
     setSaveStatus('idle');
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Unknown';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return 'Unknown';
+    return d.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -286,10 +371,7 @@ export const Profile: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      {
-        toast ? <Toast { ...toast }></Toast> : <div></div>
-      }
-      {/* Header */}
+      {toast && <Toast {...toast} />}
       <div className={styles.header}>
         <div className={styles["header-content"]}>
           <div className={styles["profile-avatar-section"]}>
@@ -337,10 +419,10 @@ export const Profile: React.FC = () => {
             </div>
 
             <div className={styles["profile-info"]}>
-              <h1 className={styles["profile-name"]}>{user?.FullName}</h1>
-              <p className={styles["profile-role"]}>{user?.Role}</p>
+              <h1 className={styles["profile-name"]}>{user?.FullName ?? ''}</h1>
+              <p className={styles["profile-role"]}>{(user as any)?.Role ?? ''}</p>
               <p className={styles["profile-joined"]}>
-                Member since {formatDate(String(user?.CreatedAt))}
+                Member since {formatDate((user as any)?.CreatedAt)}
               </p>
             </div>
           </div>
@@ -386,7 +468,6 @@ export const Profile: React.FC = () => {
           </div>
         </div>
 
-        {/* Save Status */}
         {saveStatus !== "idle" && (
           <div className={`${styles["status-banner"]} ${styles[saveStatus]}`}>
             {saveStatus === "success" && (
@@ -405,13 +486,13 @@ export const Profile: React.FC = () => {
         )}
       </div>
 
-      {/* Tabs */}
       <div className={styles.tabs}>
         <button
           className={`${styles.tab} ${
             activeTab === "personal" ? styles.active : ""
           }`}
           onClick={() => setActiveTab("personal")}
+          type="button"
         >
           <User size={18} />
           Personal Info
@@ -421,6 +502,7 @@ export const Profile: React.FC = () => {
             activeTab === "security" ? styles.active : ""
           }`}
           onClick={() => setActiveTab("security")}
+          type="button"
         >
           <Shield size={18} />
           Security
@@ -430,15 +512,15 @@ export const Profile: React.FC = () => {
             activeTab === "preferences" ? styles.active : ""
           }`}
           onClick={() => setActiveTab("preferences")}
+          type="button"
         >
           <Settings size={18} />
           Preferences
         </button>
       </div>
 
-      {/* Form Content */}
       <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-        {/* Personal Info Tab */}
+
         {activeTab === "personal" && (
           <div className={styles["tab-content"]}>
             <div className={styles["form-section"]}>
@@ -457,7 +539,6 @@ export const Profile: React.FC = () => {
                     }`}
                     disabled={!isEditing}
                     placeholder="Enter your full name"
-                    value={user?.FullName}
                   />
                   {errors.FullName && (
                     <span className={styles["error-message"]}>
@@ -480,7 +561,6 @@ export const Profile: React.FC = () => {
                     }`}
                     disabled={!isEditing}
                     placeholder="Enter your email"
-                    value={user?.Email}
                   />
                   {errors.Email && (
                     <span className={styles["error-message"]}>
@@ -503,7 +583,6 @@ export const Profile: React.FC = () => {
                     }`}
                     disabled={!isEditing}
                     placeholder="Enter your phone number"
-                    value={user?.Phone}
                   />
                   {errors.Phone && (
                     <span className={styles["error-message"]}>

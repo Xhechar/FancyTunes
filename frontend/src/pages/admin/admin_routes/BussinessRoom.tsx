@@ -212,10 +212,10 @@ export const BusinessRooms: React.FC = () => {
       if (editingRoom) {
         let updateData: UpdateBusinessRoomDto = {
           BusinessRoomImage: imageUrlRef.current ? imageUrlRef.current : editingRoom.BusinessRoomImage,
-          RoomCount: data.RoomCount,
+          RoomCount: Number(data.RoomCount),
           Name: data.Name,
           Description: data.Description,
-          Capacity: data.Capacity,
+          Capacity: Number(data.Capacity),
           PricePerHour: data.PricePerHour,
           Amenities: data.Amenities,
           IsAvailable: data.IsAvailable
@@ -239,10 +239,10 @@ export const BusinessRooms: React.FC = () => {
       } else {
 
         let createData: CreateBusinessRoomDto = {
-          RoomCount: data.RoomCount,
+          RoomCount: Number(data.RoomCount),
           Name: data.Name,
           Description: data.Description,
-          Capacity: data.Capacity,
+          Capacity: Number(data.Capacity),
           PricePerHour: data.PricePerHour,
           Amenities: data.Amenities,
           BusinessRoomImage: imageUrlRef.current ? imageUrlRef.current : "",
@@ -324,6 +324,15 @@ export const BusinessRooms: React.FC = () => {
         .then((res) => res.json())
         .then((res) => {
           if (res.secure_url) imageUrlRef.current = (res.secure_url);
+          setToast({
+            isVisible: true,
+            type: "success",
+            title: "IMAGE UPLOAD SUCCESS",
+            message: "image uploaded successfully.",
+            onClose: function (): void {
+              setToast(() => null);
+            },
+          });
           setImagePreview(res.secure_url);
         })
         .catch((err) => {
@@ -564,12 +573,12 @@ export const BusinessRooms: React.FC = () => {
             <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
-                  <label htmlFor="RoomCount">Room Number</label>
+                  <label htmlFor="RoomCount">Room Count</label>
                   <input
                     type="number"
                     id="RoomCount"
                     {...register("RoomCount", {
-                      required: "Room number is required",
+                      required: "Room count is required",
                       min: { value: 1, message: "Must be at least 1" },
                     })}
                     className={errors.RoomCount ? styles.inputError : ""}

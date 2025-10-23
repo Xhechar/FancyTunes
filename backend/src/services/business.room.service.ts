@@ -23,7 +23,8 @@ export class BusinessRoomService implements IBusinessRoomService {
     let CreateBussinessRoom = await this.prisma.businessRoom.create({
       data: {
         BusinessRoomId: v4(),
-        ...Room
+        ...Room,
+        PricePerHour: Number(Room.PricePerHour)
       }
     });
 

@@ -23,7 +23,8 @@ export class RoomService implements IRoomService {
     let CreateRoom = await this.prisma.room.create({
       data: {
         RoomId: v4(),
-        ...Room
+        ...Room,
+        PricePerNight: Number(Room.PricePerNight)
       }
     });
 

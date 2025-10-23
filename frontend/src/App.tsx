@@ -29,58 +29,66 @@ import { MyPayments } from './pages/user/user_routes/MyPayments';
 import { Notificationss } from './components/Notificationss';
 import { BusinessRooms } from './pages/admin/admin_routes/BussinessRoom';
 import { AdminDashboard } from './pages/admin/admin_routes/AdminDashboard';
+import { AdminGuard } from './guards/admin.guard';
+import { UserGuard } from './guards/user.guard';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="" element={<Landing />}></Route>
-        <Route path="/home" element={<Landing />}></Route>
-        <Route path="/login" element={<Login />}></Route>
-        <Route path="/register" element={<Register />}></Route>
-        <Route path="/verify-mail" element={<VerifyMail />}></Route>
-        <Route path="/change-password" element={<ChangePassword />}></Route>
-        <Route path="/room/:RommId" element={<SingleRoom />}></Route>
+        <Route path="/" element={<Landing />} />
+        <Route path="/home" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/verify-mail" element={<VerifyMail />} />
+        <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/room/:RoomId" element={<SingleRoom />} />
+
         <Route
           path="/user"
-          element={<UserDashboard />}
-          children={[
-            <Route path="dashboard" element={<Dashboard />} />,
-            <Route path="" element={<Dashboard />} />,
-            <Route path="my-payments" element={<MyPayments />} />,
-            <Route path="notifications" element={<Notificationss />} />,
-            <Route path="settings" element={<Profile />} />,
-            <Route path="single-room" element={<SingleRoom />} />,
-            <Route path="accommodations" element={<Accommodations />} />,
-            <Route path="bookings" element={<Bookings />} />,
-            <Route path="cart" element={<Cart />} />,
-            <Route path="orders" element={<Orders />} />,
-            <Route path="profile" element={<Profile />} />,
-            <Route path="reviews" element={<Reviews />} />,
-          ]}
-        ></Route>
+          element={
+            <UserGuard>
+              <UserDashboard />
+            </UserGuard>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="my-payments" element={<MyPayments />} />
+          <Route path="notifications" element={<Notificationss />} />
+          <Route path="settings" element={<Profile />} />
+          <Route path="single-room" element={<SingleRoom />} />
+          <Route path="accommodations" element={<Accommodations />} />
+          <Route path="bookings" element={<Bookings />} />
+          <Route path="cart" element={<Cart />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="reviews" element={<Reviews />} />
+        </Route>
+
         <Route
           path="/admin"
-          element={<Admin />}
-          children={[
-            <Route path="dashboard" element={<AdminDashboard />} />,
-            <Route path="" element={<AdminDashboard />} />,
-            <Route path="delicacies" element={<Delicacies />} />,
-            <Route path="payments" element={<Payments />} />,
-            <Route path="recoveries" element={<UserRecoveries />} />,
-            <Route path="user-reviews" element={<UserReviews />} />,
-            <Route path="rooms" element={<Rooms />} />,
-            <Route
-              path="user?accommodations"
-              element={<UserAccommodations />}
-            />,
-            <Route path="user-orders" element={<UserOrders />} />,
-            <Route path="user-bookings" element={<UserBookings />} />,
-            <Route path="users" element={<Users />} />,
-            <Route path='business-rooms' element={<BusinessRooms />}></Route>
-          ]}
-        ></Route>
-        <Route path="*" element={<NotFound />}></Route>
+          element={
+            <AdminGuard>
+              <Admin />
+            </AdminGuard>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="delicacies" element={<Delicacies />} />
+          <Route path="payments" element={<Payments />} />
+          <Route path="recoveries" element={<UserRecoveries />} />
+          <Route path="user-reviews" element={<UserReviews />} />
+          <Route path="rooms" element={<Rooms />} />
+          <Route path="user-accommodations" element={<UserAccommodations />} />
+          <Route path="user-orders" element={<UserOrders />} />
+          <Route path="user-bookings" element={<UserBookings />} />
+          <Route path="users" element={<Users />} />
+          <Route path="business-rooms" element={<BusinessRooms />} />
+        </Route>
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

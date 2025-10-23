@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
+import { verifyAdmin, verifyToken, verifyUser } from "../middlewares/backend.middleware";
 
 export const AuthRouter = Router();
 
@@ -18,3 +19,9 @@ AuthRouter.put("/change-password", async (Req, Res) =>
   authController.changePassword(Req, Res)
 );
 AuthRouter.post("/logout", async (Req, Res) => authController.logput(Req, Res));
+AuthRouter.post("/authenticate-user", verifyToken, verifyUser, async (Req, Res) =>
+  authController.AuthenticateUser(Req, Res)
+);
+AuthRouter.post("/authenticate-admin", verifyToken, verifyAdmin, async (Req, Res) =>
+  authController.AuthenticateAdmin(Req, Res)
+);
