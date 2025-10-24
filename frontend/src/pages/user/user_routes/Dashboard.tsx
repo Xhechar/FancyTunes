@@ -47,6 +47,7 @@ import { socket } from "../../../socket.io";
 import { CreateCartDto } from "../../../interfaces/dtos/interfaces.dtos";
 import { CartService } from "../../../services/cart.service";
 import Toast, { ToastProps } from "../../../components/Toast";
+import { BusinessRoomService } from "../../../services/business.room.service";
 
 interface BookingFormData {
   RoomId: string;
@@ -100,49 +101,6 @@ export const Dashboard: React.FC = () => {
   const [userBookings, setUserBookings] = useState<Booking[]>([]);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [toast, setToast] = useState<ToastProps | null>(null);
-
-  useEffect(() => {
-    const getDelicacies = async () => {
-      let result = await DelicacyService.GetAvailableDelicacies();
-
-      if (result.success) {
-        setDelicacies(() => result.dataList as Delicacy[]);
-      }
-    };
-
-    const getRooms = async () => {
-      let result = await RoomsService.GetAllRooms();
-
-      if (result.success) {
-        setRooms(() => result.dataList as Room[]);
-      }
-    };
-
-    const getSingleUser = async () => {
-      let result = await UsersService.GetUserByUserId();
-
-      if (result.success) {
-        setUserBookings(() => (result.data as User).Bookings);
-        setUserOrders(() => (result.data as User).Orders);
-        setNotifications(() => (result.data as User).Notifications);
-        setCartItems(() => (result.data as User).Carts);
-      }
-    };
-
-    // Simulated API call for business rooms
-    const getBusinessRooms = async () => {
-      // Simulate API call
-      // let result = await BusinessRoomService.GetAllBusinessRooms();
-      // if (result.success) {
-      //   setBusinessRooms(() => result.dataList as BusinessRoom[]);
-      // }
-    };
-
-    getDelicacies();
-    getRooms();
-    getSingleUser();
-    getBusinessRooms();
-  }, []);
 
   useEffect(() => {
     socket.connect();
@@ -237,8 +195,53 @@ export const Dashboard: React.FC = () => {
       socket.off("room-created");
       socket.off("room-updated");
       socket.off("room-deleted");
+      socket.off("cart-created");
+      socket.off("cart-updated");
+      socket.off("cart-deleted");
       socket.disconnect();
     };
+  }, []);
+
+  useEffect(() => {
+    const getDelicacies = async () => {
+      let result = await DelicacyService.GetAvailableDelicacies();
+
+      if (result.success) {
+        setDelicacies(() => result.dataList as Delicacy[]);
+      }
+    };
+
+    const getRooms = async () => {
+      let result = await RoomsService.GetAllRooms();
+
+      if (result.success) {
+        setRooms(() => result.dataList as Room[]);
+      }
+    };
+
+    const getSingleUser = async () => {
+      let result = await UsersService.GetUserByUserId();
+
+      if (result.success) {
+        setUserBookings(() => (result.data as User).Bookings);
+        setUserOrders(() => (result.data as User).Orders);
+        setNotifications(() => (result.data as User).Notifications);
+        setCartItems(() => (result.data as User).Carts);
+      }
+    };
+
+    const getBusinessRooms = async () => {
+      let result = await BusinessRoomService.GetAvailableBusinessRooms();
+
+      if (result.success) {
+        setBusinessRooms(() => result.dataList as BusinessRoom[]);
+      }
+    };
+
+    getDelicacies();
+    getRooms();
+    getSingleUser();
+    getBusinessRooms();
   }, []);
 
   const categories = [

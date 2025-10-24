@@ -17,6 +17,7 @@ import { User, Cart as UserCart } from "../../../interfaces/interfaces";
 import { UsersService } from "../../../services/user.service";
 import Toast, { ToastProps } from "../../../components/Toast";
 import { socket } from "../../../socket.io";
+import { CartService } from "../../../services/cart.service";
 
 export const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<UserCart[]>([]);
@@ -79,6 +80,14 @@ export const Cart: React.FC = () => {
           setLoading(false);
         }
       };
+
+      const getUserCarts = async () => {
+        const result = await CartService.GetUserCarts();
+
+        if(result.success) setCartItems(result.dataList as UserCart[]);
+      };
+
+      getUserCarts();
       getUser();
     } catch (error: any) {
       const toast: ToastProps = {
@@ -116,8 +125,9 @@ export const Cart: React.FC = () => {
   };
 
   const getTotalAmount = () => {
+    console.log(cartItems[0].Delicacy);
     return cartItems.reduce(
-      (sum, item) => sum + item.Delicacy.Price * item.Quantity,
+      (sum, item) => sum + Number(item.Delicacy.Price) * item.Quantity,
       0
     );
   };

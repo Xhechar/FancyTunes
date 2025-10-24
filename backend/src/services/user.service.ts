@@ -124,7 +124,11 @@ export class UserService implements IUserService {
         Recoveries: true,
         Payments: true,
         Reviews: true,
-        Carts: true,
+        Carts: {
+          include: {
+            Delicacy: true
+          }
+        },
         Notifications: true
       }
     });

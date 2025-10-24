@@ -49,12 +49,12 @@ const Toast: React.FC<ToastProps> = ({
   type,
   title,
   message,
-  duration = 3000,
+  duration = 5000,
   onClose,
   position = "bottom-left",
 }) => {
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
-  const [progress, setProgress] = useState(100);
+  const [progress, setProgress] = useState(200);
 
   useEffect(() => {
     if (!isVisible) return;
@@ -65,9 +65,9 @@ const Toast: React.FC<ToastProps> = ({
           clearInterval(progressInterval);
           return 0;
         }
-        return prev - 100 / (duration / 100);
+        return prev - 200 / (duration / 200);
       });
-    }, 100);
+    }, 200);
 
     const timer = setTimeout(() => {
       handleClose();
@@ -84,7 +84,7 @@ const Toast: React.FC<ToastProps> = ({
     setTimeout(() => {
       onClose();
       setIsAnimatingOut(false);
-      setProgress(100);
+      setProgress(200);
     }, 300);
   };
 

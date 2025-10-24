@@ -17,7 +17,7 @@ export class CartService {
   }
 
   static async IncrementCartItem(CartId: string): Promise<ServiceResult<Cart>> {
-    const result = await axios.put(
+    const result = await axios.patch(
       `${this.ApiUrl}/increment-cart-item/${CartId}`,
       {},
       { withCredentials: true }
@@ -26,7 +26,7 @@ export class CartService {
   }
 
   static async DecrementCartItem(CartId: string): Promise<ServiceResult<Cart>> {
-    const result = await axios.put(
+    const result = await axios.patch(
       `${this.ApiUrl}/decrement-cart-item/${CartId}`,
       {},
       { withCredentials: true }

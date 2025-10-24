@@ -33,6 +33,15 @@ export class CartService implements ICartService {
 
     if (!DelicacyExists) return ServiceResponse.failure<Cart>(ErrorCode.NOTFOUND, "the delicacy you are trying to add is not available at the moment");
 
+    let CartExists = await this.prisma.cart.findFirst({
+      where: {
+        UserId,
+        DelicacyId
+      }
+    });
+
+    if(CartExists) return ServiceResponse.failure<Cart>("item already exists in cart", ErrorCode.BADREQUEST);
+
     let AddToCart = await this.prisma.cart.create({
       data: {
         CartId: v4(),
