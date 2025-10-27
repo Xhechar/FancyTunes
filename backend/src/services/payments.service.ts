@@ -6,7 +6,6 @@ import { SendSTKPush } from "../utils/safaricom.stk.push";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { CreatePaymentData } from "../interfaces/backend.interfaces";
-import { SharedDataService } from "../shared/shared.service.data";
 import lodash from 'lodash';
 import { TypeService } from "../interfaces/enum/service.type.enum";
 import { AccommodationsService } from "./accommodations.service";
@@ -79,16 +78,19 @@ export class PaymentService implements IPaymentService {
 
     if (Data.ResponseCode == "0") {
       
-      SharedDataService.SharedData = {
-        ServiceType: PaymentData.ServiceType,
-        Amount: PaymentData.Amount,
-        UserId,
-        CommodityId,
-        Accommodation: PaymentData.Accommodation ? PaymentData.Accommodation : undefined,
-        Booking: PaymentData.Booking ? PaymentData.Booking : undefined
-      };
+      let CreateSharedData = await this.prisma.paymentSharedData.create({
+        data: {
+          PaymentSharedDataId: v4(),
+          UserId,
+          CommodityId,
+          Amount: PaymentData.Amount,
+          ServiceType: PaymentData.ServiceType
+        }
+      });
 
-      return ServiceResponse.success<Payment>(Data.ResponseDescription);
+      if (CreateSharedData) return ServiceResponse.success<Payment>(Data.ResponseDescription);
+
+      else return ServiceResponse.failure<Payment>(ErrorCode.SERVER, "unable to create payment data, kindly retry payment");
     }
       
     return ServiceResponse.failure<Payment>(ErrorCode.CLIENT, Data.ResponseDescription);
@@ -189,21 +191,48 @@ export class PaymentService implements IPaymentService {
 
     return ServiceResponse.success<Payment>("payment deleted successfully");
   }
-
+  
   async MpesaCallback(SafaricomResponse: any): Promise<void> {
-    
-    if(lodash.isEmpty(SharedDataService.SharedData)) {
-      console.log("Shared Data Service Has no data.");
+
+    let ItemArray = SafaricomResponse.Body.stkCallback.CallbackMetadata.Item;
+
+    let UserExists = await this.prisma.user.findUnique({
+      where: {
+        Phone: ItemArray[4].Value,
+      },
+      include: {
+        PaymentSharedData: {
+          where: {
+            IsUsed: true
+          }
+        }
+      }
+    });
+
+    if(lodash.isEmpty(UserExists)) {
+      console.log("user to recieve payment response not found.");
+      return;
     }
 
-    switch(SharedDataService.SharedData.ServiceType) {
+    let PaymentSharedData = UserExists.PaymentSharedData[0];
+
+    switch(PaymentSharedData.ServiceType) {
       case TypeService.ACCOMMODATION : {
-        let Result = await AccService.CreateAccommodation(SharedDataService.SharedData.UserId, SharedDataService.SharedData.CommodityId, SharedDataService.SharedData.Accommodation as CreateAccommodationDto);
+
+        if (!PaymentSharedData.CheckInDate || !PaymentSharedData.CheckOutDate) {
+          console.log("missing check-in or check-out dates in payment shared data");
+          return;
+        }
+
+        const NewAccomodation: CreateAccommodationDto = {
+          CheckInDate: PaymentSharedData.CheckInDate,
+          CheckOutDate: PaymentSharedData.CheckOutDate,
+          SpecialRequests: PaymentSharedData.SpecialRequestsAccommodation ?? ""
+        };
+
+        let Result = await AccService.CreateAccommodation(UserExists.UserId, PaymentSharedData.CommodityId, NewAccomodation);
 
         if (Result.success) {
-
-          let ItemArray = SafaricomResponse.Body.stkCallback.CallbackMetadata.Item;
-          
           let PaymentData: CreatePaymentDto = {
             Amount: ItemArray[0].Value,
             PaymentMethod: "Safaricom MPESA",
@@ -211,17 +240,36 @@ export class PaymentService implements IPaymentService {
             ResultDescription: SafaricomResponse.Body.stkCallback.ResultDesc,
             Status: SafaricomResponse.Body.stkCallback.ResultCode,
             PaidAt: ItemArray[3].Value,
-            AccommodationId: SharedDataService.SharedData.CommodityId
+            AccommodationId: Result.data?.AccommodationId
           };
 
-          await this.SavePaymentData(SharedDataService.SharedData.UserId, PaymentData);
+          let SavePayment = await this.SavePaymentData(
+            UserExists.UserId,
+            PaymentData
+          );
+
+          if (!SavePayment.success)
+            console.log("unable to create payment for accommodation");
         }
       }
       break;
 
       case TypeService.BOOKING : {
+
+        if (!PaymentSharedData.BookingDate || !PaymentSharedData.NumberOfGuests || !PaymentSharedData.DurationInHours || !PaymentSharedData.TotalAmount) {
+          console.log("missing essential booking data");
+          return;
+        }
+
+        let NewBooking: CreateBookingDto = {
+          NumberOfGuests: PaymentSharedData.NumberOfGuests,
+          DurationInHours: PaymentSharedData.DurationInHours,
+          BookingDate: PaymentSharedData.BookingDate,
+          TotalAmount: PaymentSharedData.TotalAmount,
+          SpecialRequests: PaymentSharedData.SpecialRequestsBooking ?? ""
+        };
         
-        let Result = await BKService.CreateBooking(SharedDataService.SharedData.UserId, SharedDataService.SharedData.CommodityId, SharedDataService.SharedData.Booking as CreateBookingDto);
+        let Result = await BKService.CreateBooking(UserExists.UserId, PaymentSharedData.CommodityId, NewBooking);
 
         if (Result.success) {
 
@@ -237,14 +285,20 @@ export class PaymentService implements IPaymentService {
             BookingId: Result.data?.BookingId
           };
 
-          await this.SavePaymentData(SharedDataService.SharedData.UserId, PaymentData);
+          let SavePayment = await this.SavePaymentData(
+            UserExists.UserId,
+            PaymentData
+          );
+
+          if (!SavePayment.success)
+            console.log("unable to create payment for booking");
         }
       }
       break;
 
       case TypeService.ORDER : {
 
-        let Result = await OrdService.CreateOrder(SharedDataService.SharedData.UserId);
+        let Result = await OrdService.CreateOrder(UserExists.UserId);
 
         if (Result.success) {
           
@@ -260,13 +314,15 @@ export class PaymentService implements IPaymentService {
             OrderId: Result.data?.OrderId
           };
 
-          await this.SavePaymentData(SharedDataService.SharedData.UserId, PaymentData);
+          let SavePayment = await this.SavePaymentData(UserExists.UserId, PaymentData);
+
+          if(!SavePayment.success) console.log("unable to create payment for order");
         }
 
       }
       break;
 
-      default:
+      default: return;
     }
   }
 }

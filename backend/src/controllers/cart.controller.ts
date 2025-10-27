@@ -64,4 +64,12 @@ export class CartController {
     }
   }
   
+  async ClearCart(Req: Request, Res: Response) {
+    try {
+      let result = await this.cartService.ClearCart(getUserIdFromToken(Req));
+      return Res.status(200).json(result);
+    } catch (error) {
+      return Res.status(500).json(ServiceResponse.failure<object>(ErrorCode.SERVER, error instanceof Error ? error.message : "an internal server error occured."));
+    }
+  }
 }

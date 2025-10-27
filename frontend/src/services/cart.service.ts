@@ -47,4 +47,11 @@ export class CartService {
     });
     return result.data as ServiceResult<Cart>;
   }
+
+  static async ClearUserCarts(): Promise<ServiceResult<Cart>> {
+    const result = await axios.delete(`${this.ApiUrl}/clear-user-carts`, {
+      withCredentials: true,
+    });
+    return result.data as ServiceResult<Cart>;
+  }
 }

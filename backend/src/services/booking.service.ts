@@ -126,8 +126,7 @@ export class BookingService implements IBookingService {
 
     if (BookingExists == null) return ServiceResponse.failure<Booking>(ErrorCode.NOTFOUND, "booking details not found, kindly provide a valid booking.");
 
-    //paynent gateway integration here
-    return ServiceResponse.success<Booking>("payment completed successfully."); //
+    return ServiceResponse.success<Booking>("payment completed successfully.");
   }
 
   async UpdateBookingStatus(BookingId: string, BookingStatus: string): Promise<ServiceResult<Booking>> {
@@ -171,7 +170,7 @@ export class BookingService implements IBookingService {
 
     if (DeleteBooking == null) return ServiceResponse.failure<Booking>(ErrorCode.SERVER, "unable to delete booking at the moment, kindly try again later.");
 
-    io.emit("booking-deleted", DeleteBooking);
+    EmitToSingleUser(io, DeleteBooking.UserId, "booking-deleted", DeleteBooking);
 
     return ServiceResponse.success<Booking>("booking deleted successfully.");
   }

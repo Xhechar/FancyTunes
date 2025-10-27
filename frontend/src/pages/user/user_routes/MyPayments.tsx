@@ -88,8 +88,8 @@ export const MyPayments: React.FC = () => {
         let result = await UsersService.GetUserByUserId();
 
         if (result.success) {
-          setPayments(() => (result.data as unknown as User).Payments);
-          setFilteredPayments(() => (result.data as unknown as User).Payments);
+          setPayments(() => (result.data as unknown as User).Payments as Payment[]);
+          setFilteredPayments(() => (result.data as unknown as User).Payments as Payment[]);
           setLoading(false);
         } else {
           const toast: ToastProps = {

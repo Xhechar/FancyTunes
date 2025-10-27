@@ -77,7 +77,7 @@ export const Accommodations: React.FC = () => {
 
         if (result.success) {
           setAccommodations(
-            () => (result.data as unknown as User).Accommodations
+            () => (result.data as unknown as User).Accommodations as Accommodation[]
           );
         }
       };
@@ -117,14 +117,17 @@ export const Accommodations: React.FC = () => {
     }
 
     if (searchTerm) {
-      filtered = filtered.filter(
-        (acc) =>
-          String(acc.Room.RoomCount).toLowerCase().includes(
-            searchTerm.toLowerCase()
-          ) ||
-          acc.Room.RoomType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          acc.AccommodationId.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter((acc) => {
+        const roomCount = String(acc.Room?.RoomCount ?? "");
+        const roomType = acc.Room?.RoomType ?? "";
+        const accId = acc.AccommodationId ?? "";
+        return (
+          roomCount.toLowerCase().includes(term) ||
+          roomType.toLowerCase().includes(term) ||
+          accId.toLowerCase().includes(term)
+        );
+      });
     }
 
     setFilteredAccommodations(filtered);
@@ -315,10 +318,10 @@ export const Accommodations: React.FC = () => {
               <div className={styles["card-header"]}>
                 <img
                   src={
-                    accommodation.Room.RoomImage ||
+                    accommodation.Room?.RoomImage ||
                     "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=500"
                   }
-                  alt={accommodation.Room.RoomType}
+                  alt={accommodation.Room?.RoomType}
                   className={styles["room-image"]}
                 />
                 <div
@@ -334,10 +337,10 @@ export const Accommodations: React.FC = () => {
               <div className={styles["card-content"]}>
                 <div className={styles["room-info"]}>
                   <h3 className={styles["room-title"]}>
-                    {accommodation.Room.RoomType}
+                    {accommodation.Room?.RoomType}
                   </h3>
                   <p className={styles["room-number"]}>
-                    Room {accommodation.Room.RoomCount}
+                    Room {accommodation.Room?.RoomCount}
                   </p>
                 </div>
 
@@ -363,7 +366,7 @@ export const Accommodations: React.FC = () => {
 
                   <div className={styles.detail}>
                     <Users className={styles.icon} />
-                    <span>Up to {accommodation.Room.Capacity} guests</span>
+                    <span>Up to {accommodation.Room?.Capacity} guests</span>
                   </div>
 
                   <div className={styles.detail}>
@@ -382,7 +385,7 @@ export const Accommodations: React.FC = () => {
                 )}
 
                 <div className={styles.description}>
-                  <p>{accommodation.Room.Description}</p>
+                  <p>{accommodation.Room?.Description}</p>
                 </div>
 
                 <div className={styles["card-actions"]}>

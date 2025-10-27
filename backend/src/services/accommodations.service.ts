@@ -42,6 +42,9 @@ export class AccommodationsService implements IAccommodationService {
         IsActive: true,
         TotalAmount: Number(RoomExists.PricePerNight) * (new Date(Accommodation.CheckOutDate).getTime() - new Date(Accommodation.CheckInDate).getTime()) / (1000 * 3600 * 24),
         PaymentStatus: "paid"
+      },
+      include: {
+        Room: true
       }
     });
 
@@ -89,6 +92,9 @@ export class AccommodationsService implements IAccommodationService {
       },
       data: {
         ...Accommodation
+      },
+      include: {
+        Room: true
       }
     });
 
@@ -111,12 +117,15 @@ export class AccommodationsService implements IAccommodationService {
     let DeleteAccommodation = await this.prisma.accommodation.delete({
       where: {
         AccommodationId: AccommodationExists.AccommodationId
+      },
+      include: {
+        Room: true
       }
     });
 
     if (!DeleteAccommodation) return ServiceResponse.failure<Accommodation>(ErrorCode.SERVER, "unable to delete accommodation");
 
-    io.emit("accommodation-deleted", DeleteAccommodation);
+    EmitToSingleUser(io, AccommodationExists.UserId, "accommodation-deleted", DeleteAccommodation);
 
     return ServiceResponse.success<Accommodation>("accommodation deleted successfully");
   }

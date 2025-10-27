@@ -1,4 +1,5 @@
-import { CreateAccommodationDto, CreateBookingDto } from "./dtos/interfaces.dtos";
+import { CreateAccommodationDto, CreateBookingDto, CreateOrderItemDto } from "./dtos/interfaces.dtos";
+import { TypeService } from "./enum/service.type.enum";
 
 export interface User {
   UserId: string;
@@ -269,8 +270,9 @@ export interface PaymentSharedData {
 }
 
 export interface CreatePaymentData {
-  ServiceType: string;
+  ServiceType: TypeService;
   Amount: number;
   Accommodation?: CreateAccommodationDto,
-  Booking?: CreateBookingDto
+  Booking?: CreateBookingDto,
+  Order?: CreateOrderItemDto
 }

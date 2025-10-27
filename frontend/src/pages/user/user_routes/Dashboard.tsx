@@ -168,6 +168,7 @@ export const Dashboard: React.FC = () => {
     });
 
     socket.on("cart-created", (createdCart: Cart) => {
+      console.log("cart created now oh", createdCart);
       setCartItems((prev) => [...prev, createdCart]);
     });
 
@@ -223,10 +224,10 @@ export const Dashboard: React.FC = () => {
       let result = await UsersService.GetUserByUserId();
 
       if (result.success) {
-        setUserBookings(() => (result.data as User).Bookings);
-        setUserOrders(() => (result.data as User).Orders);
-        setNotifications(() => (result.data as User).Notifications);
-        setCartItems(() => (result.data as User).Carts);
+        setUserBookings(() => ((result.data as User).Bookings)as Booking[]);
+        setUserOrders(() => ((result.data as User).Orders)as Order[]);
+        setNotifications(() => ((result.data as User).Notifications) as Notification[]);
+        setCartItems(() => ((result.data as User).Carts)as Cart[]);
       }
     };
 
@@ -385,7 +386,7 @@ export const Dashboard: React.FC = () => {
     setShowPaymentModal(true);
 
     const totalAmount = cartItems.reduce(
-      (sum, item) => sum + item.Delicacy.Price * item.Quantity,
+      (sum, item) => sum + ((item.Delicacy?.Price ?? 0) * item.Quantity),
       0
     );
 
@@ -1060,17 +1061,23 @@ export const Dashboard: React.FC = () => {
             ) : (
               <div className={styles["cart-content"]}>
                 <div className={styles["cart-items"]}>
-                  {cartItems.map((item) => (
+                  {cartItems.map((item: Cart) => (
                     <div key={item.CartId} className={styles["cart-item"]}>
                       <div className={styles["item-image"]}>
                         <img
-                          src={item.Delicacy.DelicacyImage}
-                          alt={item.Delicacy.Name}
+                          src={item?.Delicacy?.DelicacyImage || ""}
+                          alt={item?.Delicacy?.Name || "Delicacy"}
                         />
                       </div>
                       <div className={styles["item-details"]}>
-                        <h4>{item.Delicacy.Name}</h4>
-                        <p>${item.Delicacy.Price}</p>
+                        <h4>{item?.Delicacy?.Name || ""}</h4>
+                        <p>
+                          ${
+                            (parseFloat(String(item?.Delicacy?.Price ?? 0)) ||
+                              0
+                            ).toFixed(2)
+                          }
+                        </p>
                       </div>
                       <div className={styles["quantity-controls"]}>
                         <button onClick={() => DecrementCart(item.CartId)}>
@@ -1082,7 +1089,7 @@ export const Dashboard: React.FC = () => {
                         </button>
                       </div>
                       <div className={styles["item-total"]}>
-                        ${(item.Delicacy.Price * item.Quantity).toFixed(2)}
+                        ${((item?.Delicacy?.Price ?? 0) * item.Quantity).toFixed(2)}
                       </div>
                       <button
                         className={styles["remove-button"]}
@@ -1100,7 +1107,7 @@ export const Dashboard: React.FC = () => {
                       {cartItems
                         .reduce(
                           (sum, item) =>
-                            sum + item.Delicacy.Price * item.Quantity,
+                            sum + ((item.Delicacy?.Price ?? 0) * item.Quantity),
                           0
                         )
                         .toFixed(2)}
@@ -1358,7 +1365,7 @@ export const Dashboard: React.FC = () => {
                           ? cartItems
                               .reduce(
                                 (sum, item) =>
-                                  sum + item.Delicacy.Price * item.Quantity,
+                                  sum + ((item.Delicacy?.Price ?? 0) * item.Quantity),
                                 0
                               )
                               .toFixed(2)
@@ -1394,16 +1401,16 @@ export const Dashboard: React.FC = () => {
                       <span className={styles["info-value"]}>
                         $
                         {currentPaymentType === "cart"
-                          ? cartItems
-                              .reduce(
-                                (sum, item) =>
-                                  sum + item.Delicacy.Price * item.Quantity,
-                                0
-                              )
-                              .toFixed(2)
-                          : selectedRoom
-                          ? selectedRoom.PricePerNight
-                          : selectedBusinessRoom?.PricePerHour}
+                        ? cartItems
+                            .reduce(
+                              (sum, item) =>
+                                sum + ((item.Delicacy?.Price ?? 0) * item.Quantity),
+                              0
+                            )
+                            .toFixed(2)
+                        : selectedRoom
+                        ? selectedRoom.PricePerNight
+                        : selectedBusinessRoom?.PricePerHour}
                       </span>
                     </div>
                   </div>

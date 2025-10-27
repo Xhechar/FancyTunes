@@ -15,14 +15,14 @@ export interface User {
   CreatedAt: Date;
   UpdatedAt: Date;
 
-  Bookings: Booking[];
-  Accommodations: Accommodation[];
-  Orders: Order[];
-  Carts: Cart[];
-  Recoveries: Recovery[];
-  Payments: Payment[];
-  Reviews: Review[];
-  Notifications: Notification[];
+  Bookings?: Booking[];
+  Accommodations?: Accommodation[];
+  Orders?: Order[];
+  Carts?: Cart[];
+  Recoveries?: Recovery[];
+  Payments?: Payment[];
+  Reviews?: Review[];
+  Notifications?: Notification[];
 }
 
 export interface BussinessRoom {
@@ -38,7 +38,7 @@ export interface BussinessRoom {
   CreatedAt: Date;
   UpdatedAt: Date;
 
-  Bookings: Booking[];
+  Bookings?: Booking[];
 }
 
 export interface Room {
@@ -53,10 +53,10 @@ export interface Room {
   CreatedAt: Date;
   UpdatedAt: Date;
 
-  Accommodations: Accommodation[];
-  Bookings: Booking[];
-  Reviews: Review[];
-  RoomImages: RoomImage[];
+  Accommodations?: Accommodation[];
+  Bookings?: Booking[];
+  Reviews?: Review[];
+  RoomImages?: RoomImage[];
 }
 
 export interface Delicacy {
@@ -70,10 +70,10 @@ export interface Delicacy {
   CreatedAt: Date;
   UpdatedAt: Date;
 
-  Orders: Order[];
-  Carts: Cart[];
-  OrderItems: OrderItem[];
-  Reviews: Review[];
+  Orders?: Order[];
+  Carts?: Cart[];
+  OrderItems?: OrderItem[];
+  Reviews?: Review[];
 }
 
 export interface Accommodation {
@@ -89,8 +89,8 @@ export interface Accommodation {
   CreatedAt: string;
   UpdatedAt: string;
 
-  User: User;
-  Room: Room;
+  User?: User;
+  Room?: Room;
 }
 
 export interface BusinessRoom {
@@ -105,6 +105,8 @@ export interface BusinessRoom {
   IsAvailable: boolean;
   CreatedAt: Date;
   UpdatedAt: Date;
+
+  Bookings?: Booking[];
 }
 
 export interface Order {
@@ -118,9 +120,9 @@ export interface Order {
   DeliveredAt?: Date;
   PaymentStatus: string;
 
-  User: User;
-  Delicacy: Delicacy;
-  OrderItems: OrderItem[];
+  User?: User;
+  Delicacy?: Delicacy;
+  OrderItems?: OrderItem[];
 }
 
 export interface Booking {
@@ -137,8 +139,8 @@ export interface Booking {
   CreatedAt: Date;
   UpdatedAt: Date;
 
-  User: User;
-  BusinessRoom: BusinessRoom;
+  User?: User;
+  BusinessRoom?: BusinessRoom;
 }
 
 export interface Cart {
@@ -148,8 +150,8 @@ export interface Cart {
   Quantity: number;
   AddedAt: Date;
 
-  User: User;
-  Delicacy: Delicacy;
+  User?: User;
+  Delicacy?: Delicacy;
 }
 
 export interface Recovery {
@@ -160,7 +162,7 @@ export interface Recovery {
   IsUsed: boolean;
   CreatedAt: Date;
 
-  User: User;
+  User?: User;
 }
 
 export interface Payment {
@@ -176,7 +178,7 @@ export interface Payment {
   PaidAt: string;
   CreatedAt: Date;
 
-  User: User;
+  User?: User;
 }
 
 export interface OrderItem {
@@ -187,8 +189,8 @@ export interface OrderItem {
   Price: number;
   Subtotal: number;
 
-  Order: Order;
-  Delicacy: Delicacy;
+  Order?: Order;
+  Delicacy?: Delicacy;
 }
 
 export interface Review {
@@ -200,7 +202,7 @@ export interface Review {
   Comment: string;
   CreatedAt: Date;
 
-  User: User;
+  User?: User;
   Room?: Room;
   Delicacy?: Delicacy;
 }
@@ -213,7 +215,7 @@ export interface Notification {
   IsRead: boolean;
   CreatedAt: Date;
 
-  User: User;
+  User?: User;
 }
 
 export interface RoomImage {
@@ -221,7 +223,7 @@ export interface RoomImage {
   RoomId: string;
   ImageUrl: string;
 
-  Room: Room;
+  Room?: Room;
 }
 
 export interface LoginDetails {

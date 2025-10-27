@@ -11,6 +11,9 @@ import {
   Package,
   CreditCard,
   ShoppingBag,
+  Loader2,
+  Check,
+  X,
 } from "lucide-react";
 import styles from "../../../styles/user/user_routes/Cart.module.css";
 import { User, Cart as UserCart } from "../../../interfaces/interfaces";
@@ -19,15 +22,24 @@ import Toast, { ToastProps } from "../../../components/Toast";
 import { socket } from "../../../socket.io";
 import { CartService } from "../../../services/cart.service";
 
+type PaymentMethod = "mpesa" | "stripe";
+
 export const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<UserCart[]>([]);
   const [filteredItems, setFilteredItems] = useState<UserCart[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<ToastProps | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mpesa");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<{
+    title: string;
+    message: string;
+    type: "processing" | "success" | "error";
+  } | null>(null);
 
   useEffect(() => {
-
     socket.connect();
 
     socket.on("cart-created", (newCart: UserCart) => {
@@ -36,7 +48,9 @@ export const Cart: React.FC = () => {
 
     socket.on("cart-updated", (updatedCart: UserCart) => {
       setCartItems((prev) => {
-        const index = prev.findIndex(item => item.CartId === updatedCart.CartId);
+        const index = prev.findIndex(
+          (item) => item.CartId === updatedCart.CartId
+        );
         if (index !== -1) {
           const newCart = [...prev];
           newCart[index] = updatedCart;
@@ -48,13 +62,25 @@ export const Cart: React.FC = () => {
     });
 
     socket.on("cart-deleted", (deletedCart: UserCart) => {
-      setCartItems((prev) => prev.filter(item => item.CartId !== deletedCart.CartId));
+      setCartItems((prev) =>
+        prev.filter((item) => item.CartId !== deletedCart.CartId)
+      );
+    });
+
+    socket.on("cart-cleared", (deletedCarts: UserCart[]) => {
+      setCartItems((prev) =>
+        prev.filter((item) => !deletedCarts.some((d) => d.CartId === item.CartId))
+      );
+      setFilteredItems((prev) =>
+        prev.filter((item) => !deletedCarts.some((d) => d.CartId === item.CartId))
+      );
     });
 
     return () => {
       socket.off("cart-created");
       socket.off("cart-updated");
       socket.off("cart-deleted");
+      socket.off("cart-cleared");
       socket.disconnect();
     };
   }, []);
@@ -65,15 +91,20 @@ export const Cart: React.FC = () => {
         let result = await UsersService.GetUserByUserId();
 
         if (result.success) {
-          setCartItems(() => (result.data as unknown as User).Carts);
-          setFilteredItems(() => (result.data as unknown as User).Carts);
+          setCartItems(
+            () => (result.data as unknown as User).Carts as UserCart[]
+          );
+          setFilteredItems(
+            () => (result.data as unknown as User).Carts as UserCart[]
+          );
           setLoading(false);
         } else {
           const toast: ToastProps = {
             isVisible: true,
             type: "warning",
-            title: result.error as string || "Warning",
-            message: result.message as string || "Unable to fetch cart items.",
+            title: (result.error as string) || "Warning",
+            message:
+              (result.message as string) || "Unable to fetch cart items.",
             onClose: () => setToast(null),
           };
           setToast(toast);
@@ -84,7 +115,7 @@ export const Cart: React.FC = () => {
       const getUserCarts = async () => {
         const result = await CartService.GetUserCarts();
 
-        if(result.success) setCartItems(result.dataList as UserCart[]);
+        if (result.success) setCartItems(result.dataList as UserCart[]);
       };
 
       getUserCarts();
@@ -93,8 +124,10 @@ export const Cart: React.FC = () => {
       const toast: ToastProps = {
         isVisible: true,
         type: "error",
-        title: error?.response?.data?.error as string || "Error",
-        message: error?.response?.data?.message as string || "An error occurred while fetching cart items.",
+        title: (error?.response?.data?.error as string) || "Error",
+        message:
+          (error?.response?.data?.message as string) ||
+          "An error occurred while fetching cart items.",
         onClose: () => setToast(null),
       };
       setToast(toast);
@@ -105,31 +138,124 @@ export const Cart: React.FC = () => {
   useEffect(() => {
     const filtered = cartItems.filter(
       (item) =>
-        item.Delicacy.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.Delicacy.Category.toLowerCase().includes(searchTerm.toLowerCase())
+        item.Delicacy?.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.Delicacy?.Category.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredItems(filtered);
   }, [cartItems, searchTerm]);
 
-  const updateQuantity = (cartId: string, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.CartId === cartId ? { ...item, Quantity: newQuantity } : item
-      )
-    );
+  const IncrementCartQuantity = async (CartId: string) => {
+    try {
+      const result = await CartService.IncrementCartItem(CartId);
+
+      if (result.success) {
+        setToast({
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message: (result.message as string) || "Item quantity increased.",
+          onClose: () => setToast(null),
+        });
+      } else {
+        setToast({
+          isVisible: true,
+          type: "error",
+          title: (result.error as string) || "Error",
+          message: (result.message as string) || "Unable to update cart item.",
+          onClose: () => setToast(null),
+        });
+      }
+    } catch (error: any) {
+      setToast({
+        isVisible: true,
+        type: "error",
+        title: (error?.response?.data?.error as string) || "Error",
+        message:
+          (error?.response?.data?.message as string) ||
+          error?.message ||
+          "An unexpected error occurred while updating the cart item.",
+        onClose: () => setToast(null),
+      });
+    }
   };
 
-  const removeFromCart = (cartId: string) => {
-    setCartItems((prev) => prev.filter((item) => item.CartId !== cartId));
+  const DecrementCartQuantity = async (CartId: string) => {
+    try {
+      const result = await CartService.DecrementCartItem(CartId);
+
+      if (result.success) {
+        setToast({
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message: (result.message as string) || "Item quantity decreased.",
+          onClose: () => setToast(null),
+        });
+      } else {
+        setToast({
+          isVisible: true,
+          type: "error",
+          title: (result.error as string) || "Warning",
+          message: (result.message as string) || "Unable to update cart item.",
+          onClose: () => setToast(null),
+        });
+      }
+    } catch (error: any) {
+      setToast({
+        isVisible: true,
+        type: "error",
+        title: (error?.response?.data?.error as string) || "Error",
+        message:
+          (error?.response?.data?.message as string) ||
+          error?.message ||
+          "An unexpected error occurred while updating the cart item.",
+        onClose: () => setToast(null),
+      });
+    }
+  };
+
+  const removeFromCart = async (cartId: string) => {
+    try {
+      const result = await CartService.DeleteCart(cartId);
+
+      if (result.success) {
+        setCartItems((prev) => prev.filter((item) => item.CartId !== cartId));
+        setFilteredItems((prev) => prev.filter((item) => item.CartId !== cartId));
+
+        setToast({
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message: (result.message as string) || "Item removed from cart.",
+          onClose: () => setToast(null),
+        });
+      } else {
+        setToast({
+          isVisible: true,
+          type: "error",
+          title: (result.error as string) || "Error",
+          message: (result.message as string) || "Unable to remove item from cart.",
+          onClose: () => setToast(null),
+        });
+      }
+    } catch (error: any) {
+      setToast({
+        isVisible: true,
+        type: "error",
+        title: (error?.response?.data?.error as string) || "Error",
+        message:
+          (error?.response?.data?.message as string) ||
+          "An error occurred while removing the item from the cart.",
+        onClose: () => setToast(null),
+      });
+    }
   };
 
   const getTotalAmount = () => {
-    console.log(cartItems[0].Delicacy);
-    return cartItems.reduce(
-      (sum, item) => sum + Number(item.Delicacy.Price) * item.Quantity,
-      0
-    );
+    return cartItems.reduce((sum, item) => {
+      const price = Number(item.Delicacy?.Price ?? 0);
+      return sum + price * item.Quantity;
+    }, 0);
   };
 
   const getTotalItems = () => {
@@ -137,15 +263,125 @@ export const Cart: React.FC = () => {
   };
 
   const getItemSubtotal = (item: UserCart) => {
-    return item.Delicacy.Price * item.Quantity;
+    const price = Number(item.Delicacy?.Price ?? 0);
+    return price * item.Quantity;
+  };
+
+  const processPayment = async (amount: number) => {
+    setIsProcessingPayment(true);
+
+    if (paymentMethod === "mpesa") {
+      setPaymentStatus({
+        title: "STK Push Sent",
+        message:
+          "Please check your phone and enter your M-PESA PIN to complete the payment.",
+        type: "processing",
+      });
+
+      // Simulated M-PESA STK Push
+      setTimeout(() => {
+        // Simulated success
+        setPaymentStatus({
+          title: "Payment Successful!",
+          message:
+            "Your order has been processed successfully. You will receive a confirmation shortly.",
+          type: "success",
+        });
+        setIsProcessingPayment(false);
+
+        setTimeout(() => {
+          setShowPaymentModal(false);
+          setPaymentStatus(null);
+
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "success",
+            title: "SUCCESS",
+            message: "Order completed successfully!",
+            onClose: () => setToast(null),
+          };
+          setToast(toast);
+        }, 2000);
+      }, 5000);
+    } else {
+      // Stripe payment
+      setPaymentStatus({
+        title: "Processing Stripe Payment",
+        message: "Please wait while we redirect you to Stripe...",
+        type: "processing",
+      });
+
+      setTimeout(() => {
+        setPaymentStatus({
+          title: "Payment Successful!",
+          message: "Your payment has been processed successfully via Stripe.",
+          type: "success",
+        });
+        setIsProcessingPayment(false);
+
+        setTimeout(() => {
+          setShowPaymentModal(false);
+          setPaymentStatus(null);
+
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "success",
+            title: "SUCCESS",
+            message: "Order completed successfully!",
+            onClose: () => setToast(null),
+          };
+          setToast(toast);
+        }, 2000);
+      }, 3000);
+    }
   };
 
   const handleCheckout = () => {
-    console.log("Proceeding to checkout...");
+    setShowPaymentModal(true);
   };
 
-  const clearCart = () => {
-    setCartItems([]);
+  const handleProceedToPayment = () => {
+    const totalAmount = getTotalAmount() + 5.0;
+    processPayment(totalAmount);
+  };
+
+  const clearCart = async() => {
+    let result = await CartService.ClearUserCarts();
+
+    const clearCart = async () => {
+      try {
+        const result = await CartService.ClearUserCarts();
+
+        if (result.success) {
+          setToast({
+            isVisible: true,
+            type: "success",
+            title: "SUCCESS",
+            message: (result.message as string) || "Cart cleared successfully.",
+            onClose: () => setToast(null),
+          });
+        } else {
+          setToast({
+            isVisible: true,
+            type: "error",
+            title: (result.error as string) || "Error",
+            message: (result.message as string) || "Unable to clear cart.",
+            onClose: () => setToast(null),
+          });
+        }
+      } catch (error: any) {
+        setToast({
+          isVisible: true,
+          type: "error",
+          title: (error?.response?.data?.error as string) || "Error",
+          message:
+            (error?.response?.data?.message as string) ||
+            error?.message ||
+            "An error occurred while clearing the cart.",
+          onClose: () => setToast(null),
+        });
+      }
+    };
   };
 
   if (loading) {
@@ -235,28 +471,28 @@ export const Cart: React.FC = () => {
                 <div key={item.CartId} className={styles.cartItem}>
                   <div className={styles.itemImage}>
                     <img
-                      src={item.Delicacy.DelicacyImage}
-                      alt={item.Delicacy.Name}
+                      src={item.Delicacy?.DelicacyImage}
+                      alt={item.Delicacy?.Name}
                       className={styles.delicacyImage}
                     />
-                    {!item.Delicacy.IsAvailable && (
+                    {!item.Delicacy?.IsAvailable && (
                       <div className={styles.unavailableBadge}>Unavailable</div>
                     )}
                   </div>
 
                   <div className={styles.itemDetails}>
                     <div className={styles.itemHeader}>
-                      <h3 className={styles.itemName}>{item.Delicacy.Name}</h3>
+                      <h3 className={styles.itemName}>{item.Delicacy?.Name}</h3>
                       <div className={styles.categoryBadge}>
-                        {item.Delicacy.Category}
+                        {item.Delicacy?.Category}
                       </div>
                     </div>
                     <p className={styles.itemDescription}>
-                      {item.Delicacy.Description}
+                      {item.Delicacy?.Description}
                     </p>
                     <div className={styles.itemMeta}>
                       <span className={styles.unitPrice}>
-                        ${item.Delicacy.Price.toFixed(2)} each
+                        ${Number(item.Delicacy?.Price ?? 0).toFixed(2)} each
                       </span>
                       <div className={styles.addedTime}>
                         <Calendar className={styles.timeIcon} />
@@ -271,7 +507,7 @@ export const Cart: React.FC = () => {
                     <div className={styles.quantityControls}>
                       <button
                         onClick={() =>
-                          updateQuantity(item.CartId, item.Quantity - 1)
+                          DecrementCartQuantity(item.CartId)
                         }
                         className={styles.quantityButton}
                         disabled={item.Quantity <= 1}
@@ -281,7 +517,7 @@ export const Cart: React.FC = () => {
                       <span className={styles.quantity}>{item.Quantity}</span>
                       <button
                         onClick={() =>
-                          updateQuantity(item.CartId, item.Quantity + 1)
+                          IncrementCartQuantity(item.CartId)
                         }
                         className={styles.quantityButton}
                       >
@@ -341,6 +577,136 @@ export const Cart: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <div
+          className={styles.modalOverlay}
+          onClick={() => !isProcessingPayment && setShowPaymentModal(false)}
+        >
+          <div
+            className={styles.modalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {!paymentStatus ? (
+              <>
+                <div className={styles.modalHeader}>
+                  <h3>Select Payment Method</h3>
+                  <button
+                    onClick={() => setShowPaymentModal(false)}
+                    className={styles.modalCloseButton}
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <div className={styles.modalBody}>
+                  <div className={styles.paymentMethodSelector}>
+                    <div className={styles.paymentOptions}>
+                      <label className={styles.paymentOption}>
+                        <input
+                          type="radio"
+                          value="mpesa"
+                          checked={paymentMethod === "mpesa"}
+                          onChange={(e) =>
+                            setPaymentMethod(e.target.value as PaymentMethod)
+                          }
+                        />
+                        <div className={styles.paymentOptionContent}>
+                          <span className={styles.paymentIcon}>📱</span>
+                          <span className={styles.paymentLabel}>M-PESA</span>
+                        </div>
+                      </label>
+                      <label className={styles.paymentOption}>
+                        <input
+                          type="radio"
+                          value="stripe"
+                          checked={paymentMethod === "stripe"}
+                          onChange={(e) =>
+                            setPaymentMethod(e.target.value as PaymentMethod)
+                          }
+                        />
+                        <div className={styles.paymentOptionContent}>
+                          <span className={styles.paymentIcon}>💳</span>
+                          <span className={styles.paymentLabel}>Stripe</span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className={styles.paymentSummary}>
+                    <div className={styles.summaryRow}>
+                      <span>Subtotal:</span>
+                      <span>${getTotalAmount().toFixed(2)}</span>
+                    </div>
+                    <div className={styles.summaryRow}>
+                      <span>Service Fee:</span>
+                      <span>$5.00</span>
+                    </div>
+                    <div className={styles.summaryDivider}></div>
+                    <div className={styles.summaryTotal}>
+                      <span>Total:</span>
+                      <span>${(getTotalAmount() + 5.0).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.modalActions}>
+                  <button
+                    onClick={() => setShowPaymentModal(false)}
+                    className={styles.cancelButton}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleProceedToPayment}
+                    className={styles.proceedButton}
+                  >
+                    Proceed to Payment
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className={styles.paymentStatusModal}>
+                <div className={styles.paymentIconContainer}>
+                  {paymentStatus.type === "processing" && (
+                    <Loader2 className={styles.processingSpinner} size={64} />
+                  )}
+                  {paymentStatus.type === "success" && (
+                    <div className={styles.successIcon}>
+                      <Check size={64} />
+                    </div>
+                  )}
+                  {paymentStatus.type === "error" && (
+                    <div className={styles.errorIcon}>
+                      <X size={64} />
+                    </div>
+                  )}
+                </div>
+                <h3 className={styles.paymentTitle}>{paymentStatus.title}</h3>
+                <p className={styles.paymentMessage}>{paymentStatus.message}</p>
+
+                {paymentStatus.type === "processing" && (
+                  <div className={styles.paymentInfo}>
+                    <div className={styles.infoCard}>
+                      <span className={styles.infoLabel}>Payment Method:</span>
+                      <span className={styles.infoValue}>
+                        {paymentMethod === "mpesa" ? "M-PESA" : "Stripe"}
+                      </span>
+                    </div>
+                    <div className={styles.infoCard}>
+                      <span className={styles.infoLabel}>Amount:</span>
+                      <span className={styles.infoValue}>
+                        ${(getTotalAmount() + 5.0).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

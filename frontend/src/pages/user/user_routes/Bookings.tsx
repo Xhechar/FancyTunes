@@ -81,7 +81,7 @@ export const Bookings: React.FC = () => {
         let result = await UsersService.GetUserByUserId();
 
         if (result.success) {
-          setBookings(() => (result.data as unknown as User).Bookings);
+          setBookings(() => (result.data as unknown as User).Bookings as Booking[]);
         } else {
           const toast: ToastProps = {
             isVisible: true,
@@ -131,7 +131,7 @@ export const Bookings: React.FC = () => {
           String(booking.BusinessRoom?.RoomCount).toLowerCase().includes(
             searchTerm.toLowerCase()
           ) ||
-          booking.BusinessRoom.Amenities?.toLowerCase().includes(
+          booking.BusinessRoom?.Amenities?.toLowerCase().includes(
             searchTerm.toLowerCase()
           ) ||
           booking.BookingId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -413,10 +413,10 @@ export const Bookings: React.FC = () => {
               <div className={styles["card-header"]}>
                 <img
                   src={
-                    booking.BusinessRoom.BusinessRoomImage ||
+                    booking.BusinessRoom?.BusinessRoomImage ||
                     "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=500"
                   }
-                  alt={booking.BusinessRoom.Name}
+                  alt={booking.BusinessRoom?.Name}
                   className={styles["room-image"]}
                 />
                 <div className={styles["status-badges"]}>
@@ -442,10 +442,10 @@ export const Bookings: React.FC = () => {
               <div className={styles["card-content"]}>
                 <div className={styles["room-info"]}>
                   <h3 className={styles["room-title"]}>
-                    {booking.BusinessRoom.Name}
+                    {booking.BusinessRoom?.Name}
                   </h3>
                   <p className={styles["room-number"]}>
-                    Room {booking.BusinessRoom.RoomCount}
+                    Room {booking.BusinessRoom?.RoomCount}
                   </p>
                 </div>
 
@@ -473,7 +473,7 @@ export const Bookings: React.FC = () => {
                     <Users className={styles.icon} />
                     <span>
                       {booking.NumberOfGuests} guests • Capacity:{" "}
-                      {booking.BusinessRoom.Capacity}
+                      {booking.BusinessRoom?.Capacity}
                     </span>
                   </div>
 
@@ -493,7 +493,7 @@ export const Bookings: React.FC = () => {
                 )}
 
                 <div className={styles.description}>
-                  <p>{booking.BusinessRoom.Description}</p>
+                  <p>{booking.BusinessRoom?.Description}</p>
                 </div>
 
                 <div className={styles["card-actions"]}>

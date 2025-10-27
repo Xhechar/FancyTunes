@@ -83,8 +83,8 @@ export const Reviews: React.FC = () => {
         let result = await UsersService.GetUserByUserId();
 
         if (result.success) {
-          setReviews((result.data as unknown as User).Reviews);
-          setFilteredReviews((result.data as unknown as User).Reviews);
+          setReviews((result.data as unknown as User).Reviews as Review[]);
+          setFilteredReviews((result.data as unknown as User).Reviews as Review[]);
           setLoading(false);
         } else {
           setLoading(false);

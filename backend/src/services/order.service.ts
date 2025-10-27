@@ -105,7 +105,7 @@ export class OrderService implements IOrderService {
 
     if (!DeleteOrder) return ServiceResponse.failure<Order>(ErrorCode.SERVER, "unable to delete order at the moment");
 
-    io.emit("order-deleted", DeleteOrder);
+    EmitToSingleUser(io, DeleteOrder.UserId, "order-deleted", DeleteOrder);
 
     return ServiceResponse.success<Order>("order deleted successfully");
   }

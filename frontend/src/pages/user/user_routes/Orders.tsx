@@ -39,8 +39,8 @@ export const Orders: React.FC = () => {
         let result = await UsersService.GetUserByUserId();
         if (result.success) {
           const user = result.data as unknown as User;
-          setOrders(user.Orders);
-          setFilteredOrders(user.Orders);
+          setOrders(user.Orders as Order[]);
+          setFilteredOrders(user.Orders as Order[]);
         } else {
           const toast: ToastProps = {
             isVisible: true,
@@ -94,12 +94,12 @@ export const Orders: React.FC = () => {
     if (searchTerm) {
       filtered = filtered.filter(
         (order) =>
-          order.Delicacy.Name.toLowerCase().includes(
+          order.Delicacy?.Name.toLowerCase().includes(
             searchTerm.toLowerCase()
           ) ||
           order.OrderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
           order.OrderStatus.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.Delicacy.Category.toLowerCase().includes(
+          order.Delicacy?.Category.toLowerCase().includes(
             searchTerm.toLowerCase()
           )
       );
@@ -346,8 +346,8 @@ export const Orders: React.FC = () => {
             <div key={order.OrderId} className={styles["order-card"]}>
               <div className={styles["card-header"]}>
                 <img
-                  src={order.Delicacy.DelicacyImage}
-                  alt={order.Delicacy.Name}
+                  src={order.Delicacy?.DelicacyImage}
+                  alt={order.Delicacy?.Name}
                   className={styles["delicacy-image"]}
                 />
                 <div className={styles["status-badges"]}>
@@ -372,13 +372,13 @@ export const Orders: React.FC = () => {
               <div className={styles["card-content"]}>
                 <div className={styles["order-info"]}>
                   <h3 className={styles["delicacy-title"]}>
-                    {order.Delicacy.Name}
+                    {order.Delicacy?.Name}
                   </h3>
                   <p className={styles["delicacy-description"]}>
-                    {order.Delicacy.Description}
+                    {order.Delicacy?.Description}
                   </p>
                   <span className={styles["category-badge"]}>
-                    {order.Delicacy.Category}
+                    {order.Delicacy?.Category}
                   </span>
                 </div>
 

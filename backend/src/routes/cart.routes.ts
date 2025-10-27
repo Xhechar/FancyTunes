@@ -41,3 +41,10 @@ CartRouter.get(
   verifyUser,
   async (Req, Res) => await cartController.GetUserCarts(Req, Res)
 );
+
+CartRouter.delete(
+  "/clear-user-carts",
+  verifyToken,
+  verifyUser,
+  async (Req, Res) => await cartController.ClearCart(Req, Res)
+);

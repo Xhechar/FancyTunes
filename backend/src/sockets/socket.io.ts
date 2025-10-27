@@ -7,11 +7,9 @@ const UserSocket = new Map<string, string>();
 export const setUpSocket = (io: Server) => {
   io.on("connection", (socket: Socket) => {
     try {
-      console.log(socket.handshake.headers.cookie);
       const cookieHeader = socket.handshake.headers.cookie;
 
       if (!cookieHeader) {
-        console.log("No cookies found");
         socket.disconnect();
         return;
       }
@@ -20,19 +18,25 @@ export const setUpSocket = (io: Server) => {
       const token = cookies.auth_token;
 
       if (!token) {
-        console.log("No token cookie found");
         socket.disconnect();
         return;
       }
 
-      const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
+      let rawToken = token.startsWith("s:") ? token.slice(2) : token;
+
+      if (rawToken.includes(".")) {
+        const parts = rawToken.split(".");
+        if (parts.length > 3) {
+          rawToken = parts.slice(0, 3).join(".");
+        }
+      };
+      const decoded: any = jwt.verify(rawToken, process.env.SECRET_KEY as string);
+
       const userId = decoded.UserId;
 
       UserSocket.set(userId, socket.id);
-      console.log(`✅ Socket Registered for User: ${userId}`);
 
     } catch (error: any) {
-      console.log("Socket Authentication Error:", error.message);
       socket.disconnect();
     }
   });

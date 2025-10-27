@@ -48,6 +48,9 @@ export class CartService implements ICartService {
         UserId,
         DelicacyId,
         ...Cart
+      },
+      include: {
+        Delicacy: true
       }
     });
 
@@ -85,6 +88,9 @@ export class CartService implements ICartService {
         Quantity: {
           increment: 1
         }
+      },
+      include: {
+        Delicacy: true
       }
     });
 
@@ -125,6 +131,9 @@ export class CartService implements ICartService {
         Quantity: {
           decrement: 1
         }
+      },
+      include: {
+        Delicacy: true
       }
     });
 
@@ -148,6 +157,9 @@ export class CartService implements ICartService {
       where: {
         CartId,
         UserId: UserExists.UserId
+      },
+      include: {
+        Delicacy: true
       }
     });
 
@@ -156,6 +168,9 @@ export class CartService implements ICartService {
     let DeleteCart = await this.prisma.cart.delete({
       where: {
         CartId
+      },
+      include: {
+        Delicacy: true
       }
     });
 
@@ -190,5 +205,39 @@ export class CartService implements ICartService {
     if(!UserCarts) return ServiceResponse.failure<Cart>(ErrorCode.SERVER, "unable to fetch your cart items at the moment");
 
     return ServiceResponse.success<Cart>("user cart items fetched successfully", undefined, UserCarts);
-  } 
+  }
+
+  async ClearCart(UserId: string): Promise<ServiceResult<Cart>> {
+
+    let UserExists = await this.prisma.user.findUnique({
+      where: {
+        UserId
+      }
+    });
+
+    if (!UserExists) return ServiceResponse.failure<Cart>(ErrorCode.NOTFOUND, "your details are not availabele, kindly register.");
+
+    let UserCarts = await this.prisma.cart.findMany({
+      where: {
+        UserId
+      },
+      include: {
+        Delicacy: true
+      }
+    });
+
+    if (!UserCarts || UserCarts.length === 0) return ServiceResponse.failure<Cart>(ErrorCode.NOTFOUND, "no cart items to clear");
+
+    let Deleted = await this.prisma.cart.deleteMany({
+      where: {
+        UserId
+      }
+    });
+
+    if (!Deleted || Deleted.count === 0) return ServiceResponse.failure<Cart>(ErrorCode.SERVER, "unable to clear cart at the moment");
+
+    EmitToSingleUser(io, UserExists.UserId, "cart-cleared", UserCarts);
+
+    return ServiceResponse.success<Cart>("cart cleared successfully");
+  }
 }

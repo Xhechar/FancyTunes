@@ -237,6 +237,14 @@ model PaymentSharedData {
   CommodityId   String
   Amount    Decimal
   IsUsed    Boolean    @default(false)
+  CheckInDate DateTime?
+  CheckOutDate DateTime?
+  SpecialRequestsBooking String?
+  SpecialRequestsAccommodation String?
+  NumberOfGuests Int?
+  DurationInHours Int?
+  BookingDate DateTime?
+  TotalAmount Int?
   CreatedAt   DateTime    @default(now())
 
   User    User    @relation(fields: [UserId], references: [UserId], onUpdate: NoAction, onDelete: NoAction)

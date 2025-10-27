@@ -57,7 +57,7 @@ export const Login: React.FC = () => {
       setTimeout(() => {
         if(response.role === "admin") navigate("/admin");
         else navigate("/user");
-      }, 4500);
+      }, 6000);
     } else {
       setIsSubmitting(false);
       let toast: ToastProps = {
@@ -83,18 +83,15 @@ export const Login: React.FC = () => {
   return (
     <div className={styles["login-page"]}>
       {toast === null ? <div></div> : <Toast {...toast}></Toast>}
-      {/* Background overlay */}
       <div className={styles["login-background"]}>
         <div className={styles["login-overlay"]}></div>
       </div>
 
-      {/* Home button */}
       <button className={styles["home-btn"]} onClick={navigateHome}>
         <Home size={20} />
         <span>Back to Home</span>
       </button>
 
-      {/* Login container */}
       <div className={styles["login-container"]}>
         <div className={styles["login-card"]}>
           {/* Header */}
@@ -109,7 +106,6 @@ export const Login: React.FC = () => {
           </div>
 
           <div className={styles["login-form"]}>
-            {/* Email Field */}
             <div className={styles["form-group"]}>
               <label className={styles["form-label"]}>Email Address</label>
               <div className={styles["input-wrapper"]}>
@@ -149,7 +145,6 @@ export const Login: React.FC = () => {
               )}
             </div>
 
-            {/* Password Field */}
             <div className={styles["form-group"]}>
               <label className={styles["form-label"]}>Password</label>
               <div className={styles["input-wrapper"]}>
@@ -208,7 +203,6 @@ export const Login: React.FC = () => {
                 </span>
               )}
 
-              {/* Password strength indicator */}
               {watchedPassword && (
                 <div className={styles["password-strength"]}>
                   <div className={styles["strength-bar"]}>
@@ -239,7 +233,6 @@ export const Login: React.FC = () => {
               )}
             </div>
 
-            {/* Remember Me & Forgot Password */}
             <div className={styles["form-options"]}>
               <label className={styles["checkbox-wrapper"]}>
                 <input
