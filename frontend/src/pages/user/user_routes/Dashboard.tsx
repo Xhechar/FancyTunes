@@ -39,15 +39,21 @@ import {
   User,
   Notification,
   BusinessRoom,
+  CreatePaymentData,
+  Accommodation,
+  Payment,
 } from "../../../interfaces/interfaces";
 import { DelicacyService } from "../../../services/delicacy.service";
 import { RoomsService } from "../../../services/room.service";
 import { UsersService } from "../../../services/user.service";
 import { socket } from "../../../socket.io";
-import { CreateCartDto } from "../../../interfaces/dtos/interfaces.dtos";
+import { CreateAccommodationDto, CreateBookingDto, CreateCartDto } from "../../../interfaces/dtos/interfaces.dtos";
 import { CartService } from "../../../services/cart.service";
 import Toast, { ToastProps } from "../../../components/Toast";
 import { BusinessRoomService } from "../../../services/business.room.service";
+import { PaymentService } from "../../../services/payment.service";
+import { TypeService } from "../../../enums/service.type.enum";
+import { error } from "console";
 
 interface BookingFormData {
   RoomId: string;
@@ -104,6 +110,10 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     socket.connect();
+
+    socket.on("payment-created", (createdPayment: Payment) => {
+      processPayment(createdPayment.Amount);
+    });
 
     socket.on("room-created", (newRoom: Room) => {
       setRooms((prev) => [...prev, newRoom]);
@@ -187,6 +197,7 @@ export const Dashboard: React.FC = () => {
     });
 
     return () => {
+      socket.off("payment-created");
       socket.off("delicacy-created");
       socket.off("delicacy-updated");
       socket.off("delicacy-deleted");
@@ -285,18 +296,159 @@ export const Dashboard: React.FC = () => {
       ? selectedRoom.PricePerNight
       : selectedBusinessRoom?.PricePerHour || 0;
 
-    setPaymentStatus({
-      title: "Processing Booking",
-      message: "Please wait while we prepare your booking...",
-      type: "processing",
-    });
+    if(selectedRoom) {
+      try {
 
-    // Simulated booking API call
-    setTimeout(() => {
-      processPayment(price);
-    }, 1500);
+        setPaymentStatus({
+          title: "Processing Accommdation",
+          message: "Please wait while we prepare your accommodation...",
+          type: "processing",
+        });
 
-    bookingForm.reset();
+        let AccommodationData: CreateAccommodationDto = {
+          CheckInDate: new Date(data.CheckInDate),
+          CheckOutDate: new Date(data.CheckOutDate),
+          SpecialRequests: data.SpecialRequests
+        }
+
+        let PaymentData: CreatePaymentData = {
+          ServiceType: TypeService.ACCOMMODATION,
+          Amount: price,
+          Accommodation: AccommodationData
+        };
+
+        let result = await PaymentService.CreatePayment(selectedRoom.RoomId, PaymentData);
+
+        if (result.success) {
+
+          setPaymentStatus({
+            title: "STK Push Sent",
+            message:
+              "Please check your phone and enter your M-PESA PIN to complete the payment.",
+            type: "processing",
+          });
+        } else {
+          setTimeout(() => {
+            setShowPaymentModal(false);
+            setPaymentStatus(null);
+          }, 800);
+
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "warning",
+            title: result.error as string ?? "Booking Failed",
+            message: result.message as string ?? "An error occurred while processing your booking.",
+            onClose: () => setToast(null),
+          };
+          setToast(toast);
+        }
+
+        bookingForm.reset();
+        
+      } catch (error: any) {
+        setPaymentStatus({
+          title: (error?.response?.data?.error as string) ?? "Booking Failed",
+          message:
+            (error?.response?.data?.message as string) ??
+            "An error occurred while processing your booking.",
+          type: "error"
+        });
+
+        setTimeout(() => {
+          setShowPaymentModal(false);
+          setPaymentStatus(null);
+        }, 1000);
+
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "error",
+          title: (error?.response?.data?.error as string) ?? "Booking Failed",
+          message:
+            (error?.response?.data?.message as string) ??
+            "An error occurred while processing your booking.",
+          onClose: () => setToast(null),
+        };
+        setToast(toast);
+      }
+    } else if (selectedBusinessRoom) {
+      try {
+        setPaymentStatus({
+          title: "Processing Booking",
+          message: "Please wait while we prepare your booking...",
+          type: "processing",
+        });
+
+        let BookingData: CreateBookingDto = {
+          SpecialRequests: data.SpecialRequests,
+          NumberOfGuests: data.NumberOfGuests,
+          DurationInHours: 3, //change input for the api call
+          BookingDate: new Date(data.CheckInDate),// make sure to check here
+          TotalAmount: price
+        };
+
+        let PaymentData: CreatePaymentData = {
+          ServiceType: TypeService.ACCOMMODATION,
+          Amount: price,
+          Booking: BookingData,
+        };
+
+        let result = await PaymentService.CreatePayment(
+          selectedBusinessRoom.BusinessRoomId,
+          PaymentData
+        );
+
+        if (result.success) {
+          setPaymentStatus({
+            title: "STK Push Sent",
+            message:
+              "Please check your phone and enter your M-PESA PIN to complete the payment.",
+            type: "processing",
+          });
+        } else {
+          setTimeout(() => {
+            setShowPaymentModal(false);
+            setPaymentStatus(null);
+          }, 800);
+
+          const toast: ToastProps = {
+            isVisible: true,
+            type: "warning",
+            title: (result.error as string) ?? "Booking Failed",
+            message:
+              (result.message as string) ??
+              "An error occurred while processing your booking.",
+            onClose: () => setToast(null),
+          };
+          setToast(toast);
+        }
+
+        bookingForm.reset();
+      } catch (error: any) {
+        setPaymentStatus({
+          title: (error?.response?.data?.error as string) ?? "Booking Failed",
+          message:
+            (error?.response?.data?.message as string) ??
+            "An error occurred while processing your booking.",
+          type: "error",
+        });
+
+        setTimeout(() => {
+          setShowPaymentModal(false);
+          setPaymentStatus(null);
+        }, 1000);
+
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "error",
+          title: (error?.response?.data?.error as string) ?? "Booking Failed",
+          message:
+            (error?.response?.data?.message as string) ??
+            "An error occurred while processing your booking.",
+          onClose: () => setToast(null),
+        };
+        setToast(toast);
+      }
+    }
   };
 
   const onOrderSubmit = (data: OrderFormData) => {
@@ -309,19 +461,17 @@ export const Dashboard: React.FC = () => {
   };
 
   const processPayment = async (amount: number) => {
+
+    setPaymentStatus({
+      title: "Processing Payment ...",
+      message: "Hang in there, payment is being finalised.",
+      type: "processing",
+    });
+
     setIsProcessingPayment(true);
 
     if (paymentMethod === "mpesa") {
-      setPaymentStatus({
-        title: "STK Push Sent",
-        message:
-          "Please check your phone and enter your M-PESA PIN to complete the payment.",
-        type: "processing",
-      });
-
-      // Simulated M-PESA STK Push
       setTimeout(() => {
-        // Simulated success
         setPaymentStatus({
           title: "Payment Successful!",
           message:
@@ -347,7 +497,6 @@ export const Dashboard: React.FC = () => {
         }, 2000);
       }, 5000);
     } else {
-      // Stripe payment
       setPaymentStatus({
         title: "Processing Stripe Payment",
         message: "Please wait while we redirect you to Stripe...",
@@ -381,7 +530,7 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async() => {
     setCurrentPaymentType("cart");
     setShowPaymentModal(true);
 
@@ -390,7 +539,71 @@ export const Dashboard: React.FC = () => {
       0
     );
 
-    processPayment(totalAmount);
+    try {
+      setPaymentStatus({
+        title: "Processing Booking",
+        message: "Please wait while we prepare your booking...",
+        type: "processing",
+      });
+
+      let result = await PaymentService.CreatePayment(
+        "N/A", {
+          ServiceType: TypeService.ORDER,
+          Amount: totalAmount
+        }
+      );
+
+      if (result.success) {
+        setPaymentStatus({
+          title: "STK Push Sent",
+          message:
+            "Please check your phone and enter your M-PESA PIN to complete the payment.",
+          type: "processing",
+        });
+      } else {
+        setTimeout(() => {
+          setShowPaymentModal(false);
+          setPaymentStatus(null);
+        }, 800);
+
+        const toast: ToastProps = {
+          isVisible: true,
+          type: "warning",
+          title: (result.error as string) ?? "Order Failed",
+          message:
+            (result.message as string) ??
+            "An error occurred while processing your order.",
+          onClose: () => setToast(null),
+        };
+        setToast(toast);
+      }
+
+      bookingForm.reset();
+    } catch (error: any) {
+      setPaymentStatus({
+        title: (error?.response?.data?.error as string) ?? "Order Failed",
+        message:
+          (error?.response?.data?.message as string) ??
+          "An error occurred while processing your order.",
+        type: "error",
+      });
+
+      setTimeout(() => {
+        setShowPaymentModal(false);
+        setPaymentStatus(null);
+      }, 1000);
+
+      const toast: ToastProps = {
+        isVisible: true,
+        type: "error",
+        title: (error?.response?.data?.error as string) ?? "Order Failed",
+        message:
+          (error?.response?.data?.message as string) ??
+          "An error occurred while processing your order.",
+        onClose: () => setToast(null),
+      };
+      setToast(toast);
+    }
   };
 
   const addToCart = async (delicacy: Delicacy) => {
@@ -1127,7 +1340,6 @@ export const Dashboard: React.FC = () => {
         )}
       </div>
 
-      {/* Booking Modal */}
       {showBookingModal && (selectedRoom || selectedBusinessRoom) && (
         <div
           className={styles["modal-overlay"]}

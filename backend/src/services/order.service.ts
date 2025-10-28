@@ -15,8 +15,6 @@ export class OrderService implements IOrderService {
 
   async CreateOrder(UserId: string): Promise<ServiceResult<Order>> {
 
-    //do some payment stuff here later
-    
     let UserExists = await this.prisma.user.findUnique({
       where: {
         UserId
