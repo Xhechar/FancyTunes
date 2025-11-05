@@ -316,9 +316,7 @@ export const Orders: React.FC = () => {
           <div className={styles["stat-content"]}>
             <h3>
               $
-              {orders
-                .reduce((sum, order) => sum + order.TotalAmount, 0)
-                .toFixed(2)}
+              {parseFloat(String(orders.reduce((sum, order) => sum + order.TotalAmount, 0)) || "0").toFixed(2)}
             </h3>
             <p>Total Spent</p>
           </div>
@@ -394,7 +392,7 @@ export const Orders: React.FC = () => {
                   <div className={styles.detail}>
                     <DollarSign className={styles.icon} />
                     <span className={styles.amount}>
-                      ${order.TotalAmount.toFixed(2)}
+                      ${parseFloat(String(order.TotalAmount) ?? 0).toFixed(2)}
                     </span>
                   </div>
                 </div>

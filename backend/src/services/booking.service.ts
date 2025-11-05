@@ -43,6 +43,7 @@ export class BookingService implements IBookingService {
         UserId,
         BusinessRoomId,
         ...Booking,
+        TotalAmount: Booking.DurationInHours * Number(BusinessRoomExists.PricePerHour),
         BookingStatus: "complete",
         PaymentStatus: "paid"
       }

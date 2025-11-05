@@ -236,6 +236,8 @@ model PaymentSharedData {
   ServiceType   String
   CommodityId   String
   Amount    Decimal
+  MerchantRequestID String @unique
+  CheckoutRequestID String @unique
   IsUsed    Boolean    @default(false)
   CheckInDate DateTime?
   CheckOutDate DateTime?

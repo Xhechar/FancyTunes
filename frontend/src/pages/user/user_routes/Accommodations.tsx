@@ -292,10 +292,7 @@ export const Accommodations: React.FC = () => {
           </div>
           <div className={styles["stat-content"]}>
             <h3>
-              $
-              {accommodations
-                .reduce((sum, acc) => sum + acc.TotalAmount, 0)
-                .toLocaleString()}
+              Ksh. {accommodations.reduce((sum, acc) => sum + Number(acc.TotalAmount), 0)}
             </h3>
             <p>Total Value</p>
           </div>
@@ -372,7 +369,7 @@ export const Accommodations: React.FC = () => {
                   <div className={styles.detail}>
                     <DollarSign className={styles.icon} />
                     <span className={styles.amount}>
-                      ${accommodation.TotalAmount.toLocaleString()}
+                      Ksh. {accommodation.TotalAmount.toLocaleString()}
                     </span>
                   </div>
                 </div>

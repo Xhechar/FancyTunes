@@ -230,7 +230,7 @@ export const MyPayments: React.FC = () => {
               <DollarSign className={styles.statIcon} />
               <div className={styles.statContent}>
                 <span className={styles.statValue}>
-                  ${getTotalAmount().toFixed(2)}
+                  Ksh. {parseFloat(String(getTotalAmount())).toFixed(2)}
                 </span>
                 <span className={styles.statLabel}>Total Spent</span>
               </div>
@@ -362,9 +362,9 @@ export const MyPayments: React.FC = () => {
               <div className={styles.paymentContent}>
                 <div className={styles.amountSection}>
                   <div className={styles.amount}>
-                    <span className={styles.currency}>$</span>
+                    <span className={styles.currency}>Ksh. </span>
                     <span className={styles.value}>
-                      {payment.Amount.toFixed(2)}
+                      {parseFloat(String(payment.Amount ?? 0) || "0").toFixed(2)}
                     </span>
                   </div>
                   <div className={styles.paymentDate}>

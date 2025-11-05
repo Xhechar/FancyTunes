@@ -41,18 +41,20 @@ export class OrderService implements IOrderService {
           UserId,
           DelicacyId: item.DelicacyId,
           Quantity: item.Quantity,
-          TotalAmount: Number(item.Delicacy.Price) * item.Quantity
+          TotalAmount: Number(item.Delicacy.Price) * item.Quantity,
         }
       })
     });
 
     if (!CreateOrders) return ServiceResponse.failure<Order>(ErrorCode.SERVER, "unable to place order at the moment, try again later");
 
-    await this.prisma.cart.deleteMany({
+    let result = await this.prisma.cart.deleteMany({
       where: {
         UserId
       }
     });
+
+    if(result.count !== 0) EmitToSingleUser(io, UserId, "cart-cleared", result);
 
     EmitToSingleUser(io, UserId, "order-created", CreateOrders);
 

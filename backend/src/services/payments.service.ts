@@ -68,11 +68,10 @@ export class PaymentService implements IPaymentService {
       default: return ServiceResponse.failure<Payment>(ErrorCode.VALIDATION, "service type passed is invalid");
     }
     
-    const Data: StkPushResponse = await SendSTKPush({Amount: PaymentData.Amount, PhoneNumber: UserExists.Phone});
+    const Data: StkPushResponse = await SendSTKPush({Amount: PaymentData.Amount, PhoneNumber: UserExists.Phone.replace("+", "")});
 
     if (Data.ResponseCode == "0") {
-      
-      if(PaymentData.ServiceType === TypeService.ACCOMMODATION) {
+      if (PaymentData.ServiceType === TypeService.ACCOMMODATION) {
         let CreateSharedData = await this.prisma.paymentSharedData.create({
           data: {
             PaymentSharedDataId: v4(),
@@ -82,13 +81,19 @@ export class PaymentService implements IPaymentService {
             ServiceType: PaymentData.ServiceType,
             CheckInDate: PaymentData.Accommodation?.CheckInDate,
             CheckOutDate: PaymentData.Accommodation?.CheckOutDate,
-            SpecialRequestsAccommodation: PaymentData.Accommodation?.SpecialRequests
+            SpecialRequestsAccommodation: PaymentData.Accommodation?.SpecialRequests,
+            MerchantRequestID: Data.MerchantRequestID,
+            CheckoutRequestID: Data.CheckoutRequestID
           }
         });
 
-        if (CreateSharedData) return ServiceResponse.success<Payment>(Data.ResponseDescription);
-
-        else return ServiceResponse.failure<Payment>(ErrorCode.SERVER, "unable to create payment data, kindly retry payment");
+        if (CreateSharedData)
+          return ServiceResponse.success<Payment>(Data.ResponseDescription);
+        else
+          return ServiceResponse.failure<Payment>(
+            ErrorCode.SERVER,
+            "unable to create payment data, kindly retry payment"
+          );
       } else if (PaymentData.ServiceType === TypeService.BOOKING) {
         let CreateSharedData = await this.prisma.paymentSharedData.create({
           data: {
@@ -101,13 +106,19 @@ export class PaymentService implements IPaymentService {
             DurationInHours: PaymentData.Booking?.DurationInHours,
             BookingDate: PaymentData.Booking?.BookingDate,
             TotalAmount: PaymentData.Booking?.TotalAmount,
-            SpecialRequestsBooking: PaymentData.Booking?.SpecialRequests
-          }
+            SpecialRequestsBooking: PaymentData.Booking?.SpecialRequests,
+            MerchantRequestID: Data.MerchantRequestID,
+            CheckoutRequestID: Data.CheckoutRequestID,
+          },
         });
 
-        if (CreateSharedData) return ServiceResponse.success<Payment>(Data.ResponseDescription);
-
-        else return ServiceResponse.failure<Payment>(ErrorCode.SERVER, "unable to create payment data, kindly retry payment");
+        if (CreateSharedData)
+          return ServiceResponse.success<Payment>(Data.ResponseDescription);
+        else
+          return ServiceResponse.failure<Payment>(
+            ErrorCode.SERVER,
+            "unable to create payment data, kindly retry payment"
+          );
       } else {
         let CreateSharedData = await this.prisma.paymentSharedData.create({
           data: {
@@ -115,15 +126,20 @@ export class PaymentService implements IPaymentService {
             UserId,
             CommodityId,
             Amount: PaymentData.Amount,
-            ServiceType: PaymentData.ServiceType
-          }
+            ServiceType: PaymentData.ServiceType,
+            MerchantRequestID: Data.MerchantRequestID,
+            CheckoutRequestID: Data.CheckoutRequestID,
+          },
         });
 
-        if (CreateSharedData) return ServiceResponse.success<Payment>(Data.ResponseDescription);
-
-        else return ServiceResponse.failure<Payment>(ErrorCode.SERVER, "unable to create payment data, kindly retry payment");
+        if (CreateSharedData)
+          return ServiceResponse.success<Payment>(Data.ResponseDescription);
+        else
+          return ServiceResponse.failure<Payment>(
+            ErrorCode.SERVER,
+            "unable to create payment data, kindly retry payment"
+          );
       }
-      
     }
       
     return ServiceResponse.failure<Payment>(ErrorCode.CLIENT, Data.ResponseDescription);
@@ -143,7 +159,8 @@ export class PaymentService implements IPaymentService {
       data: {
         PaymentId: v4(),
         UserId,
-        ...Payment
+        ...Payment,
+        PaidAt: new Date(Payment.PaidAt)
       }
     });
 
@@ -229,78 +246,65 @@ export class PaymentService implements IPaymentService {
 
     if (SafaricomResponse.Body.stkCallback.ResultCode != 0) {
 
-      let UserExists = await this.prisma.user.findUnique({
+      let SharedDataExits = await this.prisma.paymentSharedData.findUnique({
         where: {
-          Phone: SafaricomResponse.Body.stkCallback.CallbackMetadata.Item[4].Value
-        },
-        include: {
-          PaymentSharedData: {
-            where: {
-              IsUsed: false,
-            },
-            orderBy: {
-              CreatedAt: "asc"
-            }
-          }
+          MerchantRequestID: SafaricomResponse.Body.stkCallback.MerchantRequestID,
+          CheckoutRequestID: SafaricomResponse.Body.stkCallback.CheckoutRequestID
         }
       });
 
-      if(!UserExists) {
-        console.log("user to recieve payment response not found.");
+      if(!SharedDataExits) {
+        console.log("data to recieve update response not found.");
         return;
       }
 
-      await this.prisma.paymentSharedData.update({
+      let updateSharedData = await this.prisma.paymentSharedData.update({
         data: {
           IsUsed: true,
         },
         where: {
-          PaymentSharedDataId: UserExists?.PaymentSharedData[0].PaymentSharedDataId,
-          UserId: UserExists.UserId,
+          UserId: SharedDataExits.UserId,
+          MerchantRequestID:
+            SafaricomResponse.Body.stkCallback.MerchantRequestID,
+          CheckoutRequestID:
+            SafaricomResponse.Body.stkCallback.CheckoutRequestID,
         },
       });
+
+      if(updateSharedData) EmitToSingleUser(io, SharedDataExits.UserId, "payment-error", ServiceResponse.failure<object>(SafaricomResponse.Body.stkCallback.ResultDesc as string, ErrorCode.BADREQUEST));
+
+      return;
     }
 
     let ItemArray = SafaricomResponse.Body.stkCallback.CallbackMetadata.Item;
 
-    let UserExists = await this.prisma.user.findUnique({
+    let SharedDataExits = await this.prisma.paymentSharedData.findUnique({
       where: {
-        Phone: ItemArray[4].Value,
+        MerchantRequestID: SafaricomResponse.Body.stkCallback.MerchantRequestID,
+        CheckoutRequestID: SafaricomResponse.Body.stkCallback.CheckoutRequestID,
       },
-      include: {
-        PaymentSharedData: {
-          where: {
-            IsUsed: false
-          },
-          orderBy: {
-            CreatedAt: "asc"
-          }
-        }
-      }
     });
 
-    if(lodash.isEmpty(UserExists)) {
-      console.log("user to recieve payment response not found.");
+    if(lodash.isEmpty(SharedDataExits)) {
+      console.log("data to recieve update response not found.");
       return;
     }
 
-    let PaymentSharedData = UserExists.PaymentSharedData[0];
-
-    switch(PaymentSharedData.ServiceType) {
+    switch(SharedDataExits.ServiceType) {
       case TypeService.ACCOMMODATION : {
 
-        if (!PaymentSharedData.CheckInDate || !PaymentSharedData.CheckOutDate) {
+        if (!SharedDataExits.CheckInDate || !SharedDataExits.CheckOutDate) {
           console.log("missing check-in or check-out dates in payment shared data");
           return;
         }
 
         const NewAccomodation: CreateAccommodationDto = {
-          CheckInDate: PaymentSharedData.CheckInDate,
-          CheckOutDate: PaymentSharedData.CheckOutDate,
-          SpecialRequests: PaymentSharedData.SpecialRequestsAccommodation ?? ""
+          CheckInDate: SharedDataExits.CheckInDate,
+          CheckOutDate: SharedDataExits.CheckOutDate,
+          SpecialRequests: SharedDataExits.SpecialRequestsAccommodation ?? ""
         };
 
-        let Result = await AccService.CreateAccommodation(UserExists.UserId, PaymentSharedData.CommodityId, NewAccomodation);
+        let Result = await AccService.CreateAccommodation(SharedDataExits.UserId, SharedDataExits.CommodityId, NewAccomodation);
 
         if (Result.success) {
           let PaymentData: CreatePaymentDto = {
@@ -308,7 +312,7 @@ export class PaymentService implements IPaymentService {
             PaymentMethod: "Safaricom MPESA",
             PaymentReference: ItemArray[1].Value,
             ResultDescription: SafaricomResponse.Body.stkCallback.ResultDesc,
-            Status: SafaricomResponse.Body.stkCallback.ResultCode,
+            Status: SafaricomResponse.Body.stkCallback.ResultCode == 0 ? "success" : "failed",
             PaidAt: ItemArray[3].Value,
             AccommodationId: Result.data?.AccommodationId
           };
@@ -318,13 +322,13 @@ export class PaymentService implements IPaymentService {
               IsUsed: true
             },
             where: {
-              PaymentSharedDataId: PaymentSharedData.PaymentSharedDataId,
-              UserId: UserExists.UserId
+              MerchantRequestID: SharedDataExits.MerchantRequestID,
+              CheckoutRequestID: SharedDataExits.CheckoutRequestID
             }
           }));
 
           let SavePayment = await this.SavePaymentData(
-            UserExists.UserId,
+            SharedDataExits.UserId,
             PaymentData
           );
 
@@ -336,20 +340,20 @@ export class PaymentService implements IPaymentService {
 
       case TypeService.BOOKING : {
 
-        if (!PaymentSharedData.BookingDate || !PaymentSharedData.NumberOfGuests || !PaymentSharedData.DurationInHours || !PaymentSharedData.TotalAmount) {
+        if (!SharedDataExits.BookingDate || !SharedDataExits.NumberOfGuests || !SharedDataExits.DurationInHours || !SharedDataExits.TotalAmount) {
           console.log("missing essential booking data");
           return;
         }
 
         let NewBooking: CreateBookingDto = {
-          NumberOfGuests: PaymentSharedData.NumberOfGuests,
-          DurationInHours: PaymentSharedData.DurationInHours,
-          BookingDate: PaymentSharedData.BookingDate,
-          TotalAmount: PaymentSharedData.TotalAmount,
-          SpecialRequests: PaymentSharedData.SpecialRequestsBooking ?? ""
+          NumberOfGuests: SharedDataExits.NumberOfGuests,
+          DurationInHours: SharedDataExits.DurationInHours,
+          BookingDate: SharedDataExits.BookingDate,
+          TotalAmount: SharedDataExits.TotalAmount,
+          SpecialRequests: SharedDataExits.SpecialRequestsBooking ?? ""
         };
         
-        let Result = await BKService.CreateBooking(UserExists.UserId, PaymentSharedData.CommodityId, NewBooking);
+        let Result = await BKService.CreateBooking(SharedDataExits.UserId, SharedDataExits.CommodityId, NewBooking);
 
         if (Result.success) {
 
@@ -360,9 +364,12 @@ export class PaymentService implements IPaymentService {
             PaymentMethod: "Safaricom MPESA",
             PaymentReference: ItemArray[1].Value,
             ResultDescription: SafaricomResponse.Body.stkCallback.ResultDesc,
-            Status: SafaricomResponse.Body.stkCallback.ResultCode,
+            Status:
+              SafaricomResponse.Body.stkCallback.ResultCode == 0
+                ? "success"
+                : "failed",
             PaidAt: ItemArray[3].Value,
-            BookingId: Result.data?.BookingId
+            BookingId: Result.data?.BookingId,
           };
 
           await this.prisma.paymentSharedData.update({
@@ -370,13 +377,14 @@ export class PaymentService implements IPaymentService {
               IsUsed: true,
             },
             where: {
-              PaymentSharedDataId: PaymentSharedData.PaymentSharedDataId,
-              UserId: UserExists.UserId,
+              UserId: SharedDataExits.UserId,
+              MerchantRequestID: SharedDataExits.MerchantRequestID,
+              CheckoutRequestID: SharedDataExits.CheckoutRequestID
             },
           });
 
           let SavePayment = await this.SavePaymentData(
-            UserExists.UserId,
+            SharedDataExits.UserId,
             PaymentData
           );
 
@@ -388,7 +396,7 @@ export class PaymentService implements IPaymentService {
 
       case TypeService.ORDER : {
 
-        let Result = await OrdService.CreateOrder(UserExists.UserId);
+        let Result = await OrdService.CreateOrder(SharedDataExits.UserId);
 
         if (Result.success) {
           
@@ -399,9 +407,12 @@ export class PaymentService implements IPaymentService {
             PaymentMethod: "Safaricom MPESA",
             PaymentReference: ItemArray[1].Value,
             ResultDescription: SafaricomResponse.Body.stkCallback.ResultDesc,
-            Status: SafaricomResponse.Body.stkCallback.ResultCode,
+            Status:
+              SafaricomResponse.Body.stkCallback.ResultCode == 0
+                ? "success"
+                : "failed",
             PaidAt: ItemArray[3].Value,
-            OrderId: Result.data?.OrderId
+            OrderId: Result.data?.OrderId,
           };
 
           await this.prisma.paymentSharedData.update({
@@ -409,12 +420,13 @@ export class PaymentService implements IPaymentService {
               IsUsed: true,
             },
             where: {
-              PaymentSharedDataId: PaymentSharedData.PaymentSharedDataId,
-              UserId: UserExists.UserId,
+              UserId: SharedDataExits.UserId,
+              CheckoutRequestID: SharedDataExits.CheckoutRequestID,
+              MerchantRequestID: SharedDataExits.MerchantRequestID
             },
           });
 
-          let SavePayment = await this.SavePaymentData(UserExists.UserId, PaymentData);
+          let SavePayment = await this.SavePaymentData(SharedDataExits.UserId, PaymentData);
 
           if(!SavePayment.success) console.log("unable to create payment for order");
         }

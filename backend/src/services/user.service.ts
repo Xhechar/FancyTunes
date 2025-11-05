@@ -120,7 +120,11 @@ export class UserService implements IUserService {
       include: {
         Bookings: true,
         Accommodations: true,
-        Orders: true,
+        Orders: {
+          include: {
+            Delicacy: true
+          }
+        },
         Recoveries: true,
         Payments: true,
         Reviews: true,

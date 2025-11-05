@@ -14,7 +14,6 @@ import {
   Search,
   Filter,
   Heart,
-  Eye,
   Plus,
   Minus,
   Check,
@@ -40,7 +39,6 @@ import {
   Notification,
   BusinessRoom,
   CreatePaymentData,
-  Accommodation,
   Payment,
 } from "../../../interfaces/interfaces";
 import { DelicacyService } from "../../../services/delicacy.service";
@@ -53,7 +51,7 @@ import Toast, { ToastProps } from "../../../components/Toast";
 import { BusinessRoomService } from "../../../services/business.room.service";
 import { PaymentService } from "../../../services/payment.service";
 import { TypeService } from "../../../enums/service.type.enum";
-import { error } from "console";
+import { ServiceResult } from "../../../shared/service.result/service.result";
 
 interface BookingFormData {
   RoomId: string;
@@ -99,7 +97,9 @@ export const Dashboard: React.FC = () => {
     "cart" | "room" | "business-room"
   >("cart");
 
-  const bookingForm = useForm<BookingFormData>();
+  const bookingForm = useForm<BookingFormData>({
+    mode: "all"
+  });
   const orderForm = useForm<OrderFormData>();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [businessRooms, setBusinessRooms] = useState<BusinessRoom[]>([]);
@@ -113,6 +113,21 @@ export const Dashboard: React.FC = () => {
 
     socket.on("payment-created", (createdPayment: Payment) => {
       processPayment(createdPayment.Amount);
+    });
+
+    socket.on("payment-error", (response: ServiceResult<object>) => {
+      setPaymentStatus({
+        title: response.error as string,
+        message: response.message as string,
+        type: "error",
+      });
+
+      setTimeout(() => {
+        setIsProcessingPayment(false);
+        setTimeout(() => {
+          setPaymentStatus(null);
+        }, 1000);
+      }, 2500);
     });
 
     socket.on("room-created", (newRoom: Room) => {
@@ -196,7 +211,22 @@ export const Dashboard: React.FC = () => {
       );
     });
 
+    socket.on("order-created", (createdOrder: Order) => {
+      setUserOrders([... userOrders, createdOrder]);
+    });
+
+    socket.on("booking-created", (createdBooking: Booking) => {
+      setUserBookings([...userBookings, createdBooking]);
+    });
+
+    socket.on("cart-cleared", (clearedItems: Cart[]) => {
+      setCartItems([]);
+    });
+
     return () => {
+      socket.off("order-created");
+      socket.off("booking-created");
+      socket.off("payment-error");
       socket.off("payment-created");
       socket.off("delicacy-created");
       socket.off("delicacy-updated");
@@ -210,6 +240,7 @@ export const Dashboard: React.FC = () => {
       socket.off("cart-created");
       socket.off("cart-updated");
       socket.off("cart-deleted");
+      socket.off("cart-cleared");
       socket.disconnect();
     };
   }, []);
@@ -235,10 +266,12 @@ export const Dashboard: React.FC = () => {
       let result = await UsersService.GetUserByUserId();
 
       if (result.success) {
-        setUserBookings(() => ((result.data as User).Bookings)as Booking[]);
-        setUserOrders(() => ((result.data as User).Orders)as Order[]);
-        setNotifications(() => ((result.data as User).Notifications) as Notification[]);
-        setCartItems(() => ((result.data as User).Carts)as Cart[]);
+        setUserBookings(() => (result.data as User).Bookings as Booking[]);
+        setUserOrders(() => (result.data as User).Orders as Order[]);
+        setNotifications(
+          () => (result.data as User).Notifications as Notification[]
+        );
+        setCartItems(() => (result.data as User).Carts as Cart[]);
       }
     };
 
@@ -266,6 +299,41 @@ export const Dashboard: React.FC = () => {
 
   const handleBack = () => {
     navigate(-1);
+  };
+
+  function calculateDurationInHours(
+    startTime: string,
+    endTime: string
+  ): number {
+    const toMinutes = (time: string): number => {
+      const [hours, minutes] = time.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
+
+    const start = toMinutes(startTime);
+    const end = toMinutes(endTime);
+
+    let diff = end - start;
+
+    if (diff < 0) {
+      diff += 24 * 60;
+    }
+
+    return diff / 60;
+  }
+
+
+  const isTimeAfter = (t1: string, t2: string) => {
+    const [h1, m1] = t1.split(":").map(Number);
+    const [h2, m2] = t2.split(":").map(Number);
+    return h1 > h2 || (h1 === h2 && m1 > m2);
+  };
+
+  const isFutureTimeToday = (time: string) => {
+    const now = new Date();
+    const [h, m] = time.split(":").map(Number);
+
+    return h > now.getHours() || (h === now.getHours() && m > now.getMinutes());
   };
 
   const handleBookRoom = (room: Room) => {
@@ -296,9 +364,8 @@ export const Dashboard: React.FC = () => {
       ? selectedRoom.PricePerNight
       : selectedBusinessRoom?.PricePerHour || 0;
 
-    if(selectedRoom) {
+    if (selectedRoom) {
       try {
-
         setPaymentStatus({
           title: "Processing Accommdation",
           message: "Please wait while we prepare your accommodation...",
@@ -308,19 +375,21 @@ export const Dashboard: React.FC = () => {
         let AccommodationData: CreateAccommodationDto = {
           CheckInDate: new Date(data.CheckInDate),
           CheckOutDate: new Date(data.CheckOutDate),
-          SpecialRequests: data.SpecialRequests
-        }
+          SpecialRequests: data.SpecialRequests,
+        };
 
         let PaymentData: CreatePaymentData = {
           ServiceType: TypeService.ACCOMMODATION,
           Amount: price,
-          Accommodation: AccommodationData
+          Accommodation: AccommodationData,
         };
 
-        let result = await PaymentService.CreatePayment(selectedRoom.RoomId, PaymentData);
+        let result = await PaymentService.CreatePayment(
+          selectedRoom.RoomId,
+          PaymentData
+        );
 
         if (result.success) {
-
           setPaymentStatus({
             title: "STK Push Sent",
             message:
@@ -336,22 +405,23 @@ export const Dashboard: React.FC = () => {
           const toast: ToastProps = {
             isVisible: true,
             type: "warning",
-            title: result.error as string ?? "Booking Failed",
-            message: result.message as string ?? "An error occurred while processing your booking.",
+            title: (result.error as string) ?? "Booking Failed",
+            message:
+              (result.message as string) ??
+              "An error occurred while processing your booking.",
             onClose: () => setToast(null),
           };
           setToast(toast);
         }
 
         bookingForm.reset();
-        
       } catch (error: any) {
         setPaymentStatus({
           title: (error?.response?.data?.error as string) ?? "Booking Failed",
           message:
             (error?.response?.data?.message as string) ??
             "An error occurred while processing your booking.",
-          type: "error"
+          type: "error",
         });
 
         setTimeout(() => {
@@ -381,9 +451,9 @@ export const Dashboard: React.FC = () => {
         let BookingData: CreateBookingDto = {
           SpecialRequests: data.SpecialRequests,
           NumberOfGuests: data.NumberOfGuests,
-          DurationInHours: 3, //change input for the api call
-          BookingDate: new Date(data.CheckInDate),// make sure to check here
-          TotalAmount: price
+          DurationInHours: calculateDurationInHours(data.CheckInDate, data.CheckOutDate),
+          BookingDate: new Date(),
+          TotalAmount: price,
         };
 
         let PaymentData: CreatePaymentData = {
@@ -449,19 +519,14 @@ export const Dashboard: React.FC = () => {
         setToast(toast);
       }
     }
+    bookingForm.reset();
   };
 
-  const onOrderSubmit = (data: OrderFormData) => {
-    console.log("Order data:", {
-      ...data,
-      DelicacyId: selectedDelicacy?.DelicacyId,
-    });
-    setShowOrderModal(false);
-    orderForm.reset();
+  const onOrderSubmit = async(data: OrderFormData) => {
+    //
   };
 
   const processPayment = async (amount: number) => {
-
     setPaymentStatus({
       title: "Processing Payment ...",
       message: "Hang in there, payment is being finalised.",
@@ -530,28 +595,26 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const handleCheckout = async() => {
+  const handleCheckout = async () => {
     setCurrentPaymentType("cart");
     setShowPaymentModal(true);
 
     const totalAmount = cartItems.reduce(
-      (sum, item) => sum + ((item.Delicacy?.Price ?? 0) * item.Quantity),
+      (sum, item) => sum + (item.Delicacy?.Price ?? 0) * item.Quantity,
       0
     );
 
     try {
       setPaymentStatus({
-        title: "Processing Booking",
-        message: "Please wait while we prepare your booking...",
+        title: "Processing Order",
+        message: "Please wait while we prepare your order...",
         type: "processing",
       });
 
-      let result = await PaymentService.CreatePayment(
-        "N/A", {
-          ServiceType: TypeService.ORDER,
-          Amount: totalAmount
-        }
-      );
+      let result = await PaymentService.CreatePayment("nullid", {
+        ServiceType: TypeService.ORDER,
+        Amount: totalAmount,
+      });
 
       if (result.success) {
         setPaymentStatus({
@@ -578,7 +641,6 @@ export const Dashboard: React.FC = () => {
         setToast(toast);
       }
 
-      bookingForm.reset();
     } catch (error: any) {
       setPaymentStatus({
         title: (error?.response?.data?.error as string) ?? "Order Failed",
@@ -596,14 +658,16 @@ export const Dashboard: React.FC = () => {
       const toast: ToastProps = {
         isVisible: true,
         type: "error",
-        title: (error?.response?.data?.error as string) ?? "Order Failed",
+        title: (error?.response?.data?.error as string) ?? "Booking Failed",
         message:
           (error?.response?.data?.message as string) ??
-          "An error occurred while processing your order.",
+          "An error occurred while processing your booking.",
         onClose: () => setToast(null),
       };
       setToast(toast);
     }
+
+    setShowOrderModal(false);
   };
 
   const addToCart = async (delicacy: Delicacy) => {
@@ -1001,7 +1065,7 @@ export const Dashboard: React.FC = () => {
                       <div className={styles["room-footer"]}>
                         <div className={styles.price}>
                           <span className={styles.amount}>
-                            ${room.PricePerNight}
+                            Ksh. {room.PricePerNight}
                           </span>
                           <span className={styles.period}>/night</span>
                         </div>
@@ -1093,7 +1157,7 @@ export const Dashboard: React.FC = () => {
                       <div className={styles["room-footer"]}>
                         <div className={styles.price}>
                           <span className={styles.amount}>
-                            ${room.PricePerHour}
+                            Ksh. {room.PricePerHour}
                           </span>
                           <span className={styles.period}>/hour</span>
                         </div>
@@ -1165,7 +1229,7 @@ export const Dashboard: React.FC = () => {
                       <div className={styles["delicacy-footer"]}>
                         <div className={styles.price}>
                           <span className={styles.amount}>
-                            ${delicacy.Price}
+                            Ksh. {delicacy.Price}
                           </span>
                         </div>
                         <div className={styles["action-buttons"]}>
@@ -1215,7 +1279,90 @@ export const Dashboard: React.FC = () => {
                     key={booking.BookingId}
                     className={styles["booking-card"]}
                   >
-                    {/* Booking content */}
+                    <div className={styles["booking-header"]}>
+                      <div className={styles["booking-title"]}>
+                        <h4>{booking.BusinessRoom?.Name || "Room Booking"}</h4>
+                        <span
+                          className={`${styles["booking-status"]} ${
+                            styles[
+                              booking.BookingStatus.toLowerCase().replace(
+                                /\s/g,
+                                "-"
+                              )
+                            ]
+                          }`}
+                        >
+                          {booking.BookingStatus}
+                        </span>
+                      </div>
+                      <div className={styles["booking-id"]}>
+                        <span>#{booking.BookingId.slice(0, 8)}</span>
+                      </div>
+                    </div>
+
+                    <div className={styles["booking-details"]}>
+                      <div className={styles["booking-info"]}>
+                        <Calendar size={16} />
+                        <div className={styles["booking-dates"]}>
+                          <span className={styles["date-label"]}>
+                            Check-in:
+                          </span>
+                          <span className={styles["date-value"]}>
+                            {new Date(booking.CheckInDate).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={styles["booking-info"]}>
+                        <Calendar size={16} />
+                        <div className={styles["booking-dates"]}>
+                          <span className={styles["date-label"]}>
+                            Check-out:
+                          </span>
+                          <span className={styles["date-value"]}>
+                            {new Date(
+                              booking.CheckOutDate
+                            ).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={styles["booking-info"]}>
+                        <Users size={16} />
+                        <span>{booking.NumberOfGuests} Guests</span>
+                      </div>
+
+                      {booking.SpecialRequests && (
+                        <div className={styles["booking-requests"]}>
+                          <span className={styles["requests-label"]}>
+                            Special Requests:
+                          </span>
+                          <p className={styles["requests-text"]}>
+                            {booking.SpecialRequests}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className={styles["booking-footer"]}>
+                      <div className={styles["booking-amount"]}>
+                        <span className={styles["amount-label"]}>
+                          Total Amount:
+                        </span>
+                        <span className={styles["amount-value"]}>
+                          Ksh. {parseFloat(String(booking.TotalAmount) || "0").toFixed(2)}
+                        </span>
+                      </div>
+                      <div className={styles["payment-status"]}>
+                        <span
+                          className={`${styles["payment-badge"]} ${
+                            styles[booking.PaymentStatus.toLowerCase()]
+                          }`}
+                        >
+                          {booking.PaymentStatus}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1245,7 +1392,105 @@ export const Dashboard: React.FC = () => {
               <div className={styles["orders-list"]}>
                 {userOrders?.map((order) => (
                   <div key={order.OrderId} className={styles["order-card"]}>
-                    {/* Order content */}
+                    <div className={styles["order-header"]}>
+                      <div className={styles["order-title"]}>
+                        <h4>{order.Delicacy?.Name || "Order"}</h4>
+                        <span
+                          className={`${styles["order-status"]} ${
+                            styles[
+                              order.OrderStatus.toLowerCase().replace(
+                                /\s/g,
+                                "-"
+                              )
+                            ]
+                          }`}
+                        >
+                          {order.OrderStatus}
+                        </span>
+                      </div>
+                      <div className={styles["order-id"]}>
+                        <span>#{order.OrderId.slice(0, 8)}</span>
+                      </div>
+                    </div>
+
+                    <div className={styles["order-content"]}>
+                      <div className={styles["order-image"]}>
+                        <img
+                          src={order.Delicacy?.DelicacyImage}
+                          alt={order.Delicacy?.Name}
+                        />
+                      </div>
+
+                      <div className={styles["order-details"]}>
+                        <div className={styles["order-info"]}>
+                          <Clock size={16} />
+                          <div>
+                            <span className={styles["info-label"]}>
+                              Ordered:
+                            </span>
+                            <span className={styles["info-value"]}>
+                              {new Date(order.OrderedAt).toLocaleDateString()}{" "}
+                              at{" "}
+                              {new Date(order.OrderedAt).toLocaleTimeString()}
+                            </span>
+                          </div>
+                        </div>
+
+                        {order.DeliveredAt && (
+                          <div className={styles["order-info"]}>
+                            <Check size={16} />
+                            <div>
+                              <span className={styles["info-label"]}>
+                                Delivered:
+                              </span>
+                              <span className={styles["info-value"]}>
+                                {new Date(
+                                  order.DeliveredAt
+                                ).toLocaleDateString()}{" "}
+                                at{" "}
+                                {new Date(
+                                  order.DeliveredAt
+                                ).toLocaleTimeString()}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className={styles["order-info"]}>
+                          <ShoppingCart size={16} />
+                          <span>Quantity: {order.Quantity}</span>
+                        </div>
+
+                        <div className={styles["order-info"]}>
+                          <span className={styles["info-label"]}>
+                            Unit Price:
+                          </span>
+                          <span className={styles["info-value"]}>
+                            Ksh. {parseFloat(String(order.Delicacy?.Price) || "0").toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles["order-footer"]}>
+                      <div className={styles["order-amount"]}>
+                        <span className={styles["amount-label"]}>
+                          Total Amount:
+                        </span>
+                        <span className={styles["amount-value"]}>
+                          Ksh. {parseFloat(String(order.TotalAmount) || "0").toFixed(2)}
+                        </span>
+                      </div>
+                      <div className={styles["payment-status"]}>
+                        <span
+                          className={`${styles["payment-badge"]} ${
+                            styles[order.PaymentStatus.toLowerCase()]
+                          }`}
+                        >
+                          {order.PaymentStatus}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1285,11 +1530,10 @@ export const Dashboard: React.FC = () => {
                       <div className={styles["item-details"]}>
                         <h4>{item?.Delicacy?.Name || ""}</h4>
                         <p>
-                          ${
-                            (parseFloat(String(item?.Delicacy?.Price ?? 0)) ||
-                              0
-                            ).toFixed(2)
-                          }
+                          Ksh.
+                          {(
+                            parseFloat(String(item?.Delicacy?.Price ?? 0)) || 0
+                          ).toFixed(2)}
                         </p>
                       </div>
                       <div className={styles["quantity-controls"]}>
@@ -1302,7 +1546,10 @@ export const Dashboard: React.FC = () => {
                         </button>
                       </div>
                       <div className={styles["item-total"]}>
-                        ${((item?.Delicacy?.Price ?? 0) * item.Quantity).toFixed(2)}
+                        Ksh.
+                        {((item?.Delicacy?.Price ?? 0) * item.Quantity).toFixed(
+                          2
+                        )}
                       </div>
                       <button
                         className={styles["remove-button"]}
@@ -1316,11 +1563,11 @@ export const Dashboard: React.FC = () => {
                 <div className={styles["cart-summary"]}>
                   <div className={styles.total}>
                     <strong>
-                      Total: $
+                      Total: Ksh.
                       {cartItems
                         .reduce(
                           (sum, item) =>
-                            sum + ((item.Delicacy?.Price ?? 0) * item.Quantity),
+                            sum + (item.Delicacy?.Price ?? 0) * item.Quantity,
                           0
                         )
                         .toFixed(2)}
@@ -1386,7 +1633,7 @@ export const Dashboard: React.FC = () => {
                       : selectedBusinessRoom?.Name}
                   </h4>
                   <p className={styles["preview-price"]}>
-                    $
+                    Ksh.
                     {selectedRoom
                       ? selectedRoom.PricePerNight
                       : selectedBusinessRoom?.PricePerHour}
@@ -1405,14 +1652,28 @@ export const Dashboard: React.FC = () => {
               </div>
 
               <div className={styles["form-group"]}>
-                <label>Check-in Date</label>
+                {selectedBusinessRoom ? (
+                  <label>Check-in Time</label>
+                ) : (
+                  <label>Check-in Date</label>
+                )}
                 <input
-                  type="date"
+                  type={selectedBusinessRoom ? "time" : "date"}
                   {...bookingForm.register("CheckInDate", {
-                    required: "Check-in date is required",
-                    validate: (value) =>
-                      new Date(value) > new Date() ||
-                      "Check-in date must be in the future",
+                    required: "Check-in is required",
+                    validate: (value) => {
+                      if (selectedBusinessRoom) {
+                        return (
+                          isFutureTimeToday(value) ||
+                          "Check-in time must be later than the current time today"
+                        );
+                      } else {
+                        return (
+                          new Date(value) > new Date() ||
+                          "Check-in date must be in the future"
+                        );
+                      }
+                    },
                   })}
                 />
                 {bookingForm.formState.errors.CheckInDate && (
@@ -1422,17 +1683,31 @@ export const Dashboard: React.FC = () => {
                 )}
               </div>
               <div className={styles["form-group"]}>
-                <label>Check-out Date</label>
+                {selectedBusinessRoom ? (
+                  <label>Check-out Time</label>
+                ) : (
+                  <label>Check-out Date</label>
+                )}
                 <input
-                  type="date"
+                  type={selectedBusinessRoom ? "time" : "date"}
                   {...bookingForm.register("CheckOutDate", {
-                    required: "Check-out date is required",
+                    required: "Check-out is required",
                     validate: (value) => {
                       const checkIn = bookingForm.watch("CheckInDate");
-                      return (
-                        new Date(value) > new Date(checkIn) ||
-                        "Check-out date must be after check-in date"
-                      );
+
+                      if (!checkIn) return "Please select check-in first";
+
+                      if (selectedBusinessRoom) {
+                        return (
+                          isTimeAfter(value, checkIn) ||
+                          "Check-out time must be after check-in time"
+                        );
+                      } else {
+                        return (
+                          new Date(value) > new Date(checkIn) ||
+                          "Check-out date must be after check-in date"
+                        );
+                      }
                     },
                   })}
                 />
@@ -1572,12 +1847,13 @@ export const Dashboard: React.FC = () => {
                     <div className={styles["info-card"]}>
                       <span className={styles["info-label"]}>Amount:</span>
                       <span className={styles["info-value"]}>
-                        $
+                        Ksh.
                         {currentPaymentType === "cart"
                           ? cartItems
                               .reduce(
                                 (sum, item) =>
-                                  sum + ((item.Delicacy?.Price ?? 0) * item.Quantity),
+                                  sum +
+                                  (item.Delicacy?.Price ?? 0) * item.Quantity,
                                 0
                               )
                               .toFixed(2)
@@ -1611,18 +1887,19 @@ export const Dashboard: React.FC = () => {
                     <div className={styles["info-card"]}>
                       <span className={styles["info-label"]}>Amount:</span>
                       <span className={styles["info-value"]}>
-                        $
+                        Ksh.
                         {currentPaymentType === "cart"
-                        ? cartItems
-                            .reduce(
-                              (sum, item) =>
-                                sum + ((item.Delicacy?.Price ?? 0) * item.Quantity),
-                              0
-                            )
-                            .toFixed(2)
-                        : selectedRoom
-                        ? selectedRoom.PricePerNight
-                        : selectedBusinessRoom?.PricePerHour}
+                          ? cartItems
+                              .reduce(
+                                (sum, item) =>
+                                  sum +
+                                  (item.Delicacy?.Price ?? 0) * item.Quantity,
+                                0
+                              )
+                              .toFixed(2)
+                          : selectedRoom
+                          ? selectedRoom.PricePerNight
+                          : selectedBusinessRoom?.PricePerHour}
                       </span>
                     </div>
                   </div>

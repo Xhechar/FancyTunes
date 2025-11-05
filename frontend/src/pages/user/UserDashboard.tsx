@@ -25,6 +25,8 @@ import {
 } from "../../interfaces/interfaces";
 import styles from "../../styles/user/UserDashboard.module.css";
 import { UsersService } from "../../services/user.service";
+import { AuthService } from "../../services/auth.service";
+import Toast, {ToastProps} from "../../components/Toast";
 
 interface NavItem {
   id: string;
@@ -49,6 +51,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [unreadNotifications, setUnreadNotifications] = useState<number>(0);
   const [ currentUser, setUser ] = useState<UserInterface | null>(null);
+  const [ toast, setToast ] = useState<ToastProps | null>();
 
   useEffect(() => {
     const fetchUser = async() => {
@@ -161,8 +164,41 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     setIsSidebarOpen(false);
   };
 
-  const handleLogout = (): void => {
-    navigate("/login");
+  const handleLogout = async() => {
+    try {
+      let result = await AuthService.Logout();
+
+      if (result.success) {
+        setToast({
+          isVisible: true,
+          type: "success",
+          title: "SUCCESS",
+          message:
+            (result.message as string) ?? "logout successful. Welconme back.",
+          onClose: () => setToast(null),
+        });
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 6500);
+      } else {
+        setToast({
+          isVisible: true,
+          type: "warning",
+          title: result.error as string,
+          message: (result.message as string) ?? "logout error.",
+          onClose: () => setToast(null),
+        });
+      }
+    } catch (error: any) {
+      setToast({
+        isVisible: true,
+        type: "error",
+        title: error?.response?.data?.error as string ?? "SERVER ERROR",
+        message: error?.response?.data?.message as string ?? "An error occured during logout",
+        onClose: () => setToast(null)
+      });
+    }
   };
 
   const toggleSidebar = (): void => {
@@ -211,7 +247,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
-
+      {toast && <Toast {...toast} />}
       {/* Sidebar */}
       <aside
         className={`${styles.sidebar} ${

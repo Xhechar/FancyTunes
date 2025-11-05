@@ -1,0 +1,17 @@
+ The data is:  {
+[xhr]   MerchantRequestID: '1bd8-4873-9bad-0a1bb181133f9190',
+[xhr]   CheckoutRequestID: 'ws_CO_05112025133935629711449441',
+[xhr]   ResponseCode: '0',
+[xhr]   ResponseDescription: 'Success. Request accepted for processing',
+[xhr]   CustomerMessage: 'Success. Request accepted for processing'
+[xhr] }
+[xhr] Safaricom Response:  {
+[xhr]   Body: {
+[xhr]     stkCallback: {
+[xhr]       MerchantRequestID: '1bd8-4873-9bad-0a1bb181133f9190',
+[xhr]       CheckoutRequestID: 'ws_CO_05112025133935629711449441',
+[xhr]       ResultCode: 1032,
+[xhr]       ResultDesc: 'Request Cancelled by user.' 
+[xhr]     }
+[xhr]   }
+[xhr] }
