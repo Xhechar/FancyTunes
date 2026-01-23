@@ -2,7 +2,6 @@ import axios from "axios";
 import { BackendRoute } from "../shared/shared.data";
 import { ServiceResult } from "../shared/service.result/service.result";
 import { CreatePaymentData, Payment } from "../interfaces/interfaces";
-import { CreatePaymentDto } from "../interfaces/dtos/interfaces.dtos";
 
 export class PaymentService {
   private static ApiUrl = `${BackendRoute}payment`;
@@ -16,6 +15,7 @@ export class PaymentService {
       Payment,
       { withCredentials: true }
     );
+    console.log("payment data", Payment);
     return result.data as ServiceResult<Payment>;
   }
 

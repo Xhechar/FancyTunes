@@ -89,6 +89,8 @@ export interface CreateBookingDto {
   NumberOfGuests: number;
   DurationInHours: number;
   BookingDate: Date;
+  CheckInTime: string;
+  CheckOutTime: string;
   TotalAmount: number;
   SpecialRequests?: string;
 }
@@ -97,6 +99,8 @@ export interface UpdateBookingDto {
   NumberOfGuests?: number;
   DurationInHours?: number;
   BookingDate?: Date;
+  CheckInTime?: string;
+  CheckOutTime?: string;
   TotalAmount?: number;
   SpecialRequests?: string;
 }

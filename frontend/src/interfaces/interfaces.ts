@@ -129,8 +129,10 @@ export interface Booking {
   BookingId: string;
   UserId: string;
   BusinessRoomId: string;
-  CheckInDate: Date;
-  CheckOutDate: Date;
+  DurationInHours: number;
+  BookingDate: Date;
+  CheckInTime: string;
+  CheckOutTime: string;
   NumberOfGuests: number;
   TotalAmount: number;
   SpecialRequests?: string;
@@ -139,8 +141,8 @@ export interface Booking {
   CreatedAt: Date;
   UpdatedAt: Date;
 
-  User?: User;
-  BusinessRoom?: BusinessRoom;
+  User: User;
+  BusinessRoom: BusinessRoom;
 }
 
 export interface Cart {

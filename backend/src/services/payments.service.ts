@@ -39,13 +39,13 @@ export class PaymentService implements IPaymentService {
     switch(PaymentData.ServiceType) {
       
       case TypeService.ACCOMMODATION : {
-        let RoomExists = await this.prisma.room.findUnique({
+        let BusinessRoomExists = await this.prisma.room.findUnique({
           where: {
             RoomId: CommodityId
           }
         });
 
-        if (!RoomExists) return ServiceResponse.failure<Payment>(ErrorCode.NOTFOUND, "room specified does not exist");
+        if (!BusinessRoomExists) return ServiceResponse.failure<Payment>(ErrorCode.NOTFOUND, "room specified does not exist");
       }
       break;
 
@@ -105,6 +105,8 @@ export class PaymentService implements IPaymentService {
             NumberOfGuests: PaymentData.Booking?.NumberOfGuests,
             DurationInHours: PaymentData.Booking?.DurationInHours,
             BookingDate: PaymentData.Booking?.BookingDate,
+            CheckInTime: PaymentData.Booking?.CheckInTime,
+            CheckOutTime: PaymentData.Booking?.CheckOutTime,
             TotalAmount: PaymentData.Booking?.TotalAmount,
             SpecialRequestsBooking: PaymentData.Booking?.SpecialRequests,
             MerchantRequestID: Data.MerchantRequestID,
@@ -349,6 +351,8 @@ export class PaymentService implements IPaymentService {
           NumberOfGuests: SharedDataExits.NumberOfGuests,
           DurationInHours: SharedDataExits.DurationInHours,
           BookingDate: SharedDataExits.BookingDate,
+          CheckInTime: SharedDataExits.CheckInTime as string,
+          CheckOutTime: SharedDataExits.CheckOutTime as string,
           TotalAmount: SharedDataExits.TotalAmount,
           SpecialRequests: SharedDataExits.SpecialRequestsBooking ?? ""
         };

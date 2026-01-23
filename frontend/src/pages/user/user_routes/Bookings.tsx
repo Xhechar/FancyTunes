@@ -453,8 +453,8 @@ export const Bookings: React.FC = () => {
                   <div className={styles.detail}>
                     <Calendar className={styles.icon} />
                     <span>
-                      {formatDate(booking.CheckInDate.toString())} -{" "}
-                      {formatDate(booking.CheckOutDate.toString())}
+                      {formatDate(booking.CheckInTime.toString())} -{" "}
+                      {formatDate(booking.CheckOutTime.toString())}
                     </span>
                   </div>
 
@@ -462,8 +462,8 @@ export const Bookings: React.FC = () => {
                     <Clock className={styles.icon} />
                     <span>
                       {calculateNights(
-                        booking.CheckInDate.toString(),
-                        booking.CheckOutDate.toString()
+                        booking.CheckInTime.toString(),
+                        booking.CheckOutTime.toString()
                       )}{" "}
                       nights
                     </span>

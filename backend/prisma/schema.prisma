@@ -128,6 +128,8 @@ model Booking {
   BusinessRoomId           String
   DurationInHours  Int
   BookingDate      DateTime
+  CheckInTime      String
+  CheckOutTime     String
   NumberOfGuests   Int
   TotalAmount      Decimal
   SpecialRequests   String?
@@ -245,7 +247,9 @@ model PaymentSharedData {
   SpecialRequestsAccommodation String?
   NumberOfGuests Int?
   DurationInHours Int?
-  BookingDate DateTime?
+  BookingDate      DateTime?
+  CheckInTime      String?
+  CheckOutTime     String?
   TotalAmount Int?
   CreatedAt   DateTime    @default(now())
 

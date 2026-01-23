@@ -125,8 +125,10 @@ export interface Booking {
   BookingId: string;
   UserId: string;
   BusinessRoomId: string;
-  CheckInDate: Date;
-  CheckOutDate: Date;
+  DurationInHours: number;
+  BookingDate: Date;
+  CheckInTime: string;
+  CheckOutTime: string;
   NumberOfGuests: number;
   TotalAmount: number;
   SpecialRequests?: string;

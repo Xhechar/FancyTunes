@@ -55,6 +55,7 @@ import { ServiceResult } from "../../../shared/service.result/service.result";
 
 interface BookingFormData {
   RoomId: string;
+  BookingDate: string;
   CheckInDate: string;
   CheckOutDate: string;
   NumberOfGuests: number;
@@ -107,6 +108,8 @@ export const Dashboard: React.FC = () => {
   const [userBookings, setUserBookings] = useState<Booking[]>([]);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [toast, setToast] = useState<ToastProps | null>(null);
+
+  const CheckInDate = bookingForm.watch("CheckInDate");
 
   useEffect(() => {
     socket.connect();
@@ -380,7 +383,11 @@ export const Dashboard: React.FC = () => {
 
         let PaymentData: CreatePaymentData = {
           ServiceType: TypeService.ACCOMMODATION,
-          Amount: price,
+          Amount:
+            (price *
+              (new Date(data.CheckOutDate).getTime() -
+                new Date(data.CheckInDate).getTime())) /
+            (1000 * 3600 * 24),
           Accommodation: AccommodationData,
         };
 
@@ -451,9 +458,17 @@ export const Dashboard: React.FC = () => {
         let BookingData: CreateBookingDto = {
           SpecialRequests: data.SpecialRequests,
           NumberOfGuests: data.NumberOfGuests,
-          DurationInHours: calculateDurationInHours(data.CheckInDate, data.CheckOutDate),
-          BookingDate: new Date(),
-          TotalAmount: price,
+          DurationInHours: calculateDurationInHours(
+            data.CheckInDate,
+            data.CheckOutDate
+          ),
+          BookingDate: new Date(data.BookingDate),
+          CheckInTime: data.CheckInDate,
+          CheckOutTime: data.CheckOutDate,
+          TotalAmount: calculateDurationInHours(
+            data.CheckInDate,
+            data.CheckOutDate
+          ) * price,
         };
 
         let PaymentData: CreatePaymentData = {
@@ -1075,7 +1090,7 @@ export const Dashboard: React.FC = () => {
                           disabled={room.Status !== "Available"}
                         >
                           {room.Status === "Available"
-                            ? "Book Now"
+                            ? "Book Room"
                             : "Unavailable"}
                         </button>
                       </div>
@@ -1166,7 +1181,7 @@ export const Dashboard: React.FC = () => {
                           onClick={() => handleBookBusinessRoom(room)}
                           disabled={!room.IsAvailable}
                         >
-                          {room.IsAvailable ? "Book Now" : "Unavailable"}
+                          {room.IsAvailable ? "Book Business Room" : "Unavailable"}
                         </button>
                       </div>
                     </div>
@@ -1308,7 +1323,7 @@ export const Dashboard: React.FC = () => {
                             Check-in:
                           </span>
                           <span className={styles["date-value"]}>
-                            {new Date(booking.CheckInDate).toLocaleDateString()}
+                            {new Date(booking.BookingDate).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
@@ -1321,7 +1336,7 @@ export const Dashboard: React.FC = () => {
                           </span>
                           <span className={styles["date-value"]}>
                             {new Date(
-                              booking.CheckOutDate
+                              booking.BookingDate
                             ).toLocaleDateString()}
                           </span>
                         </div>
@@ -1350,7 +1365,10 @@ export const Dashboard: React.FC = () => {
                           Total Amount:
                         </span>
                         <span className={styles["amount-value"]}>
-                          Ksh. {parseFloat(String(booking.TotalAmount) || "0").toFixed(2)}
+                          Ksh.{" "}
+                          {parseFloat(
+                            String(booking.TotalAmount) || "0"
+                          ).toFixed(2)}
                         </span>
                       </div>
                       <div className={styles["payment-status"]}>
@@ -1466,7 +1484,10 @@ export const Dashboard: React.FC = () => {
                             Unit Price:
                           </span>
                           <span className={styles["info-value"]}>
-                            Ksh. {parseFloat(String(order.Delicacy?.Price) || "0").toFixed(2)}
+                            Ksh.{" "}
+                            {parseFloat(
+                              String(order.Delicacy?.Price) || "0"
+                            ).toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -1478,7 +1499,10 @@ export const Dashboard: React.FC = () => {
                           Total Amount:
                         </span>
                         <span className={styles["amount-value"]}>
-                          Ksh. {parseFloat(String(order.TotalAmount) || "0").toFixed(2)}
+                          Ksh.{" "}
+                          {parseFloat(String(order.TotalAmount) || "0").toFixed(
+                            2
+                          )}
                         </span>
                       </div>
                       <div className={styles["payment-status"]}>
@@ -1651,6 +1675,29 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
+              {selectedBusinessRoom && (
+                <div className={styles["form-group"]}>
+                  <label>Check-in Date</label>
+                  <input
+                    type="date"
+                    {...bookingForm.register("BookingDate", {
+                      required: "Check-in is required",
+                      validate: (value) => {
+                        return (
+                          new Date(value) > new Date() ||
+                          "Check-in date must be in the future"
+                        );
+                      },
+                    })}
+                  />
+                  {bookingForm.formState.errors.BookingDate && (
+                    <span className={styles.error}>
+                      {bookingForm.formState.errors.BookingDate.message}
+                    </span>
+                  )}
+                </div>
+              )}
+
               <div className={styles["form-group"]}>
                 {selectedBusinessRoom ? (
                   <label>Check-in Time</label>
@@ -1663,9 +1710,23 @@ export const Dashboard: React.FC = () => {
                     required: "Check-in is required",
                     validate: (value) => {
                       if (selectedBusinessRoom) {
+                        if(!CheckInDate) return "Please select check-in date first";
+                        
+                        const selectedDate = new Date(CheckInDate);
+                        const today = new Date();
+
+                        const isToday =
+                          selectedDate.toDateString() === today.toDateString();
+
+                        if (!isToday) return true;
+
+                        const [hours, minutes] = value.split(":");
+                        const selectedDateTime = new Date(CheckInDate);
+                        selectedDateTime.setHours(+hours, +minutes, 0, 0);
+
                         return (
-                          isFutureTimeToday(value) ||
-                          "Check-in time must be later than the current time today"
+                          selectedDateTime > today ||
+                          "Check-in time must be after the current time"
                         );
                       } else {
                         return (
