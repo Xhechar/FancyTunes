@@ -20,7 +20,7 @@ export class BookingService implements IBookingService {
     let { error } = CreateBookingSchema.validate(Booking);
 
     if (error) return ServiceResponse.failure<Booking>(ErrorCode.VALIDATION, error.details[0].message);
-    
+
     let UserExists = await this.prisma.user.findUnique({
       where: {
         UserId

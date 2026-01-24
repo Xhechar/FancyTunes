@@ -1,4 +1,4 @@
-import { Payment, PrismaClient } from "@prisma/client";
+import { Booking, Payment, PrismaClient } from "@prisma/client";
 import { IPaymentService } from "../interfaces/abstracts/services.abstracts";
 import { ServiceResult } from "../interfaces/service.result/service.result";
 import { StkPushResponse } from "../interfaces/backend.interfaces";
@@ -6,7 +6,7 @@ import { SendSTKPush } from "../utils/safaricom.stk.push";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { CreatePaymentData } from "../interfaces/backend.interfaces";
-import lodash from 'lodash';
+import lodash, { result } from 'lodash';
 import { TypeService } from "../interfaces/enum/service.type.enum";
 import { AccommodationsService } from "./accommodations.service";
 import { CreateAccommodationDto, CreateBookingDto, CreatePaymentDto } from "../interfaces/dtos/interfaces.dtos";
@@ -166,7 +166,10 @@ export class PaymentService implements IPaymentService {
       }
     });
 
-    if(!CreatePayment) return ServiceResponse.failure<Payment>(ErrorCode.SERVER, "unable to complete payment at the moment.");
+    if(!CreatePayment) { 
+      EmitToSingleUser(io, UserId, "payment-error", ServiceResponse.failure<object>("unable to complete payment saving at the moment.", ErrorCode.SERVER));
+      return ServiceResponse.failure<Payment>(ErrorCode.SERVER, "unable to complete payment at the moment.");
+    }
 
     EmitToSingleUser(io, UserId,  "payment-created", CreatePayment);
 
@@ -296,7 +299,7 @@ export class PaymentService implements IPaymentService {
       case TypeService.ACCOMMODATION : {
 
         if (!SharedDataExits.CheckInDate || !SharedDataExits.CheckOutDate) {
-          console.log("missing check-in or check-out dates in payment shared data");
+          EmitToSingleUser(io, SharedDataExits.UserId, "payment-error", ServiceResponse.failure<object>("missing check-in or check-out dates in payment shared data", ErrorCode.BADREQUEST));
           return;
         }
 
@@ -336,6 +339,16 @@ export class PaymentService implements IPaymentService {
 
           if (!SavePayment.success)
             console.log("unable to create payment for accommodation");
+        } else {
+          EmitToSingleUser(
+            io,
+            SharedDataExits.UserId,
+            "payment-error",
+            ServiceResponse.failure<object>(
+              Result.message as string,
+              Result.error as string,
+            ),
+          );
         }
       }
       break;
@@ -343,7 +356,7 @@ export class PaymentService implements IPaymentService {
       case TypeService.BOOKING : {
 
         if (!SharedDataExits.BookingDate || !SharedDataExits.NumberOfGuests || !SharedDataExits.DurationInHours || !SharedDataExits.TotalAmount) {
-          console.log("missing essential booking data");
+          EmitToSingleUser(io, SharedDataExits.UserId, "payment-error", ServiceResponse.failure<object>("missing booking details in payment shared data", ErrorCode.BADREQUEST));
           return;
         }
 
@@ -357,7 +370,7 @@ export class PaymentService implements IPaymentService {
           SpecialRequests: SharedDataExits.SpecialRequestsBooking ?? ""
         };
         
-        let Result = await BKService.CreateBooking(SharedDataExits.UserId, SharedDataExits.CommodityId, NewBooking);
+        let Result = await BKService.CreateBooking(SharedDataExits.UserId, SharedDataExits.CommodityId, NewBooking) as ServiceResult<Booking>;
 
         if (Result.success) {
 
@@ -394,6 +407,16 @@ export class PaymentService implements IPaymentService {
 
           if (!SavePayment.success)
             console.log("unable to create payment for booking");
+        } else {
+          EmitToSingleUser(
+            io,
+            SharedDataExits.UserId,
+            "payment-error",
+            ServiceResponse.failure<object>(
+              Result.message as string,
+              Result.error as string,
+            ),
+          );
         }
       }
       break;
@@ -433,6 +456,16 @@ export class PaymentService implements IPaymentService {
           let SavePayment = await this.SavePaymentData(SharedDataExits.UserId, PaymentData);
 
           if(!SavePayment.success) console.log("unable to create payment for order");
+        } else {
+          EmitToSingleUser(
+            io,
+            SharedDataExits.UserId,
+            "payment-error",
+            ServiceResponse.failure<object>(
+              Result.message as string,
+              Result.error as string,
+            ),
+          );
         }
 
       }

@@ -71,7 +71,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
   const navigationItems: NavItem[] = [
     {
-      id: "overview",
+      id: "dashboard",
       label: "Overview",
       icon: <Home size={20} />,
       path: "dashboard",
@@ -92,7 +92,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       path: "bookings",
       badge:
         user?.Bookings?.filter(
-          (booking) => booking.BookingStatus === "confirmed"
+          (booking) => booking.BookingStatus === "confirmed",
         ).length || 0,
       description: "View and manage your bookings",
     },
@@ -355,15 +355,15 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           <div className={styles["contact-info"]}>
             <div className={styles["contact-item"]}>
               <Phone size={16} />
-              <span>+254 700 123 456</span>
+              <span>+254 768 030 478</span>
             </div>
             <div className={styles["contact-item"]}>
               <Mail size={16} />
-              <span>support@fancytunes.com</span>
+              <span>felixokoth078@gmail.com</span>
             </div>
             <div className={styles["contact-item"]}>
               <MapPin size={16} />
-              <span>Nairobi, Kenya</span>
+              <span>Eldoret, Kenya</span>
             </div>
           </div>
 

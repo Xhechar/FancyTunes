@@ -40,6 +40,7 @@ import {
   BusinessRoom,
   CreatePaymentData,
   Payment,
+  Accommodation,
 } from "../../../interfaces/interfaces";
 import { DelicacyService } from "../../../services/delicacy.service";
 import { RoomsService } from "../../../services/room.service";
@@ -229,8 +230,8 @@ export const Dashboard: React.FC = () => {
     return () => {
       socket.off("order-created");
       socket.off("booking-created");
-      socket.off("payment-error");
       socket.off("payment-created");
+      socket.off("payment-error");
       socket.off("delicacy-created");
       socket.off("delicacy-updated");
       socket.off("delicacy-deleted");
@@ -457,7 +458,7 @@ export const Dashboard: React.FC = () => {
 
         let BookingData: CreateBookingDto = {
           SpecialRequests: data.SpecialRequests,
-          NumberOfGuests: data.NumberOfGuests,
+          NumberOfGuests: Number(data.NumberOfGuests),
           DurationInHours: calculateDurationInHours(
             data.CheckInDate,
             data.CheckOutDate
@@ -472,7 +473,7 @@ export const Dashboard: React.FC = () => {
         };
 
         let PaymentData: CreatePaymentData = {
-          ServiceType: TypeService.ACCOMMODATION,
+          ServiceType: TypeService.BOOKING,
           Amount: price,
           Booking: BookingData,
         };
