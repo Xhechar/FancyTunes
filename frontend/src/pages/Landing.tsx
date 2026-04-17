@@ -27,7 +27,6 @@ import { DelicacyService } from "../services/delicacy.service";
 import { ReviewsService } from "../services/review.service";
 import Toast, { ToastProps } from "../components/Toast";
 import { Room, BusinessRoom, Delicacy, Review } from "../interfaces/interfaces";
-import { socket } from "../socket.io";
 
 // Helper to parse amenities string into array
 const parseAmenities = (amenities?: string): string[] => {
