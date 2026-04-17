@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { ReviewsService } from "../services/reviews.service";
-import { getUserIdFromToken } from "../middlewares/backend.middleware";
+import { ExtendedRequest, getUserIdFromToken } from "../middlewares/backend.middleware";
 
 export class ReviewsController {
 
@@ -11,7 +11,7 @@ export class ReviewsController {
   async CreateReview(Req: Request, Res: Response) {
     try {
 
-      let result = await this.reviewsService.CreateReview(getUserIdFromToken(Req), Req.body);
+      let result = await this.reviewsService.CreateReview(getUserIdFromToken(Req as ExtendedRequest), Req.body);
 
       return Res.status(200).json(result);
       
@@ -22,7 +22,11 @@ export class ReviewsController {
   async UpdateReview(Req: Request, Res: Response) {
     try {
 
-      let result = await this.reviewsService.UpdateReview(getUserIdFromToken(Req), Req.params.ReviewId, Req.body);
+      let result = await this.reviewsService.UpdateReview(
+        getUserIdFromToken(Req as ExtendedRequest),
+        Req.params.ReviewId as string,
+        Req.body,
+      );
 
       return Res.status(200).json(result);
       
@@ -33,7 +37,9 @@ export class ReviewsController {
   async DeleteReview(Req: Request, Res: Response) {
     try {
 
-      let result = await this.reviewsService.DeleteReview(Req.params.ReviewId);
+      let result = await this.reviewsService.DeleteReview(
+        Req.params.ReviewId as string,
+      );
 
       return Res.status(200).json(result);
       
@@ -55,7 +61,7 @@ export class ReviewsController {
   async GetReviewsByUserId(Req: Request, Res: Response) {
     try {
 
-      let result = await this.reviewsService.GetReviewsByUserId(getUserIdFromToken(Req));
+      let result = await this.reviewsService.GetReviewsByUserId(getUserIdFromToken(Req as ExtendedRequest));
 
       return Res.status(200).json(result);
       

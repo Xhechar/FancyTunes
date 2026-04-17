@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { BookingService } from "../services/booking.service";
-import { getUserIdFromToken } from "../middlewares/backend.middleware";
+import { ExtendedRequest, getUserIdFromToken } from "../middlewares/backend.middleware";
 
 export class BookingController {
 
@@ -11,7 +11,11 @@ export class BookingController {
   async UpdateBooking(Req: Request, Res: Response) {
     try {
 
-      let result = await this.bookingService.UpdateBooking(getUserIdFromToken(Req), Req.params.BookingId, Req.body);
+      let result = await this.bookingService.UpdateBooking(
+        getUserIdFromToken(Req as ExtendedRequest),
+        Req.params.BookingId as string,
+        Req.body,
+      );
 
       return Res.status(200).json(result);
       
@@ -23,7 +27,10 @@ export class BookingController {
   async UpdateBookingStatus(Req: Request, Res: Response) {
     try {
 
-      let result = await this.bookingService.UpdateBookingStatus(Req.params.BookingId, Req.body.BookingStatus);
+      let result = await this.bookingService.UpdateBookingStatus(
+        Req.params.BookingId as string,
+        Req.body.BookingStatus,
+      );
 
       return Res.status(200).json(result);
       
@@ -34,7 +41,9 @@ export class BookingController {
   async DeleteBooking(Req: Request, Res: Response) {
     try {
 
-      let result = await this.bookingService.DeleteBooking(Req.params.BookingId);
+      let result = await this.bookingService.DeleteBooking(
+        Req.params.BookingId as string,
+      );
 
       return Res.status(200).json(result);
       
@@ -56,7 +65,7 @@ export class BookingController {
   async GetUserBookings(Req: Request, Res: Response) {
     try {
 
-      let result = await this.bookingService.GetUserBookings(getUserIdFromToken(Req));
+      let result = await this.bookingService.GetUserBookings(getUserIdFromToken(Req as ExtendedRequest));
       
       return Res.status(200).json(result);
       

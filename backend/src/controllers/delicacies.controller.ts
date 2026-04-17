@@ -21,7 +21,10 @@ export class DelicacyController {
   async UpdateDelicacy(Req: Request, Res: Response) {
     try {
 
-      let result = await this.delicacyService.UpdateDelicacy(Req.params.DelicacyId, Req.body);
+      let result = await this.delicacyService.UpdateDelicacy(
+        Req.params.DelicacyId as string,
+        Req.body,
+      );
 
       return Res.status(200).json(result);
       
@@ -32,7 +35,9 @@ export class DelicacyController {
   async DeleteDelicacy(Req: Request, Res: Response) {
     try {
 
-      let result = await this.delicacyService.DeleteDelicacy(Req.params.DelicacyId);
+      let result = await this.delicacyService.DeleteDelicacy(
+        Req.params.DelicacyId as string,
+      );
 
       return Res.status(200).json(result);
       
@@ -43,7 +48,9 @@ export class DelicacyController {
   async GetDelicacyByDelicacyId(Req: Request, Res: Response) {
     try {
 
-      let result = await this.delicacyService.GetDelicacyByDelicacyId(Req.params.DelicacyId);
+      let result = await this.delicacyService.GetDelicacyByDelicacyId(
+        Req.params.DelicacyId as string,
+      );
 
       return Res.status(200).json(result);
       

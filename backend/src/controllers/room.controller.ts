@@ -21,7 +21,10 @@ export class RoomController {
   async UpdateRoom(Req: Request, Res: Response) {
     try {
 
-      let result = await this.roomService.UpdateRoom(Req.params.RoomId, Req.body);
+      let result = await this.roomService.UpdateRoom(
+        Req.params.RoomId as string,
+        Req.body,
+      );
 
       return Res.status(200).json(result);
       
@@ -32,7 +35,9 @@ export class RoomController {
   async DeleteRoom(Req: Request, Res: Response) {
     try {
 
-      let result = await this.roomService.DeleteRoom(Req.params.RoomId);
+      let result = await this.roomService.DeleteRoom(
+        Req.params.RoomId as string,
+      );
 
       return Res.status(200).json(result);
       
@@ -43,7 +48,9 @@ export class RoomController {
   async GetRoomByRoomId(Req: Request, Res: Response) {
     try {
 
-      let result = await this.roomService.GetRoomByRoomId(Req.params.RoomId);
+      let result = await this.roomService.GetRoomByRoomId(
+        Req.params.RoomId as string,
+      );
 
       return Res.status(200).json(result);
       

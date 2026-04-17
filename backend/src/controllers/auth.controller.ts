@@ -39,7 +39,7 @@ export class AuthController {
   }
   async verifyMail(Req: Request, Res: Response) {
     try {
-      let result = await this.userService.verifyMail(Req.params.Email);
+      let result = await this.userService.verifyMail(Req.params.Email as string);
 
       return Res.status(200).json(result);
     } catch (error) {
@@ -55,7 +55,7 @@ export class AuthController {
   }
   async verifyCode(Req: Request, Res: Response) {
     try {
-      let result = await this.userService.verifyCode(Req.params.Email, Req.body.VerificationCode);
+      let result = await this.userService.verifyCode(Req.params.Email as string, Req.body.VerificationCode);
 
       return Res.status(200).json(result);
     } catch (error) {
@@ -87,7 +87,13 @@ export class AuthController {
   }
   async logput(Req: Request, Res: Response) {
     try {
-      Res.clearCookie("auth_token", { signed: true, httpOnly: true });
+      Res.clearCookie("auth_token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        maxAge: 45 * 60 * 1000,
+        signed: true,
+      });
 
       return Res.status(200).json(
         ServiceResponse.success<object>("logged out successfully")

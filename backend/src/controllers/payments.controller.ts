@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { PaymentService } from "../services/payments.service";
-import { getUserIdFromToken } from "../middlewares/backend.middleware";
+import { ExtendedRequest, getUserIdFromToken } from "../middlewares/backend.middleware";
 
 export class PaymentController {
 
@@ -11,7 +11,11 @@ export class PaymentController {
   async CreatePayment(Req: Request, Res: Response) {
     try {
 
-      let result = await this.paymentService.CreatePayment(getUserIdFromToken(Req), Req.params.CommodityId, Req.body);
+      let result = await this.paymentService.CreatePayment(
+        getUserIdFromToken(Req as ExtendedRequest),
+        Req.params.CommodityId as string,
+        Req.body,
+      );
 
       return Res.status(200).json(result);
       
@@ -23,7 +27,7 @@ export class PaymentController {
   async GetUserPayments(Req: Request, Res: Response) {
     try {
 
-      let result = await this.paymentService.GetUserPayments(getUserIdFromToken(Req));
+      let result = await this.paymentService.GetUserPayments(getUserIdFromToken(Req as ExtendedRequest));
 
       return Res.status(200).json(result);
       
@@ -45,7 +49,9 @@ export class PaymentController {
   async DeletePayment(Req: Request, Res: Response) {
     try {
 
-      let result = await this.paymentService.DeletePayment(Req.params.PaymentId);
+      let result = await this.paymentService.DeletePayment(
+        Req.params.PaymentId as string,
+      );
 
       return Res.status(200).json(result);
       

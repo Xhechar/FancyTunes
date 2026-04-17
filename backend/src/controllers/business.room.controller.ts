@@ -21,7 +21,10 @@ export class BussinessRoomController {
   async UpdateBusinessRoom(Req: Request, Res: Response) {
     try {
 
-      let result = await this.businessRoomService.UpdateBusinessRoom(Req.params.BusinessRoomId, Req.body);
+      let result = await this.businessRoomService.UpdateBusinessRoom(
+        Req.params.BusinessRoomId as string,
+        Req.body,
+      );
 
       return Res.status(200).json(result);
       
@@ -32,7 +35,9 @@ export class BussinessRoomController {
   async DeleteBusinessRoom(Req: Request, Res: Response) {
     try {
 
-      let result = await this.businessRoomService.DeleteBusinessRoom(Req.params.BusinessRoomId);
+      let result = await this.businessRoomService.DeleteBusinessRoom(
+        Req.params.BusinessRoomId as string,
+      );
 
       return Res.status(200).json(result);
       
@@ -43,7 +48,9 @@ export class BussinessRoomController {
   async GetBusinessRoomById(Req: Request, Res: Response) {
     try {
 
-      let result = await this.businessRoomService.GetBusinessRoomById(Req.params.BusinessRoomId);
+      let result = await this.businessRoomService.GetBusinessRoomById(
+        Req.params.BusinessRoomId as string,
+      );
 
       return Res.status(200).json(result);
       

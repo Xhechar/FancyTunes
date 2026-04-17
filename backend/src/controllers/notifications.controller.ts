@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { NotificationsService } from "../services/notifications.service";
-import { getUserIdFromToken } from "../middlewares/backend.middleware";
+import { ExtendedRequest, getUserIdFromToken } from "../middlewares/backend.middleware";
 
 export class NotificationController {
   
@@ -11,7 +11,7 @@ export class NotificationController {
   async GetUserNotifications(Req: Request, Res: Response) {
     try {
 
-      let result = await this.notificationService.GetUserNotifications(getUserIdFromToken(Req));
+      let result = await this.notificationService.GetUserNotifications(getUserIdFromToken(Req as ExtendedRequest));
 
       return Res.status(200).json(result);
       
@@ -22,7 +22,9 @@ export class NotificationController {
   async DeleteNotification(Req: Request, Res: Response) {
     try {
 
-      let result = await this.notificationService.DeleteNotification(Req.params.NotificationId);
+      let result = await this.notificationService.DeleteNotification(
+        Req.params.NotificationId as string,
+      );
 
       return Res.status(200).json(result);
       
@@ -33,7 +35,9 @@ export class NotificationController {
   async MarkNotificationAsRead(Req: Request, Res: Response) {
     try {
 
-      let result = await this.notificationService.MarkNotificationAsRead(Req.params.NotificationId);
+      let result = await this.notificationService.MarkNotificationAsRead(
+        Req.params.NotificationId as string,
+      );
 
       return Res.status(200).json(result);
       

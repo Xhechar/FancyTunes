@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { UserService } from "../services/user.service";
-import { getUserIdFromToken } from "../middlewares/backend.middleware";
+import { ExtendedRequest, getUserIdFromToken } from "../middlewares/backend.middleware";
 
 export class UserController {
 
@@ -22,7 +22,7 @@ export class UserController {
   async UpdateUser(Req: Request, Res: Response) {
     try {
 
-      let result = await this.userService.UpdateUser(getUserIdFromToken(Req), Req.body);
+      let result = await this.userService.UpdateUser(getUserIdFromToken(Req as ExtendedRequest), Req.body);
 
       return Res.status(200).json(result);
       
@@ -33,7 +33,10 @@ export class UserController {
   async UpdateUserProfileImage(Req: Request, Res: Response) {
     try {
 
-      let result = await this.userService.UpdateUserProfileImage(getUserIdFromToken(Req), Req.params.ProfileImage);
+      let result = await this.userService.UpdateUserProfileImage(
+        getUserIdFromToken(Req as ExtendedRequest),
+        Req.params.ProfileImage as string,
+      );
 
       return Res.status(200).json(result);
       
@@ -44,7 +47,9 @@ export class UserController {
   async DeleteUser(Req: Request, Res: Response) {
     try {
 
-      let result = await this.userService.DeleteUser(Req.params.UserId);
+      let result = await this.userService.DeleteUser(
+        Req.params.UserId as string,
+      );
 
       return Res.status(200).json(result);
       
@@ -55,7 +60,7 @@ export class UserController {
   async GetUserByUserId(Req: Request, Res: Response) {
     try {
 
-      let result = await this.userService.GetUserByUserId(getUserIdFromToken(Req));
+      let result = await this.userService.GetUserByUserId(getUserIdFromToken(Req as ExtendedRequest));
 
       return Res.status(200).json(result);
       
