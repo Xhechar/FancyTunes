@@ -8,7 +8,6 @@ import {
   Filter,
   Search,
   CheckCircle,
-  AlertCircle,
   Info,
   Gift,
   Utensils,
@@ -199,17 +198,19 @@ interface RoomImage {
 
 export const Notificationss: React.FC = () => {
   // Mock user data
+  // eslint-disable-next-line
   const user: User = {
-    UserId: 'user123',
-    FullName: 'Sarah Johnson',
-    Email: 'sarah.johnson@email.com',
-    Phone: '+1234567890',
-    Password: '',
-    Role: 'Customer',
-    ProfileImage: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
+    UserId: "user123",
+    FullName: "Sarah Johnson",
+    Email: "sarah.johnson@email.com",
+    Phone: "+1234567890",
+    Password: "",
+    Role: "Customer",
+    ProfileImage:
+      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150",
     IsWelcome: true,
-    CreatedAt: '2024-01-15T10:00:00Z',
-    UpdatedAt: '2024-08-20T15:30:00Z',
+    CreatedAt: "2024-01-15T10:00:00Z",
+    UpdatedAt: "2024-08-20T15:30:00Z",
     Bookings: [],
     Accommodations: [],
     Orders: [],
@@ -217,91 +218,95 @@ export const Notificationss: React.FC = () => {
     Recoveries: [],
     Payments: [],
     Reviews: [],
-    Notifications: []
+    Notifications: [],
   };
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'unread' | 'read'>('all');
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
+  const [filteredNotifications, setFilteredNotifications] = useState<
+    Notification[]
+  >([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "unread" | "read">(
+    "all",
+  );
+  const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
   const [loading, setLoading] = useState(true);
 
   // Mock notifications data
   useEffect(() => {
     const mockNotifications: Notification[] = [
-      {
-        NotificationId: 'notif1',
-        UserId: user.UserId,
-        Title: 'Order Confirmed',
-        Message: 'Your order for Truffle Pasta Carbonara has been confirmed and is being prepared. Estimated delivery time: 25 minutes.',
-        IsRead: false,
-        CreatedAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-        User: user
-      },
-      {
-        NotificationId: 'notif2',
-        UserId: user.UserId,
-        Title: 'Payment Successful',
-        Message: 'Your payment of $250.00 for Deluxe Suite booking has been processed successfully. Reference: REF123456',
-        IsRead: false,
-        CreatedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-        User: user
-      },
-      {
-        NotificationId: 'notif3',
-        UserId: user.UserId,
-        Title: 'Room Ready for Check-in',
-        Message: 'Your Deluxe Suite (Room 101) is now ready for check-in. Please visit the reception desk with your booking confirmation.',
-        IsRead: true,
-        CreatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        User: user
-      },
-      {
-        NotificationId: 'notif4',
-        UserId: user.UserId,
-        Title: 'Special Offer Available',
-        Message: 'Enjoy 20% off on all premium seafood dishes this weekend. Limited time offer - book your table now!',
-        IsRead: false,
-        CreatedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-        User: user
-      },
-      {
-        NotificationId: 'notif5',
-        UserId: user.UserId,
-        Title: 'Booking Reminder',
-        Message: 'Reminder: Your Executive Conference Hall booking is scheduled for tomorrow at 2:00 PM. Please arrive 15 minutes early.',
-        IsRead: true,
-        CreatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        User: user
-      },
-      {
-        NotificationId: 'notif6',
-        UserId: user.UserId,
-        Title: 'Order Delivered',
-        Message: 'Your Mediterranean Seafood Platter has been delivered to your room. We hope you enjoy your meal!',
-        IsRead: true,
-        CreatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        User: user
-      },
-      {
-        NotificationId: 'notif7',
-        UserId: user.UserId,
-        Title: 'Review Request',
-        Message: 'Thank you for your recent stay! We would love to hear about your experience. Please take a moment to leave a review.',
-        IsRead: false,
-        CreatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        User: user
-      },
-      {
-        NotificationId: 'notif8',
-        UserId: user.UserId,
-        Title: 'New Menu Items',
-        Message: 'Discover our latest culinary creations! Our chef has added 5 new seasonal dishes to the menu. View menu online.',
-        IsRead: true,
-        CreatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        User: user
-      }
+      // {
+      //   NotificationId: 'notif1',
+      //   UserId: user.UserId,
+      //   Title: 'Order Confirmed',
+      //   Message: 'Your order for Truffle Pasta Carbonara has been confirmed and is being prepared. Estimated delivery time: 25 minutes.',
+      //   IsRead: false,
+      //   CreatedAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+      //   User: user
+      // },
+      // {
+      //   NotificationId: 'notif2',
+      //   UserId: user.UserId,
+      //   Title: 'Payment Successful',
+      //   Message: 'Your payment of $250.00 for Deluxe Suite booking has been processed successfully. Reference: REF123456',
+      //   IsRead: false,
+      //   CreatedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+      //   User: user
+      // },
+      // {
+      //   NotificationId: 'notif3',
+      //   UserId: user.UserId,
+      //   Title: 'Room Ready for Check-in',
+      //   Message: 'Your Deluxe Suite (Room 101) is now ready for check-in. Please visit the reception desk with your booking confirmation.',
+      //   IsRead: true,
+      //   CreatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      //   User: user
+      // },
+      // {
+      //   NotificationId: 'notif4',
+      //   UserId: user.UserId,
+      //   Title: 'Special Offer Available',
+      //   Message: 'Enjoy 20% off on all premium seafood dishes this weekend. Limited time offer - book your table now!',
+      //   IsRead: false,
+      //   CreatedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+      //   User: user
+      // },
+      // {
+      //   NotificationId: 'notif5',
+      //   UserId: user.UserId,
+      //   Title: 'Booking Reminder',
+      //   Message: 'Reminder: Your Executive Conference Hall booking is scheduled for tomorrow at 2:00 PM. Please arrive 15 minutes early.',
+      //   IsRead: true,
+      //   CreatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      //   User: user
+      // },
+      // {
+      //   NotificationId: 'notif6',
+      //   UserId: user.UserId,
+      //   Title: 'Order Delivered',
+      //   Message: 'Your Mediterranean Seafood Platter has been delivered to your room. We hope you enjoy your meal!',
+      //   IsRead: true,
+      //   CreatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      //   User: user
+      // },
+      // {
+      //   NotificationId: 'notif7',
+      //   UserId: user.UserId,
+      //   Title: 'Review Request',
+      //   Message: 'Thank you for your recent stay! We would love to hear about your experience. Please take a moment to leave a review.',
+      //   IsRead: false,
+      //   CreatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      //   User: user
+      // },
+      // {
+      //   NotificationId: 'notif8',
+      //   UserId: user.UserId,
+      //   Title: 'New Menu Items',
+      //   Message: 'Discover our latest culinary creations! Our chef has added 5 new seasonal dishes to the menu. View menu online.',
+      //   IsRead: true,
+      //   CreatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      //   User: user
+      // }
     ];
 
     setTimeout(() => {
@@ -313,23 +318,29 @@ export const Notificationss: React.FC = () => {
 
   // Filter and search functionality
   useEffect(() => {
-    let filtered = notifications.filter(notification => {
-      const matchesSearch = notification.Title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           notification.Message.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesFilter = filterStatus === 'all' || 
-                           (filterStatus === 'unread' && !notification.IsRead) ||
-                           (filterStatus === 'read' && notification.IsRead);
-      
+    let filtered = notifications.filter((notification) => {
+      const matchesSearch =
+        notification.Title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        notification.Message.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesFilter =
+        filterStatus === "all" ||
+        (filterStatus === "unread" && !notification.IsRead) ||
+        (filterStatus === "read" && notification.IsRead);
+
       return matchesSearch && matchesFilter;
     });
 
     // Sort notifications
     filtered.sort((a, b) => {
-      if (sortBy === 'newest') {
-        return new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime();
+      if (sortBy === "newest") {
+        return (
+          new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime()
+        );
       } else {
-        return new Date(a.CreatedAt).getTime() - new Date(b.CreatedAt).getTime();
+        return (
+          new Date(a.CreatedAt).getTime() - new Date(b.CreatedAt).getTime()
+        );
       }
     });
 
@@ -337,7 +348,7 @@ export const Notificationss: React.FC = () => {
   }, [notifications, searchTerm, filterStatus, sortBy]);
 
   const getUnreadCount = () => {
-    return notifications.filter(n => !n.IsRead).length;
+    return notifications.filter((n) => !n.IsRead).length;
   };
 
   const getTotalCount = () => {
@@ -345,23 +356,27 @@ export const Notificationss: React.FC = () => {
   };
 
   const markAsRead = (notificationId: string) => {
-    setNotifications(prev => prev.map(notification => 
-      notification.NotificationId === notificationId 
-        ? { ...notification, IsRead: true }
-        : notification
-    ));
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.NotificationId === notificationId
+          ? { ...notification, IsRead: true }
+          : notification,
+      ),
+    );
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev => prev.map(notification => 
-      ({ ...notification, IsRead: true })
-    ));
+    setNotifications((prev) =>
+      prev.map((notification) => ({ ...notification, IsRead: true })),
+    );
   };
 
   const deleteNotification = (notificationId: string) => {
-    setNotifications(prev => prev.filter(notification => 
-      notification.NotificationId !== notificationId
-    ));
+    setNotifications((prev) =>
+      prev.filter(
+        (notification) => notification.NotificationId !== notificationId,
+      ),
+    );
   };
 
   const clearAllNotifications = () => {
@@ -370,15 +385,15 @@ export const Notificationss: React.FC = () => {
 
   const getNotificationIcon = (title: string) => {
     const lowerTitle = title.toLowerCase();
-    if (lowerTitle.includes('order') || lowerTitle.includes('menu')) {
+    if (lowerTitle.includes("order") || lowerTitle.includes("menu")) {
       return <Utensils className={styles.notificationIcon} />;
-    } else if (lowerTitle.includes('room') || lowerTitle.includes('booking')) {
+    } else if (lowerTitle.includes("room") || lowerTitle.includes("booking")) {
       return <Bed className={styles.notificationIcon} />;
-    } else if (lowerTitle.includes('payment')) {
+    } else if (lowerTitle.includes("payment")) {
       return <CreditCard className={styles.notificationIcon} />;
-    } else if (lowerTitle.includes('offer') || lowerTitle.includes('special')) {
+    } else if (lowerTitle.includes("offer") || lowerTitle.includes("special")) {
       return <Gift className={styles.notificationIcon} />;
-    } else if (lowerTitle.includes('reminder')) {
+    } else if (lowerTitle.includes("reminder")) {
       return <Clock className={styles.notificationIcon} />;
     } else {
       return <Info className={styles.notificationIcon} />;
@@ -390,12 +405,12 @@ export const Notificationss: React.FC = () => {
     const created = new Date(createdAt).getTime();
     const diffInMinutes = Math.floor((now - created) / (1000 * 60));
 
-    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 1) return "Just now";
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    
+
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) return `${diffInHours}h ago`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
     return `${diffInDays}d ago`;
   };
@@ -459,7 +474,9 @@ export const Notificationss: React.FC = () => {
             <Filter className={styles.filterIcon} />
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as 'all' | 'unread' | 'read')}
+              onChange={(e) =>
+                setFilterStatus(e.target.value as "all" | "unread" | "read")
+              }
               className={styles.filterSelect}
             >
               <option value="all">All Notifications</option>
@@ -471,7 +488,7 @@ export const Notificationss: React.FC = () => {
           <div className={styles.filterGroup}>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest')}
+              onChange={(e) => setSortBy(e.target.value as "newest" | "oldest")}
               className={styles.filterSelect}
             >
               <option value="newest">Newest First</option>
@@ -482,10 +499,7 @@ export const Notificationss: React.FC = () => {
 
         <div className={styles.actionsContainer}>
           {getUnreadCount() > 0 && (
-            <button
-              onClick={markAllAsRead}
-              className={styles.markAllButton}
-            >
+            <button onClick={markAllAsRead} className={styles.markAllButton}>
               <CheckCircle className={styles.actionIcon} />
               Mark All Read
             </button>
@@ -506,15 +520,23 @@ export const Notificationss: React.FC = () => {
         {filteredNotifications.length === 0 ? (
           <div className={styles.emptyState}>
             <Bell className={styles.emptyIcon} />
-            <h3>{notifications.length === 0 ? 'No notifications yet' : 'No notifications found'}</h3>
-            <p>{notifications.length === 0 ? 'When you have new updates, they will appear here' : 'Try adjusting your search or filters'}</p>
+            <h3>
+              {notifications.length === 0
+                ? "No notifications yet"
+                : "No notifications found"}
+            </h3>
+            <p>
+              {notifications.length === 0
+                ? "When you have new updates, they will appear here"
+                : "Try adjusting your search or filters"}
+            </p>
           </div>
         ) : (
           <div className={styles.notificationsList}>
             {filteredNotifications.map((notification) => (
-              <div 
-                key={notification.NotificationId} 
-                className={`${styles.notificationCard} ${!notification.IsRead ? styles.unread : ''}`}
+              <div
+                key={notification.NotificationId}
+                className={`${styles.notificationCard} ${!notification.IsRead ? styles.unread : ""}`}
               >
                 <div className={styles.notificationHeader}>
                   <div className={styles.notificationMeta}>
@@ -524,15 +546,19 @@ export const Notificationss: React.FC = () => {
                       <span>{getTimeAgo(notification.CreatedAt)}</span>
                     </div>
                   </div>
-                  
+
                   {!notification.IsRead && (
                     <div className={styles.unreadIndicator}></div>
                   )}
                 </div>
 
                 <div className={styles.notificationContent}>
-                  <h3 className={styles.notificationTitle}>{notification.Title}</h3>
-                  <p className={styles.notificationMessage}>{notification.Message}</p>
+                  <h3 className={styles.notificationTitle}>
+                    {notification.Title}
+                  </h3>
+                  <p className={styles.notificationMessage}>
+                    {notification.Message}
+                  </p>
                 </div>
 
                 <div className={styles.notificationActions}>
@@ -546,7 +572,9 @@ export const Notificationss: React.FC = () => {
                     </button>
                   )}
                   <button
-                    onClick={() => deleteNotification(notification.NotificationId)}
+                    onClick={() =>
+                      deleteNotification(notification.NotificationId)
+                    }
                     className={styles.deleteButton}
                   >
                     <Trash2 className={styles.actionIcon} />

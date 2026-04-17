@@ -12,14 +12,12 @@ import {
   Phone,
   Upload,
   X,
-  Check,
 } from "lucide-react";
 import styles from "../styles/Register.module.css";
 import { useNavigate } from "react-router-dom";
 import { CreateUserDto } from "../interfaces/dtos/interfaces.dtos";
 import Toast, { ToastProps } from "../components/Toast";
 import { UsersService } from "../services/user.service";
-import { title } from "process";
 
 interface RegisterFormData {
   FullName: string;
@@ -30,7 +28,7 @@ interface RegisterFormData {
   Role: string;
   ProfileImage?: FileList;
   agreeToTerms: boolean;
-}
+};
 
 export const Register: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -48,7 +46,6 @@ export const Register: React.FC = () => {
     formState: { errors, isValid, touchedFields },
     watch,
     setValue,
-    clearErrors,
   } = useForm<RegisterFormData>({
     mode: "all",
     defaultValues: {
@@ -207,9 +204,7 @@ export const Register: React.FC = () => {
 
   return (
     <div className={styles["register-page"]}>
-      {
-        toast ? <Toast { ...toast }></Toast> : <div></div>
-      }
+      {toast ? <Toast {...toast}></Toast> : <div></div>}
       {/* Background overlay */}
       <div className={styles["register-background"]}>
         <div className={styles["register-overlay"]}></div>
@@ -597,11 +592,12 @@ export const Register: React.FC = () => {
                 />
                 <span className={styles["checkbox-custom"]}></span>
                 <span className={styles["checkbox-label"]}>
-                  I agree to the{" "}
+                  I agree to the {/* eslint-disable-next-line */}
                   <a href="#" className={styles["terms-link"]}>
                     Terms of Service
                   </a>{" "}
-                  and{" "}
+                  and
+                   {/* eslint-disable-next-line */}
                   <a href="#" className={styles["terms-link"]}>
                     Privacy Policy
                   </a>

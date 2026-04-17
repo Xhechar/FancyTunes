@@ -22,7 +22,7 @@ interface QuickLink {
   description: string;
   path: string;
   color: string;
-}
+};
 
 export const NotFound: React.FC = () => {
   const navigate = useNavigate();

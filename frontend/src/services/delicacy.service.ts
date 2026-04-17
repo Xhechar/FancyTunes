@@ -16,7 +16,7 @@ export class DelicacyService {
     const result = await axios.post(
       `${this.ApiUrl}/create-delicacy`,
       Delicacy,
-      { withCredentials: true }
+      { withCredentials: true } 
     );
     return result.data as ServiceResult<Delicacy>;
   }

@@ -39,12 +39,16 @@ export class RoomsService {
   }
 
   static async GetRoom(RoomId: string): Promise<ServiceResult<Room>> {
-    const result = await axios.get(`${this.ApiUrl}/get-room/${RoomId}`);
+    const result = await axios.get(`${this.ApiUrl}/get-room/${RoomId}`, {
+      withCredentials: true
+    });
     return result.data as ServiceResult<Room>;
   }
 
   static async GetAllRooms(): Promise<ServiceResult<Room>> {
-    const result = await axios.get(`${this.ApiUrl}/get-all-rooms`);
+    const result = await axios.get(`${this.ApiUrl}/get-all-rooms`, {
+      withCredentials: true
+    });
     return result.data as ServiceResult<Room>;
   }
 }

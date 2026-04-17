@@ -11,7 +11,7 @@ export interface UpdateUserDto {
   Email?: string;
   Phone?: string;
   ProfileImage?: string;
-}
+};
 
 export interface CreateRoomDto {
   RoomCount: number;

@@ -7,17 +7,11 @@ import {
   Utensils,
   Bed,
   Briefcase,
-  ShoppingCart,
-  CreditCard,
-  Users,
-  Star,
   Bell,
   Settings,
   LogOut,
   User,
-  Calendar,
-  Package,
-} from "lucide-react";
+} from "lucide-react"; 
 import styles from "../../styles/admin/admin.module.css";
 import Toast, { ToastProps } from "../../components/Toast";
 import { AuthService } from "../../services/auth.service";

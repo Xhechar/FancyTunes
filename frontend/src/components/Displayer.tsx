@@ -12,7 +12,7 @@ export const Displayer: React.FC<DisplayerProps> = (props: DisplayerProps) => {
     setTimeout(() => {
       setDisplayProperty("none");
     }, 5000);
-  }, [])
+  }, []);
 
   return (
     <div

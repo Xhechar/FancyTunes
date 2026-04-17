@@ -8,7 +8,7 @@ import {
 } from "../interfaces/dtos/interfaces.dtos";
 
 export class ReviewsService {
-  private static ApiUrl = `${BackendRoute}reviews`;
+  private static ApiUrl = `${BackendRoute}review`;
 
   static async CreateReview(
     Review: CreateReviewDto
@@ -36,7 +36,7 @@ export class ReviewsService {
       `${this.ApiUrl}/delete-review/${ReviewId}`,
       { withCredentials: true }
     );
-    return result.data as ServiceResult<Review>;
+    return result.data as ServiceResult<Review>; 
   }
 
   static async GetAllReviews(): Promise<ServiceResult<Review>> {

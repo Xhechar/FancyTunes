@@ -57,7 +57,7 @@ export class AuthService {
     const result = await axios.post(
       `${this.ApiUrl}/authenticate-user`,
       {},
-      { withCredentials: true }
+      { withCredentials: true } 
     );
     return result.data as ServiceResult<object>;
   }

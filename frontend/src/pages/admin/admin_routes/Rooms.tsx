@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import {
   Plus,
   Edit,
@@ -125,6 +125,7 @@ export const Rooms: React.FC = () => {
 
   useEffect(() => {
     filterRooms();
+    // eslint-disable-next-line
   }, [searchTerm, statusFilter, roomTypeFilter, rooms]);
 
   const filterRooms = () => {

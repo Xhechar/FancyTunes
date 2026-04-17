@@ -24,7 +24,7 @@ interface ReviewWithPayment extends Review {
   relatedPayment?: Payment;
   relatedBooking?: Booking;
   relatedOrder?: Order;
-}
+};
 
 export const Reviews: React.FC = () => {
   const [reviews, setReviews] = useState<ReviewWithPayment[]>([]);

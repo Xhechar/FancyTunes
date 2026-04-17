@@ -8,7 +8,7 @@ export interface TokenDetails {
   refreshToken?: string;
   expiresIn?: number;
   userId?: string;
-}
+};
 
 export type ToastType = "success" | "error" | "warning" | "info";
 
@@ -77,6 +77,7 @@ const Toast: React.FC<ToastProps> = ({
       clearTimeout(timer);
       clearInterval(progressInterval);
     };
+    // eslint-disable-next-line
   }, [isVisible, duration]);
 
   const handleClose = () => {

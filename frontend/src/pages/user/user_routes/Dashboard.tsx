@@ -40,7 +40,6 @@ import {
   BusinessRoom,
   CreatePaymentData,
   Payment,
-  Accommodation,
 } from "../../../interfaces/interfaces";
 import { DelicacyService } from "../../../services/delicacy.service";
 import { RoomsService } from "../../../services/room.service";
@@ -78,17 +77,20 @@ export const Dashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showBookingModal, setShowBookingModal] = useState(false);
+  // eslint-disable-next-line
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [selectedBusinessRoom, setSelectedBusinessRoom] =
     useState<BusinessRoom | null>(null);
+  // eslint-disable-next-line
   const [selectedDelicacy, setSelectedDelicacy] = useState<Delicacy | null>(
-    null
+    null,
   );
   const [cartItems, setCartItems] = useState<Cart[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mpesa");
+  // eslint-disable-next-line
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<{
     title: string;
@@ -100,8 +102,9 @@ export const Dashboard: React.FC = () => {
   >("cart");
 
   const bookingForm = useForm<BookingFormData>({
-    mode: "all"
+    mode: "all",
   });
+  // eslint-disable-next-line
   const orderForm = useForm<OrderFormData>();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [businessRooms, setBusinessRooms] = useState<BusinessRoom[]>([]);
@@ -141,14 +144,14 @@ export const Dashboard: React.FC = () => {
     socket.on("room-updated", (updateRoom: Room) => {
       setRooms((prev) =>
         prev.map((room) =>
-          room.RoomId === updateRoom.RoomId ? updateRoom : room
-        )
+          room.RoomId === updateRoom.RoomId ? updateRoom : room,
+        ),
       );
     });
 
     socket.on("room-deleted", (deletedRoom: Room) => {
       setRooms((prev) =>
-        prev.filter((room) => room.RoomId !== deletedRoom.RoomId)
+        prev.filter((room) => room.RoomId !== deletedRoom.RoomId),
       );
     });
 
@@ -159,18 +162,18 @@ export const Dashboard: React.FC = () => {
     socket.on("business-room-updated", (updateBusinessRoom: BusinessRoom) => {
       setBusinessRooms((prev) =>
         prev.map((businessRoom) =>
-          businessRoom.BusinessRoomId == updateBusinessRoom.BusinessRoomId
+          businessRoom.BusinessRoomId === updateBusinessRoom.BusinessRoomId
             ? updateBusinessRoom
-            : businessRoom
-        )
+            : businessRoom,
+        ),
       );
     });
 
     socket.on("business-room-deleted", (deletedRoom: BusinessRoom) => {
       setBusinessRooms((prev) =>
         prev.filter(
-          (room) => room.BusinessRoomId !== deletedRoom.BusinessRoomId
-        )
+          (room) => room.BusinessRoomId !== deletedRoom.BusinessRoomId,
+        ),
       );
     });
 
@@ -181,18 +184,18 @@ export const Dashboard: React.FC = () => {
     socket.on("delicacy-updated", (updatedDelicacy: Delicacy) => {
       setDelicacies((prev) =>
         prev.map((delicacy) =>
-          delicacy.DelicacyId == updatedDelicacy.DelicacyId
+          delicacy.DelicacyId === updatedDelicacy.DelicacyId
             ? updatedDelicacy
-            : delicacy
-        )
+            : delicacy,
+        ),
       );
     });
 
     socket.on("delicacy-deleted", (deletedDelicacy: Delicacy) => {
       setDelicacies((prev) =>
         prev.filter(
-          (delicacy) => delicacy.DelicacyId !== deletedDelicacy.DelicacyId
-        )
+          (delicacy) => delicacy.DelicacyId !== deletedDelicacy.DelicacyId,
+        ),
       );
     });
 
@@ -204,19 +207,19 @@ export const Dashboard: React.FC = () => {
     socket.on("cart-updated", (updatedCart: Cart) => {
       setCartItems((prev) =>
         prev.map((cart) =>
-          cart.CartId == updatedCart.CartId ? updatedCart : cart
-        )
+          cart.CartId === updatedCart.CartId ? updatedCart : cart,
+        ),
       );
     });
 
     socket.on("cart-deleted", (deletedCart: Cart) => {
       setCartItems((prev) =>
-        prev.filter((cart) => cart.CartId !== deletedCart.CartId)
+        prev.filter((cart) => cart.CartId !== deletedCart.CartId),
       );
     });
 
     socket.on("order-created", (createdOrder: Order) => {
-      setUserOrders([... userOrders, createdOrder]);
+      setUserOrders([...userOrders, createdOrder]);
     });
 
     socket.on("booking-created", (createdBooking: Booking) => {
@@ -247,6 +250,7 @@ export const Dashboard: React.FC = () => {
       socket.off("cart-cleared");
       socket.disconnect();
     };
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -273,7 +277,7 @@ export const Dashboard: React.FC = () => {
         setUserBookings(() => (result.data as User).Bookings as Booking[]);
         setUserOrders(() => (result.data as User).Orders as Order[]);
         setNotifications(
-          () => (result.data as User).Notifications as Notification[]
+          () => (result.data as User).Notifications as Notification[],
         );
         setCartItems(() => (result.data as User).Carts as Cart[]);
       }
@@ -307,7 +311,7 @@ export const Dashboard: React.FC = () => {
 
   function calculateDurationInHours(
     startTime: string,
-    endTime: string
+    endTime: string,
   ): number {
     const toMinutes = (time: string): number => {
       const [hours, minutes] = time.split(":").map(Number);
@@ -326,13 +330,12 @@ export const Dashboard: React.FC = () => {
     return diff / 60;
   }
 
-
   const isTimeAfter = (t1: string, t2: string) => {
     const [h1, m1] = t1.split(":").map(Number);
     const [h2, m2] = t2.split(":").map(Number);
     return h1 > h2 || (h1 === h2 && m1 > m2);
   };
-
+  // eslint-disable-next-line
   const isFutureTimeToday = (time: string) => {
     const now = new Date();
     const [h, m] = time.split(":").map(Number);
@@ -353,7 +356,7 @@ export const Dashboard: React.FC = () => {
     setCurrentPaymentType("business-room");
     setShowBookingModal(true);
   };
-
+  // eslint-disable-next-line
   const handleOrderDelicacy = (delicacy: Delicacy) => {
     setSelectedDelicacy(delicacy);
     setShowOrderModal(true);
@@ -362,7 +365,7 @@ export const Dashboard: React.FC = () => {
   const onBookingSubmit = async (data: BookingFormData) => {
     setShowBookingModal(false);
     setShowPaymentModal(true);
-
+    // eslint-disable-next-line
     const room = selectedRoom || selectedBusinessRoom;
     const price = selectedRoom
       ? selectedRoom.PricePerNight
@@ -394,7 +397,7 @@ export const Dashboard: React.FC = () => {
 
         let result = await PaymentService.CreatePayment(
           selectedRoom.RoomId,
-          PaymentData
+          PaymentData,
         );
 
         if (result.success) {
@@ -461,15 +464,14 @@ export const Dashboard: React.FC = () => {
           NumberOfGuests: Number(data.NumberOfGuests),
           DurationInHours: calculateDurationInHours(
             data.CheckInDate,
-            data.CheckOutDate
+            data.CheckOutDate,
           ),
           BookingDate: new Date(data.BookingDate),
           CheckInTime: data.CheckInDate,
           CheckOutTime: data.CheckOutDate,
-          TotalAmount: calculateDurationInHours(
-            data.CheckInDate,
-            data.CheckOutDate
-          ) * price,
+          TotalAmount:
+            calculateDurationInHours(data.CheckInDate, data.CheckOutDate) *
+            price,
         };
 
         let PaymentData: CreatePaymentData = {
@@ -480,7 +482,7 @@ export const Dashboard: React.FC = () => {
 
         let result = await PaymentService.CreatePayment(
           selectedBusinessRoom.BusinessRoomId,
-          PaymentData
+          PaymentData,
         );
 
         if (result.success) {
@@ -537,8 +539,8 @@ export const Dashboard: React.FC = () => {
     }
     bookingForm.reset();
   };
-
-  const onOrderSubmit = async(data: OrderFormData) => {
+  // eslint-disable-next-line
+  const onOrderSubmit = async (data: OrderFormData) => {
     //
   };
 
@@ -617,7 +619,7 @@ export const Dashboard: React.FC = () => {
 
     const totalAmount = cartItems.reduce(
       (sum, item) => sum + (item.Delicacy?.Price ?? 0) * item.Quantity,
-      0
+      0,
     );
 
     try {
@@ -656,7 +658,6 @@ export const Dashboard: React.FC = () => {
         };
         setToast(toast);
       }
-
     } catch (error: any) {
       setPaymentStatus({
         title: (error?.response?.data?.error as string) ?? "Order Failed",
@@ -694,7 +695,7 @@ export const Dashboard: React.FC = () => {
 
       let result = await CartService.CreateCart(
         delicacy.DelicacyId,
-        newCartItem
+        newCartItem,
       );
 
       if (result.success) {
@@ -875,13 +876,13 @@ export const Dashboard: React.FC = () => {
   const filteredRooms = rooms?.filter(
     (room) =>
       room.RoomType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      room.Description.toLowerCase().includes(searchTerm.toLowerCase())
+      room.Description.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const filteredBusinessRooms = businessRooms?.filter(
     (room) =>
       room.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      room.Description.toLowerCase().includes(searchTerm.toLowerCase())
+      room.Description.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const filteredDelicacies = delicacies?.filter((delicacy) => {
@@ -1182,7 +1183,9 @@ export const Dashboard: React.FC = () => {
                           onClick={() => handleBookBusinessRoom(room)}
                           disabled={!room.IsAvailable}
                         >
-                          {room.IsAvailable ? "Book Business Room" : "Unavailable"}
+                          {room.IsAvailable
+                            ? "Book Business Room"
+                            : "Unavailable"}
                         </button>
                       </div>
                     </div>
@@ -1303,7 +1306,7 @@ export const Dashboard: React.FC = () => {
                             styles[
                               booking.BookingStatus.toLowerCase().replace(
                                 /\s/g,
-                                "-"
+                                "-",
                               )
                             ]
                           }`}
@@ -1336,9 +1339,7 @@ export const Dashboard: React.FC = () => {
                             Check-out:
                           </span>
                           <span className={styles["date-value"]}>
-                            {new Date(
-                              booking.BookingDate
-                            ).toLocaleDateString()}
+                            {new Date(booking.BookingDate).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
@@ -1368,7 +1369,7 @@ export const Dashboard: React.FC = () => {
                         <span className={styles["amount-value"]}>
                           Ksh.{" "}
                           {parseFloat(
-                            String(booking.TotalAmount) || "0"
+                            String(booking.TotalAmount) || "0",
                           ).toFixed(2)}
                         </span>
                       </div>
@@ -1419,7 +1420,7 @@ export const Dashboard: React.FC = () => {
                             styles[
                               order.OrderStatus.toLowerCase().replace(
                                 /\s/g,
-                                "-"
+                                "-",
                               )
                             ]
                           }`}
@@ -1464,11 +1465,11 @@ export const Dashboard: React.FC = () => {
                               </span>
                               <span className={styles["info-value"]}>
                                 {new Date(
-                                  order.DeliveredAt
+                                  order.DeliveredAt,
                                 ).toLocaleDateString()}{" "}
                                 at{" "}
                                 {new Date(
-                                  order.DeliveredAt
+                                  order.DeliveredAt,
                                 ).toLocaleTimeString()}
                               </span>
                             </div>
@@ -1487,7 +1488,7 @@ export const Dashboard: React.FC = () => {
                           <span className={styles["info-value"]}>
                             Ksh.{" "}
                             {parseFloat(
-                              String(order.Delicacy?.Price) || "0"
+                              String(order.Delicacy?.Price) || "0",
                             ).toFixed(2)}
                           </span>
                         </div>
@@ -1502,7 +1503,7 @@ export const Dashboard: React.FC = () => {
                         <span className={styles["amount-value"]}>
                           Ksh.{" "}
                           {parseFloat(String(order.TotalAmount) || "0").toFixed(
-                            2
+                            2,
                           )}
                         </span>
                       </div>
@@ -1573,7 +1574,7 @@ export const Dashboard: React.FC = () => {
                       <div className={styles["item-total"]}>
                         Ksh.
                         {((item?.Delicacy?.Price ?? 0) * item.Quantity).toFixed(
-                          2
+                          2,
                         )}
                       </div>
                       <button
@@ -1593,7 +1594,7 @@ export const Dashboard: React.FC = () => {
                         .reduce(
                           (sum, item) =>
                             sum + (item.Delicacy?.Price ?? 0) * item.Quantity,
-                          0
+                          0,
                         )
                         .toFixed(2)}
                     </strong>
@@ -1711,8 +1712,9 @@ export const Dashboard: React.FC = () => {
                     required: "Check-in is required",
                     validate: (value) => {
                       if (selectedBusinessRoom) {
-                        if(!CheckInDate) return "Please select check-in date first";
-                        
+                        if (!CheckInDate)
+                          return "Please select check-in date first";
+
                         const selectedDate = new Date(CheckInDate);
                         const today = new Date();
 
@@ -1916,12 +1918,12 @@ export const Dashboard: React.FC = () => {
                                 (sum, item) =>
                                   sum +
                                   (item.Delicacy?.Price ?? 0) * item.Quantity,
-                                0
+                                0,
                               )
                               .toFixed(2)
                           : selectedRoom
-                          ? selectedRoom.PricePerNight
-                          : selectedBusinessRoom?.PricePerHour}
+                            ? selectedRoom.PricePerNight
+                            : selectedBusinessRoom?.PricePerHour}
                       </span>
                     </div>
                     {currentPaymentType !== "cart" && (
@@ -1956,12 +1958,12 @@ export const Dashboard: React.FC = () => {
                                 (sum, item) =>
                                   sum +
                                   (item.Delicacy?.Price ?? 0) * item.Quantity,
-                                0
+                                0,
                               )
                               .toFixed(2)
                           : selectedRoom
-                          ? selectedRoom.PricePerNight
-                          : selectedBusinessRoom?.PricePerHour}
+                            ? selectedRoom.PricePerNight
+                            : selectedBusinessRoom?.PricePerHour}
                       </span>
                     </div>
                   </div>

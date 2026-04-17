@@ -40,7 +40,7 @@ interface ProfileFormData {
   NotificationsEnabled: boolean;
   TwoFactorEnabled: boolean;
   MarketingEmails: boolean;
-}
+};
 
 export const Profile: React.FC = () => {
   const [user, setUser] = useState<UserInterface | null>(null);
@@ -58,9 +58,7 @@ export const Profile: React.FC = () => {
     handleSubmit,
     watch,
     formState: { errors, isValid, isDirty },
-    reset,
-    setValue
-  } = useForm<ProfileFormData>({
+    reset  } = useForm<ProfileFormData>({
     defaultValues: {
       FullName: '',
       Email: '',
@@ -146,66 +144,73 @@ export const Profile: React.FC = () => {
 
   const validationRules = {
     FullName: {
-      required: 'Full name is required',
+      required: "Full name is required",
       minLength: {
         value: 2,
-        message: 'Name must be at least 2 characters long'
+        message: "Name must be at least 2 characters long",
       },
       maxLength: {
         value: 50,
-        message: 'Name cannot exceed 50 characters'
+        message: "Name cannot exceed 50 characters",
       },
       pattern: {
         value: /^[a-zA-Z\s'-]+$/,
-        message: 'Name can only contain letters, spaces, hyphens, and apostrophes'
-      }
+        message:
+          "Name can only contain letters, spaces, hyphens, and apostrophes",
+      },
     },
     Email: {
-      required: 'Email is required',
+      required: "Email is required",
       pattern: {
         value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-        message: 'Please enter a valid email address'
-      }
+        message: "Please enter a valid email address",
+      },
     },
     Phone: {
-      required: 'Phone number is required',
+      required: "Phone number is required",
       pattern: {
+        // eslint-disable-next-line
         value: /^\+?[\d\s\-\(\)]+$/,
-        message: 'Please enter a valid phone number'
+        message: "Please enter a valid phone number",
       },
       minLength: {
         value: 10,
-        message: 'Phone number must be at least 10 digits'
-      }
+        message: "Phone number must be at least 10 digits",
+      },
     },
     CurrentPassword: {
-      required: isEditing && newPassword ? 'Current password is required when setting a new password' : false,
+      required:
+        isEditing && newPassword
+          ? "Current password is required when setting a new password"
+          : false,
       minLength: {
         value: 8,
-        message: 'Password must be at least 8 characters long'
-      }
+        message: "Password must be at least 8 characters long",
+      },
     },
     NewPassword: {
       minLength: {
         value: 8,
-        message: 'Password must be at least 8 characters long'
+        message: "Password must be at least 8 characters long",
       },
       pattern: {
-        value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-        message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
-      }
+        value:
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+        message:
+          "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+      },
     },
     ConfirmPassword: {
       validate: (value: string | undefined) => {
         if (newPassword && !value) {
-          return 'Please confirm your new password';
+          return "Please confirm your new password";
         }
         if (value && value !== newPassword) {
-          return 'Passwords do not match';
+          return "Passwords do not match";
         }
         return true;
-      }
-    }
+      },
+    },
   };
 
   const onSubmit: SubmitHandler<ProfileFormData> = async (data) => {

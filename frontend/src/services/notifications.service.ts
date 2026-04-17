@@ -13,7 +13,7 @@ export class NotificationService {
     return result.data as ServiceResult<Notification>;
   }
 
-  static async DeleteNotification(
+  static async DeleteNotification( 
     NotificationId: string
   ): Promise<ServiceResult<Notification>> {
     const result = await axios.delete(

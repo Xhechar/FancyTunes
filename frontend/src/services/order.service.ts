@@ -13,7 +13,7 @@ export class OrderService {
       `${this.ApiUrl}/update-order/${OrderId}`,
       { withCredentials: true }
     );
-    return result.data as ServiceResult<Order>;
+    return result.data as ServiceResult<Order>; 
   }
 
   static async DeleteOrder(OrderId: string): Promise<ServiceResult<Order>> {

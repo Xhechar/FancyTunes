@@ -68,7 +68,7 @@ export class BusinessRoomService {
   > {
     let result = await axios.get<ServiceResult<BusinessRoom>>(
       `${this.ApiUrl}/get-available-business-rooms`,
-      { withCredentials: true }
+      { withCredentials: true } 
     );
     return result.data;
   }

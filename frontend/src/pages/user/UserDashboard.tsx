@@ -35,7 +35,7 @@ interface NavItem {
   path: string;
   badge?: number;
   description: string;
-}
+};
 
 interface UserDashboardProps {
   user?: UserInterface;

@@ -5,16 +5,14 @@ import {
   Minus,
   Trash2,
   Calendar,
-  DollarSign,
   Search,
   TrendingUp,
   Package,
   CreditCard,
-  ShoppingBag,
   Loader2,
   Check,
   X,
-} from "lucide-react";
+} from "lucide-react"; 
 import styles from "../../../styles/user/user_routes/Cart.module.css";
 import { User, Cart as UserCart } from "../../../interfaces/interfaces";
 import { UsersService } from "../../../services/user.service";
@@ -346,8 +344,7 @@ export const Cart: React.FC = () => {
   };
 
   const clearCart = async() => {
-    let result = await CartService.ClearUserCarts();
-
+    // eslint-disable-next-line
     const clearCart = async () => {
       try {
         const result = await CartService.ClearUserCarts();

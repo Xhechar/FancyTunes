@@ -30,7 +30,7 @@ const app = Express();
 app.use(bodyParser.json());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "https://fancy-tunes-xhechar.vercel.app",
     credentials: true
   })
 );
@@ -67,8 +67,8 @@ const server = http.createServer(app);
 
 export const io: Server = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
-    credentials: true
+    origin: "https://fancy-tunes-xhechar.vercel.app",
+    credentials: true,
   },
 });
 

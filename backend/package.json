@@ -4,9 +4,10 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start:build": "tsc -w",
-    "start:xhr": "nodemon dist/server.js",
-    "start": "concurrently npm:start:*"
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "concurrently \"tsc --watch\" \"nodemon dist/server.js\"",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",

@@ -11,7 +11,6 @@ import {
   Briefcase,
   Users,
   Clock,
-  DollarSign,
   CheckCircle,
   XCircle,
 } from "lucide-react";
@@ -129,6 +128,7 @@ export const BusinessRooms: React.FC = () => {
 
   useEffect(() => {
     filterRooms();
+    // eslint-disable-next-line
   }, [searchTerm, availabilityFilter, businessRooms]);
 
   const filterRooms = () => {

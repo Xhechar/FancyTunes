@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Calendar,
-  MapPin,
   Users,
   CreditCard,
   CheckCircle,
@@ -9,7 +8,6 @@ import {
   AlertCircle,
   DollarSign,
   Bed,
-  Star,
   MessageSquare,
   Filter,
   Search,
@@ -20,7 +18,7 @@ import {
   Plus,
   CalendarDays,
   UserCheck,
-} from "lucide-react";
+} from "lucide-react"; 
 import styles from "../../../styles/user/user_routes/Bookings.module.css";
 import { Booking, User } from "../../../interfaces/interfaces";
 import { UsersService } from "../../../services/user.service";

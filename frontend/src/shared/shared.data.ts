@@ -1,2 +1,2 @@
 
-export const BackendRoute = "http://localhost:3001/";
+export const BackendRoute = "https://api-fancy-tunes.onrender.com/";

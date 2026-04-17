@@ -15,7 +15,6 @@ export class PaymentService {
       Payment,
       { withCredentials: true }
     );
-    console.log("payment data", Payment);
     return result.data as ServiceResult<Payment>;
   }
 

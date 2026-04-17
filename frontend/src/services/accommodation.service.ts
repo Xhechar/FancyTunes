@@ -9,7 +9,7 @@ export class AccommodationService {
 
   static async UpdateAccommodation(
     AccommodationId: string,
-    Accommodation: UpdateAccommodationDto
+    Accommodation: UpdateAccommodationDto 
   ): Promise<ServiceResult<Accommodation>> {
     let result = await axios.put(
       `${this.ApiUrl}/update-accommodation/${AccommodationId}`,

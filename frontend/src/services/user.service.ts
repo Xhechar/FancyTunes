@@ -11,7 +11,9 @@ export class UsersService {
   private static ApiUrl = `${BackendRoute}user`;
 
   static async CreateUser(User: CreateUserDto): Promise<ServiceResult<User>> {
-    const result = await axios.post(`${this.ApiUrl}/create-user`, User);
+    const result = await axios.post(`${this.ApiUrl}/create-user`, User, {
+      withCredentials: true
+    });
     return result.data as ServiceResult<User>;
   }
 

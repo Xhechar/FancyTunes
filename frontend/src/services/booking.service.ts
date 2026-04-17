@@ -14,7 +14,7 @@ export class BookingService {
     let result = await axios.put<ServiceResult<Booking>>(
       `${this.ApiUrl}/update-booking/${BookingId}`,
       Booking,
-      { withCredentials: true }
+      { withCredentials: true } 
     );
     return result.data;
   }

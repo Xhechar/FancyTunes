@@ -8,7 +8,7 @@ import { ServiceResponse } from "../interfaces/service.result/service.response";
 import { ErrorCode } from "../interfaces/enum/response.enum";
 import { TokenDetails } from "../interfaces/utils/token.details";
 import jwt from "jsonwebtoken";
-import ejs, { name } from "ejs";
+import ejs from "ejs";
 import path from "path";
 import { sendMail } from "../mails/services/mail.service";
 import { MessageOptions } from "../interfaces/utils/mail";

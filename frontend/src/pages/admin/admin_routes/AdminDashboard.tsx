@@ -3,7 +3,6 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
-  Users,
   Bed,
   Briefcase,
   Utensils,
@@ -13,9 +12,6 @@ import {
   Star,
   Bell,
   CheckCircle,
-  XCircle,
-  Package,
-  CreditCard,
 } from "lucide-react";
 import styles from "../../../styles/admin/admin_routes/AdminDashboard.module.css";
 

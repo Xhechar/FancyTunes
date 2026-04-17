@@ -57,7 +57,7 @@ export interface Room {
   Bookings?: Booking[];
   Reviews?: Review[];
   RoomImages?: RoomImage[];
-}
+};
 
 export interface Delicacy {
   DelicacyId: string;

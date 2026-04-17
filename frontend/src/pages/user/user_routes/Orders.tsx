@@ -16,13 +16,11 @@ import {
   Plus,
   ShoppingBag,
   ChefHat,
-  Timer,
-  MessageSquare,
+  Timer, 
 } from "lucide-react";
 import styles from "../../../styles/user/user_routes/Orders.module.css";
-import { User, Order, Delicacy, OrderItem } from "../../../interfaces/interfaces";
+import { User, Order } from "../../../interfaces/interfaces";
 import { UsersService } from "../../../services/user.service";
-import { socket } from "../../../socket.io";
 import Toast, { ToastProps } from "../../../components/Toast";
 
 export const Orders: React.FC = () => {

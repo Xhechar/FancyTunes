@@ -18,7 +18,7 @@ interface LoginFormData {
   email: string;
   password: string;
   rememberMe?: boolean;
-}
+};
 
 export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);

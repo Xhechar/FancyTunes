@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import {
   Plus,
   Edit,
@@ -118,6 +118,7 @@ export const Delicacies: React.FC = () => {
 
   useEffect(() => {
     filterDelicacies();
+    // eslint-disable-next-line
   }, [searchTerm, categoryFilter, availabilityFilter, delicacies]);
 
   const filterDelicacies = () => {

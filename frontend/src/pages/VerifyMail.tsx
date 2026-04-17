@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import {
@@ -19,7 +19,7 @@ import { ChangePasswoerdDto } from "../interfaces/interfaces";
 
 interface EmailFormData {
   email: string;
-}
+};
 
 interface CodeFormData {
   verificationCode: string;
