@@ -314,7 +314,7 @@ export const BusinessRooms: React.FC = () => {
       const formData: FormData = new FormData();
 
       formData.append("file", file);
-      formData.append("upload_preset", "allapps");
+      formData.append("upload_preset", "fancy-tunes");
       formData.append("cloud_name", "dakyiye2e");
 
       await fetch("https://api.cloudinary.com/v1_1/dakyiye2e/image/upload", {

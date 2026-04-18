@@ -281,7 +281,7 @@ export const Profile: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", "allapps");
+      formData.append("upload_preset", "fancy-tunes");
       formData.append("cloud_name", "dakyiye2e");
 
       const res = await fetch("https://api.cloudinary.com/v1_1/dakyiye2e/image/upload", {
