@@ -42,6 +42,8 @@ export class OrderService implements IOrderService {
           DelicacyId: item.DelicacyId,
           Quantity: item.Quantity,
           TotalAmount: Number(item.Delicacy.Price) * item.Quantity,
+          PaymentStatus: "paid",
+          OrderStatus: "pending",
         }
       })
     });

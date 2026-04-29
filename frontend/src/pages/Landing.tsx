@@ -995,7 +995,7 @@ export const Landing: React.FC = () => {
             <p className="footer-dev">
               Developed by{" "}
               <a
-                href="https://Xhechar.github.io/felix"
+                href="https://xhechar.vercel.app/"
                 className="footer-dev-link"
                 target="_blank"
                 rel="noopener noreferrer"
